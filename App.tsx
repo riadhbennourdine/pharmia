@@ -83,7 +83,7 @@ const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch('/api/data');
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/data`);
         if (!response.ok) {
           throw new Error(`Erreur HTTP: ${response.status}`);
         }
@@ -101,7 +101,7 @@ const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
   const addMemoFiche = useCallback(async (newFiche: MemoFiche): Promise<MemoFiche> => {
     try {
-      const response = await fetch('/api/memofiches', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/memofiches`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newFiche),
@@ -151,7 +151,7 @@ const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     });
 
     try {
-      const response = await fetch(`/api/memofiches/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/memofiches/${id}`, {
         method: 'DELETE',
       });
       if (!response.ok) {
