@@ -1,0 +1,205 @@
+
+import { GoogleGenAI, Type } from "@google/genai";
+import { MemoFiche, Theme, SystemeOrgane, ExternalResource } from '../types';
+
+if (!import.meta.env.VITE_GEMINI_API_KEY) {
+    throw new Error("VITE_GEMINI_API_KEY environment variable not set");
+}
+
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+
+const sectionSchema = {
+    type: Type.OBJECT,
+    properties: {
+        id: { type: Type.STRING },
+        title: { type: Type.STRING },
+        content: { type: Type.STRING, description: "Content in Markdown format." },
+        children: {
+            type: Type.ARRAY,
+            description: "Nested sub-sections. Keep this one level deep.",
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    id: { type: Type.STRING },
+                    title: { type: Type.STRING },
+                    content: { type: Type.STRING, description: "Content in Markdown format." },
+                },
+                required: ["id", "title", "content"],
+            }
+        }
+    },
+    required: ["id", "title", "content"]
+};
+
+const externalResourceSchema = {
+    type: Type.OBJECT,
+    properties: {
+        type: { type: Type.STRING, enum: ['video', 'podcast', 'quiz', 'article'], description: "Type of the external resource." },
+        title: { type: Type.STRING, description: "Title of the resource." },
+        url: { type: Type.STRING, description: "Direct URL to the resource." }
+    },
+    required: ["type", "title", "url"]
+};
+
+const memoFicheItemSchema = {
+    type: Type.OBJECT,
+    properties: {
+        id: { type: Type.STRING, description: "Unique ID for the memo fiche. Use a UUID-like string." },
+        title: { type: Type.STRING, description: "Titre de la mémofiche." },
+        shortDescription: { type: Type.STRING, description: "A very brief, one-sentence summary for card previews." },
+        imageUrl: { type: Type.STRING, description: "A placeholder image URL from picsum.photos" },
+        flashSummary: { type: Type.STRING, description: "Synthèse flash de 2-3 phrases (résumé)." },
+        level: { type: Type.STRING, description: "Niveau de difficulté (e.g., 'Débutant', 'Intermédiaire', 'Expert')." },
+        createdAt: { type: Type.STRING, description: "Date of creation in YYYY-MM-DD format. Use today's date." },
+        kahootUrl: { type: Type.STRING, description: "Optional URL to a relevant Kahoot! quiz. Must be a valid Kahoot URL if provided." },
+        memoContent: {
+            type: Type.ARRAY,
+            description: "Exactly 6 sections with titles: 'Étape 1/6 : Définition', 'Étape 2/6 : Symptômes', 'Étape 3/6 : Questions à poser', 'Étape 4/6 : Conseils', 'Étape 5/6 : Signes d’alerte', 'Étape 6/6 : Contre-indications'.",
+            items: sectionSchema
+        },
+        theme: {
+            type: Type.OBJECT,
+            properties: {
+                id: { type: Type.STRING },
+                Nom: { type: Type.STRING },
+            },
+                required: ["id", "Nom"],
+        },
+        systeme_organe: {
+            type: Type.OBJECT,
+            properties: {
+                id: { type: Type.STRING },
+                Nom: { type: Type.STRING },
+            },
+                required: ["id", "Nom"],
+        },
+        flashcards: {
+            type: Type.ARRAY,
+            description: "Exactly 10 flashcards (question/answer format).",
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    question: { type: Type.STRING },
+                    answer: { type: Type.STRING },
+                },
+                required: ["question", "answer"],
+            },
+        },
+        quiz: {
+            type: Type.ARRAY,
+            description: "Exactly 10 quiz questions (MCQ or true/false) with answers and pedagogical explanations.",
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    question: { type: Type.STRING },
+                    type: { type: Type.STRING, enum: ["mcq", "truefalse"] },
+                    options: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    correctAnswer: { type: Type.STRING },
+                    explanation: { type: Type.STRING },
+                },
+                    required: ["question", "type", "options", "correctAnswer", "explanation"],
+            },
+        },
+        glossaryTerms: {
+            type: Type.ARRAY,
+            description: "Exactly 10 technical terms with their simple definitions, derived from the source text.",
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    term: { type: Type.STRING },
+                    definition: { type: Type.STRING },
+                },
+                required: ["term", "definition"],
+            },
+        },
+        externalResources: {
+            type: Type.ARRAY,
+            description: "A list of relevant external resources (video, podcast, etc.).",
+            items: externalResourceSchema
+        },
+    },
+    required: ["id", "title", "shortDescription", "imageUrl", "flashSummary", "memoContent", "theme", "systeme_organe", "flashcards", "quiz", "glossaryTerms", "level", "createdAt", "externalResources"],
+};
+
+interface GenerationOptions {
+    imageUrl?: string;
+    kahootUrl?: string;
+    videoUrl?: string;
+    podcastUrl?: string;
+}
+
+export const generateSingleMemoFiche = async (
+    rawText: string, 
+    theme: Theme, 
+    system: SystemeOrgane,
+    options: GenerationOptions = {}
+): Promise<MemoFiche> => {
+    
+    let providedResourcesInstructions = "";
+    if (options.videoUrl) {
+        providedResourcesInstructions += `- Vidéo YouTube à inclure OBLIGATOIREMENT : ${options.videoUrl}\n`;
+    }
+    if (options.podcastUrl) {
+        providedResourcesInstructions += `- Podcast à inclure OBLIGATOIREMENT : ${options.podcastUrl}\n`;
+    }
+
+    const prompt = `
+        Tu es un expert en pharmacie d’officine et en pédagogie active. À partir du texte brut ci-dessous, génère une mémofiche pédagogique complète en FRANÇAIS.
+        La réponse DOIT être un objet JSON valide qui respecte scrupuleusement le schéma fourni.
+
+        **Texte Brut à Analyser:**
+        ---
+        ${rawText}
+        ---
+
+        **Instructions de Génération:**
+        - **Structure Complète**: Génère tous les champs requis par le schéma JSON.
+        - **Titre, Niveau**: Déduis ces informations du texte. Le niveau doit être 'Débutant', 'Intermédiaire', ou 'Expert'.
+        - **Date**: Pour le champ 'createdAt', utilise la date d'aujourd'hui au format YYYY-MM-DD.
+        - **Catégorisation Imposée**: Tu DOIS utiliser les informations suivantes pour la classification. Ne les modifie PAS.
+          - Thème: { id: "${theme.id}", Nom: "${theme.Nom}" }
+          - Système/Organe: { id: "${system.id}", Nom: "${system.Nom}" }
+        - **Réponse JSON**: Remplis les champs 'theme' et 'systeme_organe' de l'objet JSON de sortie avec EXACTEMENT ces valeurs.
+        - **Sections**: Crée exactement 6 sections avec les titres suivants : "Étape 1/6 : Définition", "Étape 2/6 : Symptômes", "Étape 3/6 : Questions à poser", "Étape 4/6 : Conseils", "Étape 5/6 : Signes d’alerte", "Étape 6/6 : Contre-indications". Le contenu doit être en Markdown.
+        - **Contenu Pédagogique**: Crée EXACTEMENT 10 flashcards, et 10 questions de quiz (variées, QCM et Vrai/Faux).
+        - **Termes Techniques**: Identifie 10 termes techniques pertinents dans le texte et fournis leurs définitions pour le glossaire.
+        - **Image**: ${options.imageUrl ? `Utilise CETTE URL EXACTE pour 'imageUrl': ${options.imageUrl}` : "Utilise 'https://picsum.photos/800/600' pour imageUrl."}
+        - **Kahoot**: ${options.kahootUrl ? `Utilise CETTE URL EXACTE pour 'kahootUrl': ${options.kahootUrl}` : "Si pertinent, fournis un lien vers un quiz Kahoot public sur le sujet dans 'kahootUrl'. Sinon, laisse ce champ vide ou null."}
+        - **Ressources Externes**: 
+          ${providedResourcesInstructions || "Suggère 1 ou 2 liens pertinents (vidéos YouTube, articles, podcasts). Pour les vidéos, utilise des URLs 'embed'."}
+        - **IDs**: Assure-toi que l'ID de la fiche et les IDs des sections sont des chaînes de caractères uniques (similaire à un UUID).
+    `;
+    
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: memoFicheItemSchema,
+            }
+        });
+
+        const jsonText = response.text.trim();
+        const data = JSON.parse(jsonText) as MemoFiche;
+        
+        // Override creation date for accuracy
+        data.createdAt = new Date().toISOString().split('T')[0];
+
+        // Ensure provided resources are present
+        const finalResources: ExternalResource[] = data.externalResources || [];
+        if (options.videoUrl && !finalResources.some(r => r.url === options.videoUrl)) {
+            finalResources.push({ type: 'video', title: 'Vidéo recommandée', url: options.videoUrl });
+        }
+        if (options.podcastUrl && !finalResources.some(r => r.url === options.podcastUrl)) {
+            finalResources.push({ type: 'podcast', title: 'Podcast recommandé', url: options.podcastUrl });
+        }
+        data.externalResources = finalResources;
+
+        return data;
+
+    } catch (error) {
+        console.error("Error generating single memo fiche with Gemini:", error);
+        throw new Error("Impossible de générer la mémofiche depuis l'IA. Veuillez réessayer.");
+    }
+};
