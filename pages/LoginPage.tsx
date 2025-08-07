@@ -12,6 +12,8 @@ const LoginPage: React.FC = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [username, setUsername] = useState(''); // For registration
+    const [pharmacienResponsableId, setPharmacienResponsableId] = useState('');
+    const [pharmaciens, setPharmaciens] = useState<any[]>([]);
     const [isRegisterMode, setIsRegisterMode] = useState(false);
     const [error, setError] = useState('');
 
@@ -20,6 +22,38 @@ const LoginPage: React.FC = () => {
         navigate('/');
       }
     }, [isLoggedIn, navigate]);
+
+    useEffect(() => {
+        if (isRegisterMode && role === UserRole.Preparateur) {
+            const fetchPharmaciens = async () => {
+                try {
+                    const token = localStorage.getItem('token'); // Assuming token is stored in localStorage
+                    if (!token) {
+                        setError('Veuillez vous connecter pour accéder à cette fonctionnalité.');
+                        return;
+                    }
+                    const response = await fetch(import.meta.env.VITE_BACKEND_URL + '/api/pharmaciens', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                        },
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        setPharmaciens(data);
+                        if (data.length > 0) {
+                            setPharmacienResponsableId(data[0]._id); // Select first by default
+                        }
+                    } else {
+                        setError('Erreur lors du chargement des pharmaciens.');
+                    }
+                } catch (err) {
+                    console.error('Error fetching pharmaciens:', err);
+                    setError('Erreur réseau lors du chargement des pharmaciens.');
+                }
+            };
+            fetchPharmaciens();
+        }
+    }, [isRegisterMode, role]);
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -38,7 +72,7 @@ const LoginPage: React.FC = () => {
 
         const endpoint = isRegisterMode ? '/api/register' : '/api/login';
         const body = isRegisterMode
-            ? { email: loginIdentifier, password, role, username } // For registration, email is loginIdentifier
+            ? { email: loginIdentifier, password, role, username, ...(role === UserRole.Preparateur && { pharmacienResponsableId }) }
             : { loginIdentifier, password }; // For login, loginIdentifier can be email or username
 
         try {
@@ -155,10 +189,25 @@ const LoginPage: React.FC = () => {
                                     onChange={(e) => setRole(e.target.value as UserRole)}
                                     className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
                                 >
-                                    <option value={UserRole.Admin}>Admin</option>
-                                    <option value={UserRole.Formateur}>Formateur</option>
                                     <option value={UserRole.Pharmacien}>Pharmacien</option>
                                     <option value={UserRole.Preparateur}>Préparateur</option>
+                                </select>
+                            </div>
+                        )}
+                        {isRegisterMode && role === UserRole.Preparateur && (
+                            <div>
+                                <label htmlFor="pharmacien-responsable" className="block text-sm font-medium text-gray-700 mb-1">Pharmacien Responsable</label>
+                                <select
+                                    id="pharmacien-responsable"
+                                    value={pharmacienResponsableId}
+                                    onChange={(e) => setPharmacienResponsableId(e.target.value)}
+                                    className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+                                >
+                                    {pharmaciens.map((ph) => (
+                                        <option key={ph._id} value={ph._id}>
+                                            {ph.username} ({ph.email})
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                         )}

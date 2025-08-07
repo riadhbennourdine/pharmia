@@ -6,6 +6,34 @@ import { connectToServer, getDb } from './db.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
+// Middleware to verify JWT token
+const verifyToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ message: 'Access Denied: No token provided.' });
+    }
+
+    try {
+        const verified = jwt.verify(token, process.env.JWT_SECRET || 'supersecretjwtkey');
+        req.user = verified; // Attach user payload to request
+        next();
+    } catch (err) {
+        res.status(403).json({ message: 'Invalid Token.' });
+    }
+};
+
+// Middleware to check user roles
+const authorizeRoles = (roles) => {
+    return (req, res, next) => {
+        if (!req.user || !roles.includes(req.user.role)) {
+            return res.status(403).json({ message: 'Access Denied: Insufficient permissions.' });
+        }
+        next();
+    };
+};
+
 const app = express();
 const port = process.env.PORT || 5001;
 
@@ -80,7 +108,7 @@ app.get('/api/data', async (req, res) => {
     }
 });
 
-app.post('/api/memofiches', async (req, res) => {
+app.post('/api/memofiches', verifyToken, authorizeRoles(['Admin', 'Formateur']), async (req, res) => {
     try {
         const db = getDb();
         const newFiche = req.body;
@@ -137,10 +165,14 @@ app.delete('/api/memofiches/:id', async (req, res) => {
 app.post('/api/register', async (req, res) => {
     try {
         const db = getDb();
-        const { email, password, role, username } = req.body;
+        const { email, password, role, username, pharmacienResponsableId } = req.body;
 
         if (!email || !password || !role || !username) {
             return res.status(400).json({ message: 'Email, password, role, and username are required.' });
+        }
+
+        if (role === 'Preparateur' && !pharmacienResponsableId) {
+            return res.status(400).json({ message: 'Pharmacien Responsable is required for Preparateur role.' });
         }
 
         const existingUserByEmail = await db.collection('users').findOne({ email });
@@ -162,6 +194,10 @@ app.post('/api/register', async (req, res) => {
             role,
             createdAt: new Date(),
         };
+
+        if (role === 'Preparateur') {
+            newUser.pharmacienResponsableId = new ObjectId(pharmacienResponsableId);
+        }
 
         const result = await db.collection('users').insertOne(newUser);
         res.status(201).json({ message: 'User registered successfully', userId: result.insertedId });
@@ -207,6 +243,18 @@ app.post('/api/login', async (req, res) => {
 
     } catch (error) {
         console.error('Error during user login:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+// Get Pharmacien users for Preparateur selection
+app.get('/api/pharmaciens', verifyToken, authorizeRoles(['Preparateur', 'Admin']), async (req, res) => {
+    try {
+        const db = getDb();
+        const pharmaciens = await db.collection('users').find({ role: 'Pharmacien' }).project({ password: 0 }).toArray();
+        res.status(200).json(pharmaciens);
+    } catch (error) {
+        console.error('Error fetching pharmaciens:', error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
