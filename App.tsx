@@ -34,25 +34,33 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       default: return UserRole.Guest;
     }
   });
+  const [token, setToken] = useState<string | null>(() => {
+    return localStorage.getItem('token');
+  });
 
-  const login = (role: UserRole) => {
+  const login = (role: UserRole, newToken: string) => {
     localStorage.setItem('userRole', role);
+    localStorage.setItem('token', newToken);
     setUserRole(role);
+    setToken(newToken);
   };
 
   const logout = () => {
     localStorage.removeItem('userRole');
+    localStorage.removeItem('token');
     setUserRole(UserRole.Guest);
+    setToken(null);
   };
 
   const authValue = useMemo(() => ({
     userRole,
+    token,
     login,
     logout,
     isLoggedIn: userRole !== UserRole.Guest,
     canGenerateMemoFiche: userRole === UserRole.Admin,
     canEditMemoFiches: userRole === UserRole.Admin || userRole === UserRole.Formateur
-  }), [userRole]);
+  }), [userRole, token]);
 
   return (
     <AuthContext.Provider value={authValue}>
@@ -87,13 +95,18 @@ const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const [data, setData] = useState<PharmIaData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const { token } = useAuth(); // Get token from AuthContext
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/data`);
+        const headers: HeadersInit = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/data`, { headers });
         if (!response.ok) {
           throw new Error(`Erreur HTTP: ${response.status}`);
         }
@@ -107,13 +120,13 @@ const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       }
     };
     fetchData();
-  }, []);
+  }, [token]); // Re-fetch data when token changes
 
   const addMemoFiche = useCallback(async (newFiche: MemoFiche): Promise<MemoFiche> => {
     try {
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/memofiches`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(newFiche),
       });
       if (!response.ok) {
@@ -149,7 +162,7 @@ const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       setError("L'ajout de la mémofiche a échoué.");
       throw err;
     }
-  }, []);
+  }, [token]);
   
   const deleteMemoFiche = useCallback(async (id: string): Promise<void> => {
     const originalData = data;
@@ -163,6 +176,7 @@ const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     try {
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/memofiches/${id}`, {
         method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` },
       });
       if (!response.ok) {
         throw new Error('La suppression a échoué sur le serveur');
@@ -172,13 +186,13 @@ const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         setError("La suppression a échoué. Restauration des données.");
         setData(originalData); // Rollback
     }
-  }, [data]);
+  }, [data, token]);
 
   const updateMemoFiche = useCallback(async (updatedFiche: MemoFiche): Promise<MemoFiche> => {
     try {
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/memofiches/${updatedFiche.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(updatedFiche),
       });
       if (!response.ok) {
@@ -200,7 +214,7 @@ const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       setError("La mise à jour de la mémofiche a échoué.");
       throw err;
     }
-  }, []);
+  }, [token]);
 
   const getMemoFicheById = useCallback((id: string): MemoFiche | undefined => {
     return data?.memofiches.find(mf => mf.id === id);

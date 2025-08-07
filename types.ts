@@ -83,7 +83,8 @@ export enum UserRole {
 
 export interface AuthContextType {
   userRole: UserRole;
-  login: (role: UserRole) => void;
+  token: string | null;
+  login: (role: UserRole, token: string) => void;
   logout: () => void;
   isLoggedIn: boolean;
   canGenerateMemoFiche: boolean; // Only Admin

@@ -92,7 +92,7 @@ const LoginPage: React.FC = () => {
                     setIsRegisterMode(false); // Switch to login mode after successful registration
                 } else {
                     // Assuming login response includes the user's role
-                    login(data.role || role); // Use role from backend if provided, else default
+                    login(data.role || role, data.token); // Pass token to login
                     navigate('/');
                 }
             } else {
