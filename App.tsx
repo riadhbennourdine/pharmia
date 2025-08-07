@@ -24,7 +24,15 @@ export const useAuth = () => {
 
 const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userRole, setUserRole] = useState<UserRole>(() => {
-    return (localStorage.getItem('userRole') as UserRole) || UserRole.Guest;
+    const storedRole = localStorage.getItem('userRole');
+    // Map stored string to UserRole enum, default to Guest if invalid or not found
+    switch (storedRole) {
+      case 'Admin': return UserRole.Admin;
+      case 'Formateur': return UserRole.Formateur;
+      case 'Pharmacien': return UserRole.Pharmacien;
+      case 'Préparateur': return UserRole.Preparateur;
+      default: return UserRole.Guest;
+    }
   });
 
   const login = (role: UserRole) => {
