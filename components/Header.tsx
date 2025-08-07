@@ -4,7 +4,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../App';
 
 const Header: React.FC = () => {
-  const { isLoggedIn, logout, canEdit } = useAuth();
+  const { isLoggedIn, logout, canGenerateMemoFiche } = useAuth();
   const navigate = useNavigate();
   
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -33,7 +33,7 @@ const Header: React.FC = () => {
             <NavLink to="/fiches" className={navLinkClass}>
               Mémofiches
             </NavLink>
-            {canEdit && (
+            {canGenerateMemoFiche && (
               <NavLink to="/generateur" className={navLinkClass}>
                 Générateur
               </NavLink>

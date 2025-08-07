@@ -161,6 +161,55 @@ app.delete('/api/memofiches/:id', async (req, res) => {
     }
 });
 
+// Update Memo Fiche
+app.put('/api/memofiches/:id', verifyToken, authorizeRoles(['Admin', 'Formateur']), async (req, res) => {
+    try {
+        const db = getDb();
+        const { id } = req.params;
+        const updatedFiche = req.body;
+
+        if (!ObjectId.isValid(id)) {
+            return res.status(400).json({ message: 'Invalid ID format' });
+        }
+
+        // Ensure theme and system exist, create if they don't (similar to POST)
+        if (updatedFiche.theme) {
+            await db.collection('themes').updateOne(
+                { id: updatedFiche.theme.id },
+                { $setOnInsert: { id: updatedFiche.theme.id, Nom: updatedFiche.theme.Nom } },
+                { upsert: true }
+            );
+        }
+        if (updatedFiche.systeme_organe) {
+            await db.collection('systemesOrganes').updateOne(
+                { id: updatedFiche.systeme_organe.id },
+                { $setOnInsert: { id: updatedFiche.systeme_organe.id, Nom: updatedFiche.systeme_organe.Nom } },
+                { upsert: true }
+            );
+        }
+
+        // Remove _id from updatedFiche to prevent immutable field error
+        const { _id, ...fieldsToUpdate } = updatedFiche;
+
+        const result = await db.collection('memofiches').updateOne(
+            { _id: new ObjectId(id) },
+            { $set: fieldsToUpdate }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ message: 'Memo fiche not found' });
+        }
+
+        // Return the updated document
+        const savedFiche = await db.collection('memofiches').findOne({ _id: new ObjectId(id) });
+        res.status(200).json({ ...savedFiche, id: savedFiche._id.toString() });
+
+    } catch (error) {
+        console.error('Error updating memo fiche:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
 // User Registration
 app.post('/api/register', async (req, res) => {
     try {

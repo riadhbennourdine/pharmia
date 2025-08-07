@@ -42,7 +42,8 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     login,
     logout,
     isLoggedIn: userRole !== UserRole.Guest,
-    canEdit: userRole === UserRole.Admin || userRole === UserRole.Formateur
+    canGenerateMemoFiche: userRole === UserRole.Admin,
+    canEditMemoFiches: userRole === UserRole.Admin || userRole === UserRole.Formateur
   }), [userRole]);
 
   return (
@@ -60,6 +61,7 @@ interface DataContextType {
   error: string | null;
   getMemoFicheById: (id: string) => MemoFiche | undefined;
   addMemoFiche: (fiche: MemoFiche) => Promise<MemoFiche>;
+  updateMemoFiche: (fiche: MemoFiche) => Promise<MemoFiche>;
   deleteMemoFiche: (id: string) => Promise<void>;
 }
 
@@ -164,11 +166,39 @@ const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     }
   }, [data]);
 
+  const updateMemoFiche = useCallback(async (updatedFiche: MemoFiche): Promise<MemoFiche> => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/memofiches/${updatedFiche.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedFiche),
+      });
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`Impossible de mettre à jour la mémofiche: ${errorBody}`);
+      }
+      const savedFiche: MemoFiche = await response.json();
+
+      setData(prevData => {
+        if (!prevData) return null;
+        const updatedMemoFiches = prevData.memofiches.map(mf =>
+          mf.id === savedFiche.id ? savedFiche : mf
+        );
+        return { ...prevData, memofiches: updatedMemoFiches };
+      });
+      return savedFiche;
+    } catch (err) {
+      console.error("Erreur lors de la mise à jour de la mémofiche:", err);
+      setError("La mise à jour de la mémofiche a échoué.");
+      throw err;
+    }
+  }, []);
+
   const getMemoFicheById = useCallback((id: string): MemoFiche | undefined => {
     return data?.memofiches.find(mf => mf.id === id);
   }, [data]);
   
-  const value = useMemo(() => ({ data, loading, error, getMemoFicheById, addMemoFiche, deleteMemoFiche }), [data, loading, error, getMemoFicheById, addMemoFiche, deleteMemoFiche]);
+  const value = useMemo(() => ({ data, loading, error, getMemoFicheById, addMemoFiche, deleteMemoFiche, updateMemoFiche }), [data, loading, error, getMemoFicheById, addMemoFiche, deleteMemoFiche, updateMemoFiche]);
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 };
@@ -184,11 +214,11 @@ const MemoFicheDetailWrapper = () => {
 };
 
 const ProtectedRoute: React.FC = () => {
-    const { canEdit, isLoggedIn } = useAuth();
+    const { canGenerateMemoFiche, isLoggedIn } = useAuth();
     if (!isLoggedIn) {
         return <Navigate to="/connexion" replace />;
     }
-    if (!canEdit) {
+    if (!canGenerateMemoFiche) {
        return <Navigate to="/fiches" replace />;
     }
     return <Outlet />;
@@ -210,6 +240,7 @@ const App: React.FC = () => {
                 <Route path="/fiches/:id" element={<MemoFicheDetailWrapper />} />
                 <Route element={<ProtectedRoute />}>
                     <Route path="/generateur" element={<GeneratorPage />} />
+                <Route path="/edit-memofiche/:id" element={<GeneratorPage />} />
                 </Route>
               </Routes>
             </main>

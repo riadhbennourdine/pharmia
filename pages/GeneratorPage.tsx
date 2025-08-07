@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useData } from '../App';
 import { generateSingleMemoFiche } from '../services/geminiService';
 import { MemoFiche, Theme, SystemeOrgane } from '../types';
@@ -36,8 +36,10 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ item, isSelected, onSelect,
 
 
 const GeneratorPage: React.FC = () => {
-    const { data, addMemoFiche } = useData();
+    const { data, addMemoFiche, getMemoFicheById } = useData();
     const navigate = useNavigate();
+    const { id: memoFicheId } = useParams<{ id: string }>(); // Get ID from URL for edit mode
+
     const [prompt, setPrompt] = useState('');
     const [generatedFiche, setGeneratedFiche] = useState<MemoFiche | null>(null);
     const [loading, setLoading] = useState(false);
@@ -54,6 +56,26 @@ const GeneratorPage: React.FC = () => {
     const [videoUrl, setVideoUrl] = useState('');
     const [podcastUrl, setPodcastUrl] = useState('');
 
+    // Effect to load memo fiche data if in edit mode
+    useEffect(() => {
+        if (memoFicheId && data) {
+            const ficheToEdit = getMemoFicheById(memoFicheId);
+            if (ficheToEdit) {
+                setPrompt(ficheToEdit.flashSummary); // Using flashSummary as the prompt for editing
+                setThemeSelection(ficheToEdit.theme.id);
+                setSystemSelection(ficheToEdit.systeme_organe.id);
+                setImageUrl(ficheToEdit.imageUrl || '');
+                setKahootUrl(ficheToEdit.kahootUrl || '');
+                // Assuming videoUrl and podcastUrl are part of externalResources
+                const videoRes = ficheToEdit.externalResources?.find(r => r.type === 'video');
+                setVideoUrl(videoRes ? videoRes.url : '');
+                const podcastRes = ficheToEdit.externalResources?.find(r => r.type === 'podcast');
+                setPodcastUrl(podcastRes ? podcastRes.url : '');
+            } else {
+                setError("Mémofiche non trouvée pour l'édition.");
+            }
+        }
+    }, [memoFicheId, data, getMemoFicheById]);
 
     const handleGenerate = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -95,25 +117,51 @@ const GeneratorPage: React.FC = () => {
                 podcastUrl: podcastUrl.trim() || undefined,
             };
 
-            const ficheFromGemini = await generateSingleMemoFiche(prompt, themeForApi, systemForApi, generationOptions);
-            const savedFiche = await addMemoFiche(ficheFromGemini);
+            let savedFiche: MemoFiche;
+            if (memoFicheId) {
+                // Update existing memo fiche
+                const existingFiche = getMemoFicheById(memoFicheId);
+                if (!existingFiche) {
+                    throw new Error("Mémofiche à mettre à jour non trouvée.");
+                }
+                const updatedFiche: MemoFiche = {
+                    ...existingFiche,
+                    flashSummary: prompt, // Assuming prompt is the main editable content
+                    theme: themeForApi,
+                    systeme_organe: systemForApi,
+                    imageUrl: imageUrl.trim() || '',
+                    kahootUrl: kahootUrl.trim() || '',
+                    externalResources: [
+                        ...(videoUrl.trim() ? [{ type: 'video', title: 'Vidéo', url: videoUrl.trim() }] : []),
+                        ...(podcastUrl.trim() ? [{ type: 'podcast', title: 'Podcast', url: podcastUrl.trim() }] : []),
+                    ],
+                    // Other fields might need to be updated based on your UI
+                };
+                savedFiche = await updateMemoFiche(updatedFiche);
+            } else {
+                // Generate and add new memo fiche
+                const ficheFromGemini = await generateSingleMemoFiche(prompt, themeForApi, systemForApi, generationOptions);
+                savedFiche = await addMemoFiche(ficheFromGemini);
+            }
 
             setGeneratedFiche(savedFiche);
             setIsSuccess(true);
             
-            // Reset form
-            setPrompt('');
-            setThemeSelection('');
-            setSystemSelection('');
-            setNewThemeName('');
-            setNewSystemName('');
-            setImageUrl('');
-            setKahootUrl('');
-            setVideoUrl('');
-            setPodcastUrl('');
+            // Reset form (only if creating new, or if you want to clear after edit)
+            if (!memoFicheId) {
+                setPrompt('');
+                setThemeSelection('');
+                setSystemSelection('');
+                setNewThemeName('');
+                setNewSystemName('');
+                setImageUrl('');
+                setKahootUrl('');
+                setVideoUrl('');
+                setPodcastUrl('');
+            }
 
         } catch (err: any) {
-            setError(err.message || "Une erreur inconnue est survenue lors de la génération.");
+            setError(err.message || "Une erreur inconnue est survenue lors de la génération/mise à jour.");
             console.error(err);
         } finally {
             setLoading(false);
@@ -130,10 +178,10 @@ const GeneratorPage: React.FC = () => {
                 <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-8 border border-gray-200 text-center">
                     <div className="flex items-center justify-center gap-3 mb-4">
                         <SparklesIcon className="w-8 h-8 text-green-500" />
-                        <h1 className="text-3xl font-bold text-gray-800">Générateur de Mémofiches</h1>
+                        <h1 className="text-3xl font-bold text-gray-800">{memoFicheId ? 'Modifier la Mémofiche' : 'Générateur de Mémofiches'}</h1>
                     </div>
                     <p className="text-gray-600 max-w-2xl mx-auto">
-                        Suivez les étapes pour transformer un texte brut en une mémofiche pédagogique complète.
+                        {memoFicheId ? 'Mettez à jour les informations de votre mémofiche.' : 'Suivez les étapes pour transformer un texte brut en une mémofiche pédagogique complète.'}
                     </p>
                 </div>
 
@@ -215,7 +263,7 @@ const GeneratorPage: React.FC = () => {
                                 className="w-full flex items-center justify-center gap-3 bg-green-600 text-white font-bold px-6 py-4 rounded-lg shadow-md hover:bg-green-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed text-lg"
                             >
                                 <SparklesIcon className="w-6 h-6"/>
-                                {loading ? 'Génération en cours...' : 'Générer la Mémofiche'}
+                                {loading ? (memoFicheId ? 'Mise à jour en cours...' : 'Génération en cours...') : (memoFicheId ? 'Mettre à jour la Mémofiche' : 'Générer la Mémofiche')}
                             </button>
                         </div>
                     </form>

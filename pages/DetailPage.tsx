@@ -20,7 +20,7 @@ const DetailPage: React.FC<DetailPageProps> = ({ memoFiche }) => {
   const [activeTab, setActiveTab] = useState<Tab>('memo');
   const [scroll, setScroll] = useState(0);
   const { deleteMemoFiche } = useData();
-  const { canEdit } = useAuth();
+  const { canEditMemoFiches } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -153,14 +153,25 @@ const DetailPage: React.FC<DetailPageProps> = ({ memoFiche }) => {
           <div className="relative">
               <img src={memoFiche.imageUrl} alt={memoFiche.title} className="w-full h-48 md:h-64 object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-               {canEdit && (
-                <button
-                  onClick={handleDelete}
-                  className="absolute top-4 right-4 z-10 p-2 bg-white/80 rounded-full text-red-500 hover:bg-red-500 hover:text-white transition-all"
-                  aria-label="Supprimer la fiche"
-                >
-                  <TrashIcon className="w-6 h-6" />
-                </button>
+               {canEditMemoFiches && (
+                <div className="absolute top-4 right-4 z-10 flex space-x-2">
+                    <button
+                        onClick={() => navigate(`/edit-memofiche/${memoFiche.id}`)}
+                        className="p-2 bg-white/80 rounded-full text-blue-500 hover:bg-blue-500 hover:text-white transition-all"
+                        aria-label="Modifier la fiche"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                        </svg>
+                    </button>
+                    <button
+                        onClick={handleDelete}
+                        className="p-2 bg-white/80 rounded-full text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                        aria-label="Supprimer la fiche"
+                    >
+                        <TrashIcon className="w-6 h-6" />
+                    </button>
+                </div>
                )}
               <div className="absolute bottom-0 left-0 p-6 w-full">
                   <div className="flex flex-wrap gap-2 text-xs mb-2">

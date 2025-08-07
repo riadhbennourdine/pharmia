@@ -86,6 +86,7 @@ export interface AuthContextType {
   login: (role: UserRole) => void;
   logout: () => void;
   isLoggedIn: boolean;
-  canEdit: boolean; // Admin or Formateur
+  canGenerateMemoFiche: boolean; // Only Admin
+  canEditMemoFiches: boolean; // Admin or Formateur
 }
 // --- END: Added for Authentication ---
