@@ -102,10 +102,13 @@ const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       setLoading(true);
       setError(null);
       try {
-        const headers: HeadersInit = {};
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
+        if (!token) { // Only fetch if token exists
+          setLoading(false);
+          return;
         }
+        const headers: HeadersInit = {};
+        headers['Authorization'] = `Bearer ${token}`;
+        
         const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/data`, { headers });
         if (!response.ok) {
           throw new Error(`Erreur HTTP: ${response.status}`);
