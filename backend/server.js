@@ -39,7 +39,7 @@ const port = process.env.PORT || 5001;
 
 // Middleware
 app.use(cors({
-    origin: 'https://pharmia-1-vsx3.onrender.com',
+    origin: 'https://pharmia-frontend-new.onrender.com',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
 }));
