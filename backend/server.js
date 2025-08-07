@@ -3,6 +3,8 @@ import cors from 'cors';
 import 'dotenv/config';
 import { ObjectId } from 'mongodb';
 import { connectToServer, getDb } from './db.js';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 const app = express();
 const port = process.env.PORT || 5001;
@@ -127,6 +129,84 @@ app.delete('/api/memofiches/:id', async (req, res) => {
 
     } catch (error) {
         console.error('Error deleting memo fiche:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+// User Registration
+app.post('/api/register', async (req, res) => {
+    try {
+        const db = getDb();
+        const { email, password, role, username } = req.body;
+
+        if (!email || !password || !role || !username) {
+            return res.status(400).json({ message: 'Email, password, role, and username are required.' });
+        }
+
+        const existingUserByEmail = await db.collection('users').findOne({ email });
+        if (existingUserByEmail) {
+            return res.status(409).json({ message: 'User with this email already exists.' });
+        }
+
+        const existingUserByUsername = await db.collection('users').findOne({ username });
+        if (existingUserByUsername) {
+            return res.status(409).json({ message: 'User with this username already exists.' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10); // Hash password with salt rounds
+
+        const newUser = {
+            email,
+            username,
+            password: hashedPassword,
+            role,
+            createdAt: new Date(),
+        };
+
+        const result = await db.collection('users').insertOne(newUser);
+        res.status(201).json({ message: 'User registered successfully', userId: result.insertedId });
+
+    } catch (error) {
+        console.error('Error during user registration:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+// User Login
+app.post('/api/login', async (req, res) => {
+    try {
+        const db = getDb();
+        const { loginIdentifier, password } = req.body; // loginIdentifier can be email or username
+
+        if (!loginIdentifier || !password) {
+            return res.status(400).json({ message: 'Login identifier and password are required.' });
+        }
+
+        // Try to find user by email or username
+        const user = await db.collection('users').findOne({
+            $or: [{ email: loginIdentifier }, { username: loginIdentifier }]
+        });
+
+        if (!user) {
+            return res.status(401).json({ message: 'Invalid credentials.' });
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: 'Invalid credentials.' });
+        }
+
+        // Generate JWT Token
+        const token = jwt.sign(
+            { userId: user._id, email: user.email, role: user.role, username: user.username },
+            process.env.JWT_SECRET || 'supersecretjwtkey', // Use a strong secret from .env
+            { expiresIn: '1h' }
+        );
+
+        res.status(200).json({ message: 'Logged in successfully', token, role: user.role });
+
+    } catch (error) {
+        console.error('Error during user login:', error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
