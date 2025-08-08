@@ -36,7 +36,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ item, isSelected, onSelect,
 
 
 const GeneratorPage: React.FC = () => {
-    const { data, addMemoFiche, getMemoFicheById } = useData();
+    const { data, addMemoFiche, getMemoFicheById, updateMemoFiche } = useData();
     const navigate = useNavigate();
     const { id: memoFicheId } = useParams<{ id: string }>(); // Get ID from URL for edit mode
 
