@@ -3,7 +3,7 @@ import cors from 'cors';
 import 'dotenv/config';
 import { ObjectId } from 'mongodb';
 import { connectToServer, getDb } from './db.js';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 // Middleware to verify JWT token
