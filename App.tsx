@@ -171,7 +171,7 @@ const DataProvider: React.FC<{ children: React.ReactNode; logout: () => void }> 
       setError("L'ajout de la mémofiche a échoué.");
       throw err;
     }
-  }, [token]);
+  }, [token, logout]);
   
   const deleteMemoFiche = useCallback(async (id: string): Promise<void> => {
     const originalData = data;
@@ -198,7 +198,7 @@ const DataProvider: React.FC<{ children: React.ReactNode; logout: () => void }> 
         setError("La suppression a échoué. Restauration des données.");
         setData(originalData); // Rollback
     }
-  }, [data, token]);
+  }, [data, token, logout]);
 
   const updateMemoFiche = useCallback(async (updatedFiche: MemoFiche): Promise<MemoFiche> => {
     try {
@@ -229,7 +229,7 @@ const DataProvider: React.FC<{ children: React.ReactNode; logout: () => void }> 
       setError("La mise à jour de la mémofiche a échoué.");
       throw err;
     }
-  }, [token]);
+  }, [token, logout]);
 
   const getMemoFicheById = useCallback((id: string): MemoFiche | undefined => {
     return data?.memofiches.find(mf => mf.id === id);
