@@ -1,34 +1,28 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import {
-    CapsuleIcon,
-    StethoscopeIcon,
-    LeafIcon,
-    DermocosmeticIcon,
-    MedicalDeviceIcon,
-    VeterinaryIcon,
-    CommunicationIcon
-} from '../components/icons';
+
 
 const ThemeCard = ({ icon, title }: { icon: React.ReactNode, title: string }) => (
-    <div className="bg-white border border-gray-200/75 rounded-xl p-5 text-center flex flex-col items-center justify-center space-y-3 transition-colors hover:border-gray-300 h-full">
+    <div className="bg-white border border-gray-200/75 rounded-xl p-5 text-center flex flex-col items-center justify-center space-y-3 transition-all duration-300 hover:border-green-400 hover:shadow-lg hover:scale-105 h-full">
         <div className="text-green-600">{icon}</div>
         <span className="font-medium text-gray-800 text-sm">{title}</span>
     </div>
 );
 
 const HomePage: React.FC = () => {
+        const iconBaseUrl = "https://pharmaconseilbmb.com/photos/site/icone/png/";
+
     const learningThemes = [
-        { title: "Maladies courantes", icon: <CapsuleIcon className="w-9 h-9" /> },
-        { title: "Ordonnances", icon: <StethoscopeIcon className="w-9 h-9" /> },
-        { title: "Micronutrition", icon: <LeafIcon className="w-9 h-9" /> },
-        { title: "Dermocosmétique", icon: <DermocosmeticIcon className="w-9 h-9" /> },
-        { title: "Dispositifs Médicaux", icon: <MedicalDeviceIcon className="w-9 h-9" /> },
-        { title: "Pharmacie vétérinaire", icon: <VeterinaryIcon className="w-9 h-9" /> },
+        { title: "Maladies courantes", icon: <img src={`${iconBaseUrl}1.png`} alt="Maladies courantes" className="w-12 h-12" /> },
+        { title: "Ordonnances", icon: <img src={`${iconBaseUrl}2.png`} alt="Ordonnances" className="w-12 h-12" /> },
+        { title: "Micronutrition", icon: <img src={`${iconBaseUrl}3.png`} alt="Micronutrition" className="w-12 h-12" /> },
+        { title: "Dermocosmétique", icon: <img src={`${iconBaseUrl}4.png`} alt="Dermocosmétique" className="w-12 h-12" /> },
+        { title: "Dispositifs Médicaux", icon: <img src={`${iconBaseUrl}5.png`} alt="Dispositifs Médicaux" className="w-12 h-12" /> },
+        { title: "Pharmacie vétérinaire", icon: <img src={`${iconBaseUrl}6.png`} alt="Pharmacie vétérinaire" className="w-12 h-12" /> },
     ];
 
-    const communicationTheme = { title: "Communication", icon: <CommunicationIcon className="w-9 h-9" /> };
+    const communicationTheme = { title: "Communication", icon: <img src={`${iconBaseUrl}8.png`} alt="Communication" className="w-12 h-12" /> };
 
     return (
         <div className="w-full bg-slate-50 text-gray-900">
