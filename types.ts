@@ -89,5 +89,6 @@ export interface AuthContextType {
   isLoggedIn: boolean;
   canGenerateMemoFiche: boolean; // Only Admin
   canEditMemoFiches: boolean; // Admin or Formateur
+  canDeleteMemoFiches: boolean; // Only Admin
 }
 // --- END: Added for Authentication ---

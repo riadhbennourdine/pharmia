@@ -59,7 +59,8 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     logout,
     isLoggedIn: userRole !== UserRole.Guest,
     canGenerateMemoFiche: userRole === UserRole.Admin,
-    canEditMemoFiches: userRole === UserRole.Admin || userRole === UserRole.Formateur
+    canEditMemoFiches: userRole === UserRole.Admin || userRole === UserRole.Formateur,
+    canDeleteMemoFiches: userRole === UserRole.Admin
   }), [userRole, token]);
 
   return (

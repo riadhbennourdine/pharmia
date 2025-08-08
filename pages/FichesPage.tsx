@@ -8,7 +8,7 @@ import { FilterIcon, ResetIcon } from '../components/icons';
 
 const FichesPage: React.FC = () => {
   const { data, loading, error, deleteMemoFiche } = useData();
-  const { canEdit } = useAuth();
+  const { canEditMemoFiches, canDeleteMemoFiches, isLoggedIn } = useAuth();
   const [themeFilter, setThemeFilter] = useState<string>('');
   const [systemFilter, setSystemFilter] = useState<string>('');
 
@@ -62,7 +62,7 @@ const FichesPage: React.FC = () => {
                     Il semble que vous n'ayez pas encore créé de mémofiche. <br/>
                     Utilisez le Générateur pour commencer à construire votre base de connaissances.
                 </p>
-                {canEdit && (
+                {canEditMemoFiches && (
                     <Link
                         to="/generateur"
                         className="mt-6 inline-block bg-green-600 text-white font-bold px-8 py-3 rounded-lg hover:bg-green-700 transition-transform duration-300 hover:scale-105"
@@ -124,9 +124,19 @@ const FichesPage: React.FC = () => {
       {filteredMemofiches.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredMemofiches.map(memofiche => (
-            <Link key={memofiche.id} to={`/fiches/${memofiche.id}`} className="block">
-              <MemoCard memofiche={memofiche} onDelete={canEdit ? handleDelete : undefined} />
-            </Link>
+            isLoggedIn ? (
+              <Link key={memofiche.id} to={`/fiches/${memofiche.id}`} className="block">
+                <MemoCard memofiche={memofiche} onDelete={canDeleteMemoFiches ? handleDelete : undefined} />
+              </Link>
+            ) : (
+              <div
+                key={memofiche.id}
+                className="block cursor-pointer"
+                onClick={() => alert("Veuillez vous connecter ou vous inscrire pour voir le détail des mémofiches.")}
+              >
+                <MemoCard memofiche={memofiche} onDelete={undefined} />
+              </div>
+            )
           ))}
         </div>
       ) : (
