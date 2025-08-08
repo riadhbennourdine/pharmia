@@ -118,16 +118,25 @@ app.post('/api/memofiches', verifyToken, authorizeRoles(['Admin', 'Formateur']),
         const newFiche = req.body;
         
         // Ensure theme and system exist, create if they don't
-        await db.collection('themes').updateOne(
-            { id: newFiche.theme.id },
-            { $setOnInsert: { id: newFiche.theme.id, Nom: newFiche.theme.Nom } },
-            { upsert: true }
-        );
-        await db.collection('systemesOrganes').updateOne(
-            { id: newFiche.systeme_organe.id },
-            { $setOnInsert: { id: newFiche.systeme_organe.id, Nom: newFiche.systeme_organe.Nom } },
-            { upsert: true }
-        );
+        // Find existing theme by Nom, or create if not found
+        let theme = await db.collection('themes').findOne({ Nom: newFiche.theme.Nom });
+        if (!theme) {
+            await db.collection('themes').insertOne({ id: newFiche.theme.id, Nom: newFiche.theme.Nom });
+            theme = { id: newFiche.theme.id, Nom: newFiche.theme.Nom }; // Use the new theme
+        } else {
+            // If theme exists, use its ID for the new fiche
+            newFiche.theme.id = theme.id;
+        }
+
+        // Find existing systeme_organe by Nom, or create if not found
+        let systemeOrgane = await db.collection('systemesOrganes').findOne({ Nom: newFiche.systeme_organe.Nom });
+        if (!systemeOrgane) {
+            await db.collection('systemesOrganes').insertOne({ id: newFiche.systeme_organe.id, Nom: newFiche.systeme_organe.Nom });
+            systemeOrgane = { id: newFiche.systeme_organe.id, Nom: newFiche.systeme_organe.Nom }; // Use the new systemeOrgane
+        } else {
+            // If systeme_organe exists, use its ID for the new fiche
+            newFiche.systeme_organe.id = systemeOrgane.id;
+        }
 
         // Insert the new memo fiche
         const result = await db.collection('memofiches').insertOne(newFiche);
@@ -178,18 +187,20 @@ app.put('/api/memofiches/:id', verifyToken, authorizeRoles(['Admin', 'Formateur'
 
         // Ensure theme and system exist, create if they don't (similar to POST)
         if (updatedFiche.theme) {
-            await db.collection('themes').updateOne(
-                { id: updatedFiche.theme.id },
-                { $setOnInsert: { id: updatedFiche.theme.id, Nom: updatedFiche.theme.Nom } },
-                { upsert: true }
-            );
+            let theme = await db.collection('themes').findOne({ Nom: updatedFiche.theme.Nom });
+            if (!theme) {
+                await db.collection('themes').insertOne({ id: updatedFiche.theme.id, Nom: updatedFiche.theme.Nom });
+            } else {
+                updatedFiche.theme.id = theme.id;
+            }
         }
         if (updatedFiche.systeme_organe) {
-            await db.collection('systemesOrganes').updateOne(
-                { id: updatedFiche.systeme_organe.id },
-                { $setOnInsert: { id: updatedFiche.systeme_organe.id, Nom: updatedFiche.systeme_organe.Nom } },
-                { upsert: true }
-            );
+            let systemeOrgane = await db.collection('systemesOrganes').findOne({ Nom: updatedFiche.systeme_organe.Nom });
+            if (!systemeOrgane) {
+                await db.collection('systemesOrganes').insertOne({ id: updatedFiche.systeme_organe.id, Nom: updatedFiche.systeme_organe.Nom });
+            } else {
+                updatedFiche.systeme_organe.id = systemeOrgane.id;
+            }
         }
 
         // Remove _id from updatedFiche to prevent immutable field error
