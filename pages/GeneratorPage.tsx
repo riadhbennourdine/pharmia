@@ -137,6 +137,7 @@ const GeneratorPage: React.FC = () => {
                     ],
                     // Other fields might need to be updated based on your UI
                 };
+                console.log("Calling updateMemoFiche with:", updatedFiche);
                 savedFiche = await updateMemoFiche(updatedFiche);
             } else {
                 // Generate and add new memo fiche
