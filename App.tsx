@@ -136,6 +136,9 @@ const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         body: JSON.stringify(newFiche),
       });
       if (!response.ok) {
+        if (response.status === 403) {
+          logout();
+        }
         const errorBody = await response.text();
         throw new Error(`Impossible d'enregistrer la mémofiche: ${errorBody}`);
       }
@@ -185,6 +188,9 @@ const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (!response.ok) {
+        if (response.status === 403) {
+          logout();
+        }
         throw new Error('La suppression a échoué sur le serveur');
       }
     } catch (err) {
@@ -202,6 +208,9 @@ const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         body: JSON.stringify(updatedFiche),
       });
       if (!response.ok) {
+        if (response.status === 403) {
+          logout();
+        }
         const errorBody = await response.text();
         throw new Error(`Impossible de mettre à jour la mémofiche: ${errorBody}`);
       }
