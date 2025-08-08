@@ -91,7 +91,7 @@ export const useData = () => {
   return context;
 };
 
-const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const DataProvider: React.FC<{ children: React.ReactNode; logout: () => void }> = ({ children, logout }) => {
   const [data, setData] = useState<PharmIaData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -140,7 +140,7 @@ const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
           logout();
         }
         const errorBody = await response.text();
-        throw new Error(`Impossible d'enregistrer la mémofiche: ${errorBody}`);
+        throw new Error(`Impossible d\'enregistrer la mémofiche: ${errorBody}`);
       }
       const savedFiche: MemoFiche = await response.json();
       
@@ -265,26 +265,33 @@ const ProtectedRoute: React.FC = () => {
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <DataProvider>
-        <HashRouter>
-          <div className="min-h-screen bg-slate-50 font-sans text-gray-800">
-            <Header />
-            <main>
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/connexion" element={<LoginPage />} />
-                <Route path="/fiches" element={<FichesPage />} />
-                <Route path="/fiches/:id" element={<MemoFicheDetailWrapper />} />
-                <Route element={<ProtectedRoute />}>
-                    <Route path="/generateur" element={<GeneratorPage />} />
-                <Route path="/edit-memofiche/:id" element={<GeneratorPage />} />
-                </Route>
-              </Routes>
-            </main>
-          </div>
-        </HashRouter>
-      </DataProvider>
+      <AppContent />
     </AuthProvider>
+  );
+};
+
+const AppContent: React.FC = () => {
+  const { logout } = useAuth();
+  return (
+    <DataProvider logout={logout}>
+      <HashRouter>
+        <div className="min-h-screen bg-slate-50 font-sans text-gray-800">
+          <Header />
+          <main>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/connexion" element={<LoginPage />} />
+              <Route path="/fiches" element={<FichesPage />} />
+              <Route path="/fiches/:id" element={<MemoFicheDetailWrapper />} />
+              <Route element={<ProtectedRoute />}>
+                <Route path="/generateur" element={<GeneratorPage />} />
+                <Route path="/edit-memofiche/:id" element={<GeneratorPage />} />
+              </Route>
+            </Routes>
+          </main>
+        </div>
+      </HashRouter>
+    </DataProvider>
   );
 };
 
