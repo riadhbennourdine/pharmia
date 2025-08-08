@@ -111,6 +111,9 @@ const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         
         const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/data`, { headers });
         if (!response.ok) {
+          if (response.status === 403) {
+            logout();
+          }
           throw new Error(`Erreur HTTP: ${response.status}`);
         }
         const fetchedData: PharmIaData = await response.json();
