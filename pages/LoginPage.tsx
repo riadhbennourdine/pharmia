@@ -19,7 +19,7 @@ const LoginPage: React.FC = () => {
 
     useEffect(() => {
       if (isLoggedIn) {
-        navigate('/');
+        navigate('/learner-space');
       }
     }, [isLoggedIn, navigate]);
 
@@ -91,9 +91,10 @@ const LoginPage: React.FC = () => {
                     alert('Inscription réussie ! Vous pouvez maintenant vous connecter.');
                     setIsRegisterMode(false); // Switch to login mode after successful registration
                 } else {
-                    // Assuming login response includes the user's role
-                    login(data.role || role, data.token); // Pass token to login
-                    navigate('/');
+                    // Decode token to get username
+                    const tokenPayload = JSON.parse(atob(data.token.split('.')[1]));
+                    login(data.role || role, data.token, tokenPayload.username); // Pass token and username to login
+                    navigate('/learner-space');
                 }
             } else {
                 setError(data.message || 'Une erreur est survenue.');

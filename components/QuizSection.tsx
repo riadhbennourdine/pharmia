@@ -1,17 +1,64 @@
 
-import React, { useState, useMemo } from 'react';
-import { QuizQuestion } from '../types';
+import React, { useState, useMemo, useEffect } from 'react';
+import { QuizQuestion, MemoFiche } from '../types';
 import { CheckCircleIcon, XCircleIcon, SparklesIcon } from './icons';
+import { useData } from '../App';
 
 interface QuizSectionProps {
   quiz: QuizQuestion[];
+  memoFiche: MemoFiche;
 }
 
-const QuizSection: React.FC<QuizSectionProps> = ({ quiz }) => {
+const QuizSection: React.FC<QuizSectionProps> = ({ quiz, memoFiche }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
   const [showResult, setShowResult] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
+
+  const score = useMemo(() => {
+      return quiz.reduce((acc, question, index) => {
+          return acc + (userAnswers[index] === question.correctAnswer ? 1 : 0);
+      }, 0);
+  }, [quiz, userAnswers]);
+
+  const { fetchLearnerData } = useData();
+
+  useEffect(() => {
+    const recordQuizResult = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const percentageScore = (score / quiz.length) * 100;
+
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/users/me/quiz-history`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({ quizId: memoFiche.id, score: percentageScore }),
+        });
+
+        if (response.ok) {
+          fetchLearnerData(); // Re-fetch learner data
+          // Also trigger skill level update
+          await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/users/me/update-skill-level`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+        }
+      } catch (error) {
+        console.error('Failed to record quiz result:', error);
+      }
+    };
+
+    if (isFinished) {
+      recordQuizResult();
+    }
+  }, [isFinished, score, quiz.length, memoFiche.id, fetchLearnerData]);
 
   if (!quiz || quiz.length === 0) {
       return <p>Pas de quiz disponible.</p>;
@@ -23,12 +70,7 @@ const QuizSection: React.FC<QuizSectionProps> = ({ quiz }) => {
   const handleAnswerSelect = (answer: string) => {
     if (showResult) return; // Prevent changing answer after validation
     setUserAnswers(prev => ({ ...prev, [currentQuestionIndex]: answer }));
-  };
-
-  const handleValidate = () => {
-    if (selectedAnswer) {
-      setShowResult(true);
-    }
+    setShowResult(true);
   };
 
   const handleNext = () => {
@@ -46,12 +88,6 @@ const QuizSection: React.FC<QuizSectionProps> = ({ quiz }) => {
     setShowResult(false);
     setIsFinished(false);
   };
-  
-  const score = useMemo(() => {
-      return quiz.reduce((acc, question, index) => {
-          return acc + (userAnswers[index] === question.correctAnswer ? 1 : 0);
-      }, 0);
-  }, [quiz, userAnswers]);
 
   const getEncouragementMessage = (finalScore: number, total: number): string => {
       const percentage = total > 0 ? (finalScore / total) * 100 : 0;
@@ -126,15 +162,7 @@ const QuizSection: React.FC<QuizSectionProps> = ({ quiz }) => {
       </div>
       
       <div className="mt-6 text-center">
-        {!showResult ? (
-             <button
-              onClick={handleValidate}
-              disabled={!selectedAnswer}
-              className="px-8 py-3 bg-green-600 text-white font-bold rounded-lg shadow-md hover:bg-green-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              Valider
-            </button>
-        ) : (
+        {showResult && (
             <button
               onClick={handleNext}
               className="px-8 py-3 bg-gray-600 text-white font-bold rounded-lg shadow-md hover:bg-gray-700 transition"

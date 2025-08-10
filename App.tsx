@@ -7,6 +7,7 @@ import FichesPage from './pages/FichesPage';
 import DetailPage from './pages/DetailPage';
 import GeneratorPage from './pages/GeneratorPage';
 import LoginPage from './pages/LoginPage';
+import LearnerSpacePage from './pages/LearnerSpacePage';
 import Header from './components/Header';
 import { LoadingSpinner } from './components/LoadingSpinner';
 
@@ -37,31 +38,39 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const [token, setToken] = useState<string | null>(() => {
     return localStorage.getItem('token');
   });
+  const [username, setUsername] = useState<string | null>(() => {
+    return localStorage.getItem('username');
+  });
 
-  const login = (role: UserRole, newToken: string) => {
+  const login = (role: UserRole, newToken: string, newUsername: string) => {
     localStorage.setItem('userRole', role);
     localStorage.setItem('token', newToken);
+    localStorage.setItem('username', newUsername);
     setUserRole(role);
     setToken(newToken);
+    setUsername(newUsername);
   };
 
   const logout = () => {
     localStorage.removeItem('userRole');
     localStorage.removeItem('token');
+    localStorage.removeItem('username');
     setUserRole(UserRole.Guest);
     setToken(null);
+    setUsername(null);
   };
 
   const authValue = useMemo(() => ({
     userRole,
     token,
+    username,
     login,
     logout,
     isLoggedIn: userRole !== UserRole.Guest,
     canGenerateMemoFiche: userRole === UserRole.Admin,
     canEditMemoFiches: userRole === UserRole.Admin || userRole === UserRole.Formateur,
     canDeleteMemoFiches: userRole === UserRole.Admin
-  }), [userRole, token]);
+  }), [userRole, token, username]);
 
   return (
     <AuthContext.Provider value={authValue}>
@@ -74,8 +83,10 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 // --- Data Context ---
 interface DataContextType {
   data: PharmIaData | null;
+  learnerData: User | null;
   loading: boolean;
   error: string | null;
+  fetchLearnerData: () => Promise<void>;
   getMemoFicheById: (id: string) => MemoFiche | undefined;
   addMemoFiche: (fiche: MemoFiche) => Promise<MemoFiche>;
   updateMemoFiche: (fiche: MemoFiche) => Promise<MemoFiche>;
@@ -94,40 +105,69 @@ export const useData = () => {
 
 const DataProvider: React.FC<{ children: React.ReactNode; logout: () => void }> = ({ children, logout }) => {
   const [data, setData] = useState<PharmIaData | null>(null);
+  const [learnerData, setLearnerData] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const { token } = useAuth(); // Get token from AuthContext
+  const { token, isLoggedIn } = useAuth(); // Get token and login status from AuthContext
+
+  const fetchLearnerData = useCallback(async () => {
+    if (!token) return;
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/learner-space`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!response.ok) {
+        if (response.status === 403) logout();
+        throw new Error('Failed to fetch learner data');
+      }
+      const userData: User = await response.json();
+      setLearnerData(userData);
+    } catch (err) {
+      console.error('Error fetching learner data:', err);
+      // Don't set a generic error message here as it might overwrite more specific ones
+    }
+  }, [token, logout]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchInitialData = async () => {
       setLoading(true);
       setError(null);
       try {
-        if (!token) { // Only fetch if token exists
+        if (!token) {
           setLoading(false);
           return;
         }
-        const headers: HeadersInit = {};
-        headers['Authorization'] = `Bearer ${token}`;
         
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/data`, { headers });
-        if (!response.ok) {
-          if (response.status === 403) {
-            logout();
-          }
-          throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-        const fetchedData: PharmIaData = await response.json();
-        setData(fetchedData);
+        // Fetch general data and learner-specific data in parallel
+        await Promise.all([
+          (async () => {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/data`, { 
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+            const fetchedData: PharmIaData = await response.json();
+            setData(fetchedData);
+          })(),
+          fetchLearnerData(),
+        ]);
+
       } catch (e: any) {
         console.error("Impossible de charger les données depuis le backend", e);
         setError("Impossible de charger les données. Veuillez vérifier votre connexion et rafraîchir la page.");
+        if (e.message.includes('403')) logout();
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
-  }, [token]); // Re-fetch data when token changes
+    
+    if (isLoggedIn) {
+      fetchInitialData();
+    } else {
+      setLoading(false);
+      setData(null);
+      setLearnerData(null);
+    }
+  }, [token, isLoggedIn, fetchLearnerData, logout]);
 
   const addMemoFiche = useCallback(async (newFiche: MemoFiche): Promise<MemoFiche> => {
     try {
@@ -236,7 +276,7 @@ const DataProvider: React.FC<{ children: React.ReactNode; logout: () => void }> 
     return data?.memofiches.find(mf => mf.id === id);
   }, [data]);
   
-  const value = useMemo(() => ({ data, loading, error, getMemoFicheById, addMemoFiche, deleteMemoFiche, updateMemoFiche }), [data, loading, error, getMemoFicheById, addMemoFiche, deleteMemoFiche, updateMemoFiche]);
+  const value = useMemo(() => ({ data, learnerData, loading, error, fetchLearnerData, getMemoFicheById, addMemoFiche, deleteMemoFiche, updateMemoFiche }), [data, learnerData, loading, error, fetchLearnerData, getMemoFicheById, addMemoFiche, deleteMemoFiche, updateMemoFiche]);
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 };
@@ -258,6 +298,14 @@ const ProtectedRoute: React.FC = () => {
     }
     if (!canGenerateMemoFiche) {
        return <Navigate to="/fiches" replace />;
+    }
+    return <Outlet />;
+};
+
+const LoggedInRoute: React.FC = () => {
+    const { isLoggedIn } = useAuth();
+    if (!isLoggedIn) {
+        return <Navigate to="/connexion" replace />;
     }
     return <Outlet />;
 };
@@ -284,6 +332,9 @@ const AppContent: React.FC = () => {
               <Route path="/connexion" element={<LoginPage />} />
               <Route path="/fiches" element={<FichesPage />} />
               <Route path="/fiches/:id" element={<MemoFicheDetailWrapper />} />
+              <Route element={<LoggedInRoute />}>
+                <Route path="/learner-space" element={<LearnerSpacePage />} />
+              </Route>
               <Route element={<ProtectedRoute />}>
                 <Route path="/generateur" element={<GeneratorPage />} />
                 <Route path="/edit-memofiche/:id" element={<GeneratorPage />} />

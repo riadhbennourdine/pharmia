@@ -19,9 +19,35 @@ type Tab = 'memo' | 'summary' | 'flashcards' | 'quiz' | 'glossary' | 'resources'
 const DetailPage: React.FC<DetailPageProps> = ({ memoFiche }) => {
   const [activeTab, setActiveTab] = useState<Tab>('memo');
   const [scroll, setScroll] = useState(0);
-  const { deleteMemoFiche } = useData();
+  const { deleteMemoFiche, fetchLearnerData } = useData();
   const { canEditMemoFiches, canDeleteMemoFiches } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const recordFicheRead = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/users/me/read-fiches`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({ ficheId: memoFiche.id }),
+        });
+
+        if (response.ok) {
+          fetchLearnerData(); // Re-fetch learner data
+        }
+      } catch (error) {
+        console.error('Failed to record fiche read:', error);
+      }
+    };
+
+    recordFicheRead();
+  }, [memoFiche.id, fetchLearnerData]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -66,7 +92,7 @@ const DetailPage: React.FC<DetailPageProps> = ({ memoFiche }) => {
       case 'flashcards':
         return <FlashcardDeck flashcards={memoFiche.flashcards} />;
       case 'quiz':
-        return <QuizSection quiz={memoFiche.quiz} />;
+        return <QuizSection quiz={memoFiche.quiz} memoFiche={memoFiche} />;
       case 'glossary':
         return <GlossaryList terms={memoFiche.glossaryTerms} />;
       case 'kahoot':

@@ -84,11 +84,12 @@ export enum UserRole {
 export interface AuthContextType {
   userRole: UserRole;
   token: string | null;
-  login: (role: UserRole, token: string) => void;
-  logout: () => void;
+  username: string | null;
   isLoggedIn: boolean;
-  canGenerateMemoFiche: boolean; // Only Admin
-  canEditMemoFiches: boolean; // Admin or Formateur
-  canDeleteMemoFiches: boolean; // Only Admin
+  login: (role: UserRole, token: string, username: string) => void;
+  logout: () => void;
+  canGenerateMemoFiche: boolean;
+  canEditMemoFiches: boolean;
+  canDeleteMemoFiches: boolean;
 }
 // --- END: Added for Authentication ---
