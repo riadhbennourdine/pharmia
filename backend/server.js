@@ -5,6 +5,24 @@ import { ObjectId } from 'mongodb';
 import { connectToServer, getDb } from './db.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+// --- AI Configuration ---
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+let genAI;
+if (GEMINI_API_KEY) {
+    genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+}
+
+// --- Badge Definitions ---
+const BADGES = {
+    FIRST_QUIZ: { id: 'FIRST_QUIZ', name: "Premier Pas", description: "Terminez votre premier quiz.", icon: "FiAward" },
+    READ_3_FICHES: { id: 'READ_3_FICHES', name: "Lecteur Assidu", description: "Lisez 3 fiches.", icon: "FiBookOpen" },
+    PERFECT_SCORE: { id: 'PERFECT_SCORE', name: "Maître du Quiz", description: "Obtenez un score de 100% à un quiz.", icon: "FiTarget" },
+    LEVEL_INTERMEDIATE: { id: 'LEVEL_INTERMEDIATE', name: "Apprenti Intermédiaire", description: "Atteignez le niveau Intermédiaire.", icon: "FiTrendingUp" },
+    LEVEL_EXPERT: { id: 'LEVEL_EXPERT', name: "Expert Confirmé", description: "Atteignez le niveau Expert.", icon: "FiStar" },
+};
+
 
 // Middleware to verify JWT token
 const verifyToken = (req, res, next) => {
@@ -38,8 +56,19 @@ const app = express();
 const port = process.env.PORT || 5001;
 
 // Middleware
+const allowedOrigins = [
+    'https://pharmia-frontend-new.onrender.com',
+    'http://localhost:5173'
+];
+
 app.use(cors({
-    origin: 'https://pharmia-frontend-new.onrender.com',
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
 }));
@@ -104,6 +133,7 @@ app.get('/api/data', async (req, res) => {
             themes: themes.map(remapId),
             systemesOrganes: systemesOrganes.map(remapId),
             memofiches: memofiches.map(remapId),
+            badges: Object.values(BADGES) // Also send badge definitions to the frontend
         });
 
     } catch (error) {
@@ -256,6 +286,10 @@ app.post('/api/register', async (req, res) => {
             username,
             password: hashedPassword,
             role,
+            skillLevel: 'Débutant',
+            readFicheIds: [],
+            quizHistory: [],
+            badges: [], // <-- Add badges array
             createdAt: new Date(),
         };
 
@@ -310,6 +344,270 @@ app.post('/api/login', async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
+
+// Get Learner Space Data
+app.get('/api/learner-space', verifyToken, async (req, res) => {
+    try {
+        const db = getDb();
+        const userId = new ObjectId(req.user.userId);
+
+        const user = await db.collection('users').findOne(
+            { _id: userId },
+            { projection: { password: 0 } } // Exclude password from the result
+        );
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        // If the user is a "Preparateur", fetch their referring pharmacist's data
+        if (user.role === 'Preparateur' && user.pharmacienResponsableId) {
+            const pharmacien = await db.collection('users').findOne(
+                { _id: new ObjectId(user.pharmacienResponsableId) },
+                { projection: { username: 1, email: 1 } } // Only fetch username and email
+            );
+            user.pharmacienReferent = pharmacien;
+        }
+
+        res.status(200).json(user);
+
+    } catch (error) {
+        console.error('Error fetching learner space data:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+// Record a read memo fiche for the current user
+app.post('/api/users/me/read-fiches', verifyToken, async (req, res) => {
+    try {
+        const db = getDb();
+        const userId = new ObjectId(req.user.userId);
+        const { ficheId } = req.body;
+
+        if (!ficheId) {
+            return res.status(400).json({ message: 'ficheId is required.' });
+        }
+
+        // Add the ficheId to the user's readFicheIds array if it's not already there
+        const result = await db.collection('users').updateOne(
+            { _id: userId },
+            { $addToSet: { readFicheIds: ficheId } }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+        
+        // Check for badges after updating
+        await checkAndAwardBadges(userId);
+
+        res.status(200).json({ message: 'Fiche read status updated.' });
+
+    } catch (error) {
+        console.error('Error updating read fiches:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+// Record a quiz result for the current user
+app.post('/api/users/me/quiz-history', verifyToken, async (req, res) => {
+    try {
+        const db = getDb();
+        const userId = new ObjectId(req.user.userId);
+        const { quizId, score } = req.body;
+
+        if (!quizId || score === undefined) {
+            return res.status(400).json({ message: 'quizId and score are required.' });
+        }
+
+        const newQuizEntry = {
+            quizId,
+            score,
+            completedAt: new Date(),
+        };
+
+        // Add the new quiz result to the user's quizHistory array
+        const result = await db.collection('users').updateOne(
+            { _id: userId },
+            { $push: { quizHistory: newQuizEntry } }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+        
+        // Update skill level and check for badges
+        await calculateAndSetSkillLevel(userId);
+        await checkAndAwardBadges(userId, { latestScore: score });
+
+
+        res.status(200).json({ message: 'Quiz history updated.' });
+
+    } catch (error) {
+        console.error('Error updating quiz history:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+/*
+// --- AI Coach Endpoint ---
+app.post('/api/ai-coach/suggest-challenge', verifyToken, async (req, res) => {
+    try {
+        // Add a check for the API key
+        if (!GEMINI_API_KEY) {
+            return res.status(503).json({ message: 'AI Coach is not configured on the server. Missing API Key.' });
+        }
+
+        const db = getDb();
+        const userId = new ObjectId(req.user.userId);
+
+        // Fetch user and all fiches
+        const user = await db.collection('users').findOne({ _id: userId });
+        const allFiches = await db.collection('memofiches').find({}).toArray();
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        // Filter out sensitive or large data before sending to AI
+        const userProfile = {
+            skillLevel: user.skillLevel,
+            readFicheIds: user.readFicheIds,
+            quizHistory: user.quizHistory.map(q => ({ quizId: q.quizId, score: q.score })),
+        };
+
+        const availableContent = allFiches.map(f => ({
+            id: f._id.toString(),
+            title: f.title,
+            hasQuiz: f.quiz && f.quiz.questions && f.quiz.questions.length > 0,
+        }));
+
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const prompt = `
+            You are an expert AI coach for pharmacy students, named PharmiaCoach. Your goal is to suggest a personalized daily challenge.
+            The challenge can be to read a memo card ('fiche') or to take a quiz.
+            You must respond in valid JSON format only.
+
+            Here is the user's profile:
+            - Skill Level: ${userProfile.skillLevel}
+            - Fiches already read (by ID): ${JSON.stringify(userProfile.readFicheIds)}
+            - Quiz history (quizId and score): ${JSON.stringify(userProfile.quizHistory)}
+
+            Here is the list of all available content:
+            ${JSON.stringify(availableContent)}
+
+            Your task:
+            1. Analyze the user's profile and history.
+            2. Choose a single, relevant challenge:
+               - Prefer suggesting a quiz for a fiche the user has already read but hasn't been quizzed on yet.
+               - If not, suggest reading a new, unread fiche that is appropriate for their skill level.
+               - If the user has poor scores on a specific quiz, you can suggest they retake it.
+            3. Provide a brief, encouraging reason for your choice in French.
+            4. Your entire response must be a single JSON object with the following structure:
+               { "type": "fiche" | "quiz", "ficheId": "...", "title": "...", "reasoning": "..." }
+        `;
+
+        const result = await model.generateContent(prompt);
+        const responseText = await result.response.text();
+        
+        // Clean the response to ensure it's valid JSON
+        const cleanedJson = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+        const suggestion = JSON.parse(cleanedJson);
+
+        res.status(200).json(suggestion);
+
+    } catch (error) {
+        console.error('Error with AI Coach:', error);
+        res.status(500).json({ message: 'Error generating suggestion from AI Coach.' });
+    }
+});
+*/
+
+
+// --- Badge Awarding Logic ---
+const checkAndAwardBadges = async (userId, options = {}) => {
+    const db = getDb();
+    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+
+    if (!user) return;
+
+    const newBadges = [];
+
+    // 1. "Premier Pas" Badge: First quiz completed
+    if (user.quizHistory && user.quizHistory.length > 0 && !user.badges?.includes(BADGES.FIRST_QUIZ.id)) {
+        newBadges.push(BADGES.FIRST_QUIZ.id);
+    }
+
+    // 2. "Lecteur Assidu" Badge: 3 fiches read
+    if (user.readFicheIds && user.readFicheIds.length >= 3 && !user.badges?.includes(BADGES.READ_3_FICHES.id)) {
+        newBadges.push(BADGES.READ_3_FICHES.id);
+    }
+
+    // 3. "Maître du Quiz" Badge: 100% score on the latest quiz
+    if (options.latestScore === 100 && !user.badges?.includes(BADGES.PERFECT_SCORE.id)) {
+        newBadges.push(BADGES.PERFECT_SCORE.id);
+    }
+
+    // 4. "Apprenti Intermédiaire" Badge
+    if (user.skillLevel === 'Intermédiaire' && !user.badges?.includes(BADGES.LEVEL_INTERMEDIATE.id)) {
+        newBadges.push(BADGES.LEVEL_INTERMEDIATE.id);
+    }
+
+    // 5. "Expert Confirmé" Badge
+    if (user.skillLevel === 'Expert' && !user.badges?.includes(BADGES.LEVEL_EXPERT.id)) {
+        newBadges.push(BADGES.LEVEL_EXPERT.id);
+    }
+
+    if (newBadges.length > 0) {
+        await db.collection('users').updateOne(
+            { _id: new ObjectId(userId) },
+            { $addToSet: { badges: { $each: newBadges } } }
+        );
+    }
+};
+
+
+// Function to calculate and set skill level
+const calculateAndSetSkillLevel = async (userId) => {
+    const db = getDb();
+    const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+
+    if (!user || !user.quizHistory || user.quizHistory.length === 0) {
+        return; // Cannot calculate skill level without quiz history
+    }
+
+    const totalScore = user.quizHistory.reduce((sum, quiz) => sum + quiz.score, 0);
+    const averageScore = totalScore / user.quizHistory.length;
+
+    let newSkillLevel = user.skillLevel || 'Débutant';
+
+    if (user.skillLevel === 'Débutant' && user.quizHistory.length >= 5 && averageScore >= 60) {
+        newSkillLevel = 'Intermédiaire';
+    } else if (user.skillLevel === 'Intermédiaire' && user.quizHistory.length >= 10 && averageScore >= 80) {
+        newSkillLevel = 'Expert';
+    }
+
+    if (newSkillLevel !== user.skillLevel) {
+        await db.collection('users').updateOne(
+            { _id: new ObjectId(userId) },
+            { $set: { skillLevel: newSkillLevel } }
+        );
+    }
+};
+
+// API to trigger skill level update (called after quiz completion)
+app.post('/api/users/me/update-skill-level', verifyToken, async (req, res) => {
+    try {
+        await calculateAndSetSkillLevel(req.user.userId);
+        // After skill level update, check for new level-based badges
+        await checkAndAwardBadges(req.user.userId);
+        res.status(200).json({ message: 'Skill level updated successfully.' });
+    } catch (error) {
+        console.error('Error updating skill level:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
 
 // Get Pharmacien users for Preparateur selection
 app.get('/api/pharmaciens', verifyToken, authorizeRoles(['Preparateur', 'Admin']), async (req, res) => {
