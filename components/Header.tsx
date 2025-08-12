@@ -48,6 +48,9 @@ const Header: React.FC = () => {
             <NavLink to="/fiches" className={navLinkClass}>
               Mémofiches
             </NavLink>
+            <NavLink to="/tarifs" className={navLinkClass}>
+              Tarifs
+            </NavLink>
             {canGenerateMemoFiche && (
               <NavLink to="/generateur" className={navLinkClass}>
                 Générateur

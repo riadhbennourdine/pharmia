@@ -8,6 +8,7 @@ import DetailPage from './pages/DetailPage';
 import GeneratorPage from './pages/GeneratorPage';
 import LoginPage from './pages/LoginPage';
 import LearnerSpacePage from './pages/LearnerSpacePage';
+import PricingPage from './pages/PricingPage';
 import Header from './components/Header';
 import { LoadingSpinner } from './components/LoadingSpinner';
 
@@ -297,11 +298,11 @@ const MemoFicheDetailWrapper = () => {
 };
 
 const ProtectedRoute: React.FC = () => {
-    const { canGenerateMemoFiche, isLoggedIn } = useAuth();
+    const { canEditMemoFiches, isLoggedIn } = useAuth();
     if (!isLoggedIn) {
         return <Navigate to="/connexion" replace />;
     }
-    if (!canGenerateMemoFiche) {
+    if (!canEditMemoFiches) {
        return <Navigate to="/fiches" replace />;
     }
     return <Outlet />;
@@ -337,6 +338,7 @@ const AppContent: React.FC = () => {
               <Route path="/connexion" element={<LoginPage />} />
               <Route path="/fiches" element={<FichesPage />} />
               <Route path="/fiches/:id" element={<MemoFicheDetailWrapper />} />
+              <Route path="/tarifs" element={<PricingPage />} />
               <Route element={<LoggedInRoute />}>
                 <Route path="/learner-space" element={<LearnerSpacePage />} />
               </Route>
