@@ -54,7 +54,7 @@ const memoFicheItemSchema = {
         kahootUrl: { type: Type.STRING, description: "Optional URL to a relevant Kahoot! quiz. Must be a valid Kahoot URL if provided." },
         memoContent: {
             type: Type.ARRAY,
-            description: "Exactly 6 sections with titles: 'Étape 1/6 : Définition', 'Étape 2/6 : Symptômes', 'Étape 3/6 : Questions à poser', 'Étape 4/6 : Conseils', 'Étape 5/6 : Signes d’alerte', 'Étape 6/6 : Contre-indications'.",
+            description: "Sections with titles: 'Mémo : Cas comptoir', 'Questions à poser', 'Limites du conseil', 'Conseil traitement Produits', 'Conseils Hygiène de vie', 'Références bibliographiques'. Content should be in Markdown and not exceed 10-15 lines per section.",
             items: sectionSchema
         },
         theme: {
@@ -160,7 +160,9 @@ export const generateSingleMemoFiche = async (
           - Thème: { id: "${theme.id}", Nom: "${theme.Nom}" }
           - Système/Organe: { id: "${system.id}", Nom: "${system.Nom}" }
         - **Réponse JSON**: Remplis les champs 'theme' et 'systeme_organe' de l'objet JSON de sortie avec EXACTEMENT ces valeurs.
-        - **Sections**: Crée exactement 6 sections avec les titres suivants : "Étape 1/6 : Définition", "Étape 2/6 : Symptômes", "Étape 3/6 : Questions à poser", "Étape 4/6 : Conseils", "Étape 5/6 : Signes d’alerte", "Étape 6/6 : Contre-indications". Le contenu doit être en Markdown.
+        - **Sections**: Crée les sections avec les titres suivants : 'Mémo : Cas comptoir', 'Questions à poser', 'Limites du conseil', 'Conseil traitement Produits', 'Conseils Hygiène de vie', 'Références bibliographiques'.
+        - **Contenu**: Le contenu de chaque section doit être en Markdown, avec des paragraphes bien délimités et des retours à la ligne. Chaque section ne doit pas dépasser 10-15 lignes. Si le contenu est plus long, crée une nouvelle section accordéon avec un titre numéroté (par exemple, 'Conseil traitement Produits (1/2)', 'Conseil traitement Produits (2/2)').
+        - **Références**: Inclure des références bibliographiques dans la section dédiée.
         - **Contenu Pédagogique**: Crée EXACTEMENT 10 flashcards, et 10 questions de quiz (variées, QCM et Vrai/Faux).
         - **Termes Techniques**: Identifie 10 termes techniques pertinents dans le texte et fournis leurs définitions pour le glossaire.
         - **Image**: ${options.imageUrl ? `Utilise CETTE URL EXACTE pour 'imageUrl': ${options.imageUrl}` : "Utilise 'https://picsum.photos/800/600' pour imageUrl."}

@@ -7,6 +7,7 @@ import QuizSection from '../components/QuizSection';
 import GlossaryList from '../components/GlossaryList';
 import ContentSection from '../components/ContentSection';
 import { BookOpenIcon, VideoCameraIcon, QuestionMarkCircleIcon, SparklesIcon, DocumentTextIcon, ChevronRightIcon, TrashIcon, GameIcon } from '../components/icons';
+import { FiMic } from 'react-icons/fi'; // Import FiMic directly
 import { useData } from '../App';
 import { useAuth } from '../App';
 
@@ -128,25 +129,49 @@ const DetailPage: React.FC<DetailPageProps> = ({ memoFiche }) => {
             </div>
         );
       case 'resources':
+        const getYouTubeEmbedUrl = (url: string) => {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*$/;
+            const match = url.match(regExp);
+            if (match && match[2].length === 11) {
+                return `https://www.youtube.com/embed/${match[2]}`;
+            }
+            return null;
+        };
+
         return (
             <div>
-                 <h3 className="text-xl font-bold text-gray-800 mb-4">Ressources Multimédia</h3>
+                <h3 className="text-xl font-bold text-gray-800 mb-4">Ressources Multimédia</h3>
                 {multimediaResources.length > 0 ? (
-                    <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> {/* Grid for side-by-side layout */}
                         {multimediaResources.map((resource, index) => (
-                             <a key={index} href={resource.url} target="_blank" rel="noopener noreferrer" className="block p-4 bg-slate-50 rounded-lg border border-gray-200 hover:bg-slate-100 hover:border-gray-300 transition-colors group">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="font-semibold text-green-700 group-hover:text-green-800">{resource.title}</p>
-                                        <span className="text-sm text-gray-500 capitalize">{resource.type}</span>
+                            <div key={index} className="p-4 bg-white rounded-lg shadow-md border border-gray-200">
+                                <h4 className="text-lg font-semibold text-gray-800 mb-3">{resource.title}</h4>
+                                {resource.type === 'video' && getYouTubeEmbedUrl(resource.url) ? (
+                                    <div className="relative" style={{ paddingBottom: '56.25%', height: 0, overflow: 'hidden' }}>
+                                        <iframe
+                                            src={getYouTubeEmbedUrl(resource.url) || ''}
+                                            frameBorder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                            title={resource.title}
+                                            className="absolute top-0 left-0 w-full h-full"
+                                        ></iframe>
                                     </div>
-                                    <ChevronRightIcon className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
-                                </div>
-                            </a>
+                                ) : resource.type === 'podcast' ? (
+                                    <div className="flex items-center space-x-3"> {/* Flex for icon and audio */}
+                                        <FiMic className="w-8 h-8 text-gray-600" /> {/* Microphone icon */}
+                                        <audio controls src={resource.url} className="flex-grow"> {/* flex-grow to take remaining space */}
+                                            Votre navigateur ne supporte pas l'élément audio.
+                                        </audio>
+                                    </div>
+                                ) : (
+                                    <p className="text-gray-500">Type de ressource non pris en charge pour la prévisualisation.</p>
+                                )}
+                            </div>
                         ))}
                     </div>
                 ) : (
-                   <p className="text-gray-500">Aucune vidéo ou podcast disponible pour cette fiche.</p>
+                    <p className="text-gray-500">Aucune vidéo ou podcast disponible pour cette fiche.</p>
                 )}
             </div>
         );

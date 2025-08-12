@@ -55,6 +55,7 @@ const GeneratorPage: React.FC = () => {
     const [kahootUrl, setKahootUrl] = useState('');
     const [videoUrl, setVideoUrl] = useState('');
     const [podcastUrl, setPodcastUrl] = useState('');
+    const [memoContent, setMemoContent] = useState<MemoFiche['memoContent']>([]);
 
     // Effect to load memo fiche data if in edit mode
     useEffect(() => {
@@ -66,6 +67,7 @@ const GeneratorPage: React.FC = () => {
                 setSystemSelection(ficheToEdit.systeme_organe.id);
                 setImageUrl(ficheToEdit.imageUrl || '');
                 setKahootUrl(ficheToEdit.kahootUrl || '');
+                setMemoContent(ficheToEdit.memoContent || []); // Load memoContent for editing
                 // Assuming videoUrl and podcastUrl are part of externalResources
                 const videoRes = ficheToEdit.externalResources?.find(r => r.type === 'video');
                 setVideoUrl(videoRes ? videoRes.url : '');
@@ -74,6 +76,9 @@ const GeneratorPage: React.FC = () => {
             } else {
                 setError("Mémofiche non trouvée pour l'édition.");
             }
+        } else if (!memoFicheId) {
+            // Clear memoContent when creating a new fiche
+            setMemoContent([]);
         }
     }, [memoFicheId, data, getMemoFicheById]);
 
@@ -135,6 +140,7 @@ const GeneratorPage: React.FC = () => {
                         ...(videoUrl.trim() ? [{ type: 'video', title: 'Vidéo', url: videoUrl.trim() }] : []),
                         ...(podcastUrl.trim() ? [{ type: 'podcast', title: 'Podcast', url: podcastUrl.trim() }] : []),
                     ],
+                    memoContent: memoContent, // Include memoContent in the update
                     // Other fields might need to be updated based on your UI
                 };
                 console.log("Calling updateMemoFiche with:", updatedFiche);
@@ -159,6 +165,7 @@ const GeneratorPage: React.FC = () => {
                 setKahootUrl('');
                 setVideoUrl('');
                 setPodcastUrl('');
+                setMemoContent([]); // Clear memoContent after new fiche creation
             }
 
         } catch (err: any) {
@@ -244,6 +251,154 @@ const GeneratorPage: React.FC = () => {
                             />
                         </div>
 
+                        {/* MEMO CONTENT SECTIONS (EDIT MODE ONLY) */}
+                        {memoFicheId && (
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-800 mb-1">Étape 3.5 : Contenu de la Mémofiche</h2>
+                                <p className="text-gray-500 mb-4">Modifiez les sections de la mémofiche. Vous pouvez ajouter ou supprimer des sections.</p>
+                                <div className="space-y-4">
+                                    {memoContent.map((section, index) => (
+                                        <div key={section.id || `new-section-${index}`} className="p-4 border border-gray-200 rounded-md bg-gray-50">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <h3 className="font-semibold text-gray-700">Section {index + 1}</h3>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setMemoContent(prev => prev.filter((_, i) => i !== index));
+                                                    }}
+                                                    className="text-red-500 hover:text-red-700 transition-colors"
+                                                >
+                                                    Supprimer
+                                                </button>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={section.title}
+                                                onChange={(e) => {
+                                                    const newContent = [...memoContent];
+                                                    newContent[index].title = e.target.value;
+                                                    setMemoContent(newContent);
+                                                }}
+                                                placeholder="Titre de la section"
+                                                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 mb-2"
+                                                disabled={loading}
+                                            />
+                                            <textarea
+                                                rows={6}
+                                                value={section.content}
+                                                onChange={(e) => {
+                                                    const newContent = [...memoContent];
+                                                    newContent[index].content = e.target.value;
+                                                    setMemoContent(newContent);
+                                                }}
+                                                placeholder="Contenu de la section (Markdown)"
+                                                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+                                                disabled={loading}
+                                            />
+                                            {section.children && section.children.length > 0 && (
+                                                <div className="mt-4 pl-4 border-l-2 border-gray-200">
+                                                    <h4 className="font-semibold text-gray-600 mb-2">Sous-sections</h4>
+                                                    {section.children.map((child, childIndex) => (
+                                                        <div key={child.id || `new-child-section-${index}-${childIndex}`} className="p-3 border border-gray-200 rounded-md bg-gray-100 mb-2">
+                                                            <div className="flex justify-between items-center mb-2">
+                                                                <h5 className="font-semibold text-gray-700">Sous-section {childIndex + 1}</h5>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        const newContent = [...memoContent];
+                                                                        newContent[index].children = newContent[index].children?.filter((_, i) => i !== childIndex);
+                                                                        setMemoContent(newContent);
+                                                                    }}
+                                                                    className="text-red-500 hover:text-red-700 transition-colors text-sm"
+                                                                >
+                                                                    Supprimer
+                                                                </button>
+                                                            </div>
+                                                            <input
+                                                                type="text"
+                                                                value={child.title}
+                                                                onChange={(e) => {
+                                                                    const newContent = [...memoContent];
+                                                                    if (newContent[index].children) {
+                                                                        newContent[index].children![childIndex].title = e.target.value;
+                                                                    }
+                                                                    setMemoContent(newContent);
+                                                                }}
+                                                                placeholder="Titre de la sous-section"
+                                                                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 mb-2"
+                                                                disabled={loading}
+                                                            />
+                                                            <textarea
+                                                                rows={4}
+                                                                value={child.content}
+                                                                onChange={(e) => {
+                                                                    const newContent = [...memoContent];
+                                                                    if (newContent[index].children) {
+                                                                        newContent[index].children![childIndex].content = e.target.value;
+                                                                    }
+                                                                    setMemoContent(newContent);
+                                                                }}
+                                                                placeholder="Contenu de la sous-section (Markdown)"
+                                                                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+                                                                disabled={loading}
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const newContent = [...memoContent];
+                                                                    if (newContent[index].children) {
+                                                                        newContent[index].children!.push({
+                                                                            id: crypto.randomUUID(),
+                                                                            title: '',
+                                                                            content: '',
+                                                                        });
+                                                                    }
+                                                                    setMemoContent(newContent);
+                                                                }}
+                                                                className="mt-2 w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors disabled:bg-gray-400"
+                                                                disabled={loading}
+                                                            >
+                                                                Ajouter une sous-section
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const newContent = [...memoContent];
+                                                            if (!newContent[index].children) {
+                                                                newContent[index].children = [];
+                                                            }
+                                                            newContent[index].children!.push({
+                                                                id: crypto.randomUUID(),
+                                                                title: '',
+                                                                content: '',
+                                                            });
+                                                            setMemoContent(newContent);
+                                                        }}
+                                                        className="mt-2 w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors disabled:bg-gray-400"
+                                                        disabled={loading}
+                                                    >
+                                                        Ajouter une sous-section
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setMemoContent(prev => [...prev, { id: crypto.randomUUID(), title: '', content: '' }]);
+                                        }}
+                                        className="w-full bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors disabled:bg-gray-400"
+                                        disabled={loading}
+                                    >
+                                        Ajouter une nouvelle section
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                        
                         {/* OPTIONAL RESOURCES */}
                         <div>
                            <h2 className="text-xl font-bold text-gray-800 mb-1">Étape 4 : Ressources (Optionnel)</h2>

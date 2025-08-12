@@ -144,7 +144,12 @@ const DataProvider: React.FC<{ children: React.ReactNode; logout: () => void }> 
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/data`, { 
               headers: { 'Authorization': `Bearer ${token}` }
             });
-            if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+            if (!response.ok) {
+              if (response.status === 401 || response.status === 403) {
+                logout(); // Déconnecte si le token est invalide ou non autorisé
+              }
+              throw new Error(`Erreur HTTP: ${response.status}`);
+            }
             const fetchedData: PharmIaData = await response.json();
             setData(fetchedData);
           })(),
@@ -154,7 +159,7 @@ const DataProvider: React.FC<{ children: React.ReactNode; logout: () => void }> 
       } catch (e: any) {
         console.error("Impossible de charger les données depuis le backend", e);
         setError("Impossible de charger les données. Veuillez vérifier votre connexion et rafraîchir la page.");
-        if (e.message.includes('403')) logout();
+        // La déconnexion est maintenant gérée directement dans le bloc if (!response.ok)
       } finally {
         setLoading(false);
       }

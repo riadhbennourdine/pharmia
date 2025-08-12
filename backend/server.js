@@ -142,7 +142,7 @@ app.get('/api/data', async (req, res) => {
     }
 });
 
-app.post('/api/memofiches', verifyToken, authorizeRoles(['Admin', 'Formateur']), async (req, res) => {
+app.post('/api/memofiches', verifyToken, authorizeRoles(['Admin']), async (req, res) => {
     try {
         const db = getDb();
         const newFiche = req.body;
@@ -181,7 +181,7 @@ app.post('/api/memofiches', verifyToken, authorizeRoles(['Admin', 'Formateur']),
     }
 });
 
-app.delete('/api/memofiches/:id', async (req, res) => {
+app.delete('/api/memofiches/:id', verifyToken, authorizeRoles(['Admin', 'Formateur']), async (req, res) => {
     try {
         const db = getDb();
         const { id } = req.params;
@@ -609,8 +609,33 @@ app.post('/api/users/me/update-skill-level', verifyToken, async (req, res) => {
 });
 
 
+// Temporary route to get user ID by email (Admin only)
+app.get('/api/users/find-by-email', verifyToken, authorizeRoles(['Admin', 'Formateur']), async (req, res) => {
+    try {
+        const db = getDb();
+        const { email } = req.query;
+
+        if (!email) {
+            return res.status(400).json({ message: 'Email query parameter is required.' });
+        }
+
+        const user = await db.collection('users').findOne({ email: email });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        res.status(200).json({ userId: user._id, email: user.email, role: user.role });
+
+    } catch (error) {
+        console.error('Error finding user by email:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+
 // Get Pharmacien users for Preparateur selection
-app.get('/api/pharmaciens', verifyToken, authorizeRoles(['Preparateur', 'Admin']), async (req, res) => {
+app.get('/api/pharmaciens', verifyToken, authorizeRoles(['Preparateur', 'Admin', 'Formateur']), async (req, res) => {
     try {
         const db = getDb();
         const pharmaciens = await db.collection('users').find({ role: 'Pharmacien' }).project({ password: 0 }).toArray();
