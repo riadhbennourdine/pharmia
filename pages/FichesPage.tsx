@@ -4,10 +4,13 @@ import { Link } from 'react-router-dom';
 import { useData, useAuth } from '../App';
 import MemoCard from '../components/MemoCard';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { ResetIcon } from '../components/icons';
 
 const FichesPage: React.FC = () => {
   const { data, loading, error, deleteMemoFiche } = useData();
   const { canEditMemoFiches, canDeleteMemoFiches, isLoggedIn } = useAuth();
+  const [themeFilter, setThemeFilter] = useState<string>('');
+  const [systemFilter, setSystemFilter] = useState<string>('');
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.preventDefault();
@@ -19,8 +22,17 @@ const FichesPage: React.FC = () => {
 
   const filteredMemofiches = useMemo(() => {
     if (!data) return [];
-    return data.memofiches;
-  }, [data]);
+    return data.memofiches.filter(mf => {
+      const themeMatch = themeFilter ? mf.theme.Nom === themeFilter : true;
+      const systemMatch = systemFilter ? mf.systeme_organe.Nom === systemFilter : true;
+      return themeMatch && systemMatch;
+    });
+  }, [data, themeFilter, systemFilter]);
+
+  const resetFilters = () => {
+    setThemeFilter('');
+    setSystemFilter('');
+  };
 
   if (loading) {
     return (
@@ -68,6 +80,46 @@ const FichesPage: React.FC = () => {
       <h1 className="text-4xl md:text-6xl font-bold text-left text-gray-800 mb-10">
         <span className="animated-gradient-text font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-green-600 to-green-800">Mémofiches</span>
       </h1>
+
+      <div className="flex flex-wrap gap-4 mb-8 justify-start"> {/* Changed justify-center to justify-start */}
+        <div className="flex-shrink-0"> {/* Theme filter */}
+          {/* Removed label */}
+          <select
+            id="themeFilter"
+            value={themeFilter}
+            onChange={(e) => setThemeFilter(e.target.value)}
+            className="p-1.5 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 text-sm" /* Reduced padding, added text-sm */
+          >
+            <option value="">Tous les thèmes</option>
+            {data?.themes.sort((a,b) => a.Nom.localeCompare(b.Nom)).map(theme => (
+              <option key={theme.id} value={theme.Nom}>{theme.Nom}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex-shrink-0"> {/* System/Organ filter */}
+          {/* Removed label */}
+          <select
+            id="systemFilter"
+            value={systemFilter}
+            onChange={(e) => setSystemFilter(e.target.value)}
+            className="p-1.5 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 text-sm" /* Reduced padding, added text-sm */
+          >
+            <option value="">Tous les systèmes</option>
+            {data?.systemesOrganes.sort((a,b) => a.Nom.localeCompare(b.Nom)).map(sys => (
+              <option key={sys.id} value={sys.Nom}>{sys.Nom}</option>
+            ))}
+          </select>
+        </div>
+        
+        {/* Reset Button */}
+        <button
+          onClick={resetFilters}
+          className="p-1.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors flex items-center justify-center"
+        >
+          <ResetIcon className="w-5 h-5"/>
+        </button>
+      </div>
 
       {filteredMemofiches.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

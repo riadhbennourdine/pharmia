@@ -9,7 +9,12 @@ interface MemoCardProps {
 }
 
 const MemoCard: React.FC<MemoCardProps> = ({ memofiche, onDelete }) => {
-  const { id, title, shortDescription, imageUrl, theme, systeme_organe } = memofiche;
+  const { id, title, shortDescription, imageUrl, theme, systeme_organe, createdAt } = memofiche;
+
+  const formatDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString('fr-FR', options);
+  };
 
   return (
     <div className="group relative bg-white rounded-xl overflow-hidden shadow-sm transition-all duration-300 flex flex-col h-full border border-gray-200 hover:border-gray-300 hover:shadow-lg">
@@ -26,6 +31,9 @@ const MemoCard: React.FC<MemoCardProps> = ({ memofiche, onDelete }) => {
       <div className="p-5 flex flex-col flex-grow">
         <h3 className="text-lg font-bold text-gray-800 mb-2 line-clamp-2">{title}</h3>
         <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-grow">{shortDescription}</p>
+        {createdAt && (
+          <p className="text-gray-500 text-xs mb-2">Créé le: {formatDate(createdAt)}</p>
+        )}
         <div className="flex flex-wrap gap-2 text-xs text-gray-700 mt-auto pt-2">
           {theme?.Nom && (
             <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">

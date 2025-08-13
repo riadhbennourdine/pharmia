@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../App';
 
 
 const ThemeCard = ({ icon, title }: { icon: React.ReactNode, title: string }) => (
@@ -11,6 +12,17 @@ const ThemeCard = ({ icon, title }: { icon: React.ReactNode, title: string }) =>
 );
 
 const HomePage: React.FC = () => {
+    const { isLoggedIn } = useAuth();
+    const navigate = useNavigate();
+
+    const handleStartLearningClick = () => {
+        if (isLoggedIn) {
+            navigate('/fiches');
+        } else {
+            navigate('/connexion');
+        }
+    };
+
         const iconBaseUrl = "https://pharmaconseilbmb.com/photos/site/icone/png/";
 
     const learningThemes = [
@@ -65,12 +77,19 @@ const HomePage: React.FC = () => {
                     <p className="max-w-xl mx-auto text-md text-gray-600 mb-8">
                          Explorez nos modules de micro-apprentissage adaptatif, conçus pour renforcer vos compétences sur les cas comptoir pratiques rencontrés au quotidien de l'officine.
                     </p>
-                    <Link
-                        to="/fiches"
+                    <button
+                        onClick={handleStartLearningClick}
                         className="inline-block bg-green-600 text-white font-bold px-8 py-3 rounded-lg hover:bg-green-700 transition-transform duration-300 hover:scale-105"
                     >
                         Commencer à Apprendre
-                    </Link>
+                    </button>
+                    {/* New text for trial */}
+                    <p className="mt-4 text-center text-lg font-semibold text-green-700">
+                        Essayez Gratuitement nos Mémofiches !
+                    </p>
+                    <p className="mt-1 text-center text-sm text-gray-500">
+                        Période d'essai de 14 jours
+                    </p>
                 </div>
             </section>
 

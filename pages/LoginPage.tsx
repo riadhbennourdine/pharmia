@@ -118,6 +118,13 @@ const LoginPage: React.FC = () => {
                     <p className="mt-2 text-center text-sm text-gray-600">
                         {isRegisterMode ? 'Remplissez les champs pour vous inscrire.' : 'Connectez-vous avec vos identifiants.'}
                     </p>
+                    {/* New text for trial */}
+                    <p className="mt-6 text-center text-lg font-semibold text-green-700">
+                        Essayez Gratuitement nos Mémofiches !
+                    </p>
+                    <p className="mt-1 text-center text-sm text-gray-500">
+                        Période d'essai de 14 jours
+                    </p>
                 </div>
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                     <div className="rounded-md shadow-sm -space-y-px">
