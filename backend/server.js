@@ -147,25 +147,26 @@ app.post('/api/memofiches', verifyToken, authorizeRoles(['Admin']), async (req, 
         const db = getDb();
         const newFiche = req.body;
         
-        // Ensure theme and system exist, create if they don't
-        // Find existing theme by Nom, or create if not found
+        // Find existing theme by Nom
         let theme = await db.collection('themes').findOne({ Nom: newFiche.theme.Nom });
         if (!theme) {
-            await db.collection('themes').insertOne({ id: newFiche.theme.id, Nom: newFiche.theme.Nom });
-            theme = { id: newFiche.theme.id, Nom: newFiche.theme.Nom }; // Use the new theme
+            // If not found, insert new theme and use its _id
+            const result = await db.collection('themes').insertOne({ Nom: newFiche.theme.Nom });
+            newFiche.theme.id = result.insertedId.toString();
         } else {
-            // If theme exists, use its ID for the new fiche
-            newFiche.theme.id = theme.id;
+            // If theme exists, use its _id for the new fiche
+            newFiche.theme.id = theme._id.toString();
         }
 
-        // Find existing systeme_organe by Nom, or create if not found
+        // Find existing systeme_organe by Nom
         let systemeOrgane = await db.collection('systemesOrganes').findOne({ Nom: newFiche.systeme_organe.Nom });
         if (!systemeOrgane) {
-            await db.collection('systemesOrganes').insertOne({ id: newFiche.systeme_organe.id, Nom: newFiche.systeme_organe.Nom });
-            systemeOrgane = { id: newFiche.systeme_organe.id, Nom: newFiche.systeme_organe.Nom }; // Use the new systemeOrgane
+            // If not found, insert new systeme_organe and use its _id
+            const result = await db.collection('systemesOrganes').insertOne({ Nom: newFiche.systeme_organe.Nom });
+            newFiche.systeme_organe.id = result.insertedId.toString();
         } else {
-            // If systeme_organe exists, use its ID for the new fiche
-            newFiche.systeme_organe.id = systemeOrgane.id;
+            // If systeme_organe exists, use its _id for the new fiche
+            newFiche.systeme_organe.id = systemeOrgane._id.toString();
         }
 
         // Insert the new memo fiche
@@ -219,17 +220,19 @@ app.put('/api/memofiches/:id', verifyToken, authorizeRoles(['Admin', 'Formateur'
         if (updatedFiche.theme) {
             let theme = await db.collection('themes').findOne({ Nom: updatedFiche.theme.Nom });
             if (!theme) {
-                await db.collection('themes').insertOne({ id: updatedFiche.theme.id, Nom: updatedFiche.theme.Nom });
+                const result = await db.collection('themes').insertOne({ Nom: updatedFiche.theme.Nom });
+                updatedFiche.theme.id = result.insertedId.toString();
             } else {
-                updatedFiche.theme.id = theme.id;
+                updatedFiche.theme.id = theme._id.toString();
             }
         }
         if (updatedFiche.systeme_organe) {
             let systemeOrgane = await db.collection('systemesOrganes').findOne({ Nom: updatedFiche.systeme_organe.Nom });
             if (!systemeOrgane) {
-                await db.collection('systemesOrganes').insertOne({ id: updatedFiche.systeme_organe.id, Nom: updatedFiche.systeme_organe.Nom });
+                const result = await db.collection('systemesOrganes').insertOne({ Nom: updatedFiche.systeme_organe.Nom });
+                updatedFiche.systeme_organe.id = result.insertedId.toString();
             } else {
-                updatedFiche.systeme_organe.id = systemeOrgane.id;
+                updatedFiche.systeme_organe.id = systemeOrgane._id.toString();
             }
         }
 
@@ -642,6 +645,62 @@ app.get('/api/pharmaciens', verifyToken, authorizeRoles(['Preparateur', 'Admin',
         res.status(200).json(pharmaciens);
     } catch (error) {
         console.error('Error fetching pharmaciens:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+// Migration endpoint to fix memo fiche theme/system IDs
+app.put('/api/migrate-memofiches-ids', verifyToken, authorizeRoles(['Admin']), async (req, res) => {
+    try {
+        const db = getDb();
+        const memofiches = await db.collection('memofiches').find({}).toArray();
+        let updatedCount = 0;
+
+        for (const fiche of memofiches) {
+            let needsUpdate = false;
+            const updateFields = {};
+
+            // Process theme
+            if (fiche.theme && fiche.theme.Nom) {
+                const existingTheme = await db.collection('themes').findOne({ Nom: fiche.theme.Nom });
+                if (existingTheme && fiche.theme.id !== existingTheme._id.toString()) {
+                    updateFields['theme.id'] = existingTheme._id.toString();
+                    needsUpdate = true;
+                } else if (!existingTheme) {
+                    // If theme by Nom doesn't exist, create it and update fiche
+                    const result = await db.collection('themes').insertOne({ Nom: fiche.theme.Nom });
+                    updateFields['theme.id'] = result.insertedId.toString();
+                    needsUpdate = true;
+                }
+            }
+
+            // Process systeme_organe
+            if (fiche.systeme_organe && fiche.systeme_organe.Nom) {
+                const existingSystem = await db.collection('systemesOrganes').findOne({ Nom: fiche.systeme_organe.Nom });
+                if (existingSystem && fiche.systeme_organe.id !== existingSystem._id.toString()) {
+                    updateFields['systeme_organe.id'] = existingSystem._id.toString();
+                    needsUpdate = true;
+                } else if (!existingSystem) {
+                    // If systeme_organe by Nom doesn't exist, create it and update fiche
+                    const result = await db.collection('systemesOrganes').insertOne({ Nom: fiche.systeme_organe.Nom });
+                    updateFields['systeme_organe.id'] = result.insertedId.toString();
+                    needsUpdate = true;
+                }
+            }
+
+            if (needsUpdate) {
+                await db.collection('memofiches').updateOne(
+                    { _id: fiche._id },
+                    { $set: updateFields }
+                );
+                updatedCount++;
+            }
+        }
+
+        res.status(200).json({ message: `Migration complete. ${updatedCount} memo fiches updated.`, updatedCount });
+
+    } catch (error) {
+        console.error('Error during memo fiche ID migration:', error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
