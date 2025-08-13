@@ -63,7 +63,7 @@ const HomePage: React.FC = () => {
             <section className="pb-24 pt-4">
                  <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <p className="max-w-xl mx-auto text-md text-gray-600 mb-8">
-                         Explorez nos modules de micro-apprentissage adaptatif, conçus pour renforcer vos compétences sur les sujets clés rencontrés chaque jour.
+                         Explorez nos modules de micro-apprentissage adaptatif, conçus pour renforcer vos compétences sur les cas comptoir pratiques rencontrés au quotidien de l'officine.
                     </p>
                     <Link
                         to="/fiches"
@@ -77,7 +77,7 @@ const HomePage: React.FC = () => {
             {/* Footer */}
             <footer className="py-8 border-t border-gray-200">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-500">
-                    &copy; 2025 PharmIA. Micro-apprentissage intelligent pour la pharmacie.
+                    &copy; 2025 PharmIA. Micro-apprentissage adaptatif pour l'officine.
                 </div>
             </footer>
         </div>

@@ -65,7 +65,7 @@ const FichesPage: React.FC = () => {
   
   return (
     <div className="container mx-auto p-4 md:p-8">
-      <h1 className="text-4xl font-bold text-center text-gray-800 mb-10">
+      <h1 className="text-4xl md:text-6xl font-bold text-left text-gray-800 mb-10">
         <span className="animated-gradient-text font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-green-600 to-green-800">Mémofiches</span>
       </h1>
 
