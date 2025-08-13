@@ -50,6 +50,23 @@ const HomePage: React.FC = () => {
                 </div>
             </section>
 
+            {/* Video Presentation Section */}
+            <section className="py-16 bg-slate-100">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                    <h2 className="text-3xl font-bold text-gray-800 mb-8">Découvrez PharmIA en Vidéo</h2>
+                    <div className="relative" style={{ paddingBottom: '56.25%', height: 0 }}>
+                        <iframe
+                            src="https://www.youtube.com/embed/sR3C9j3Tcqo"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            title="Présentation PharmIA"
+                            className="absolute top-0 left-0 w-full h-full rounded-lg shadow-xl"
+                        ></iframe>
+                    </div>
+                </div>
+            </section>
+
             {/* Learning Themes Section */}
             <section className="py-16">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
