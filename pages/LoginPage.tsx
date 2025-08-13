@@ -27,14 +27,8 @@ const LoginPage: React.FC = () => {
         if (isRegisterMode && role === UserRole.Preparateur) {
             const fetchPharmaciens = async () => {
                 try {
-                    const token = localStorage.getItem('token'); // Assuming token is stored in localStorage
-                    if (!token) {
-                        setError('Veuillez vous connecter pour accéder à cette fonctionnalité.');
-                        return;
-                    }
                     const response = await fetch(import.meta.env.VITE_BACKEND_URL + '/api/pharmaciens', {
                         headers: {
-                            'Authorization': `Bearer ${token}`,
                         },
                     });
                     if (response.ok) {

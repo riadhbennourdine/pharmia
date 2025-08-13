@@ -131,8 +131,7 @@ const FichesPage: React.FC = () => {
             ) : (
               <div
                 key={memofiche.id}
-                className="block cursor-pointer"
-                onClick={() => alert("Veuillez vous connecter ou vous inscrire pour voir le détail des mémofiches.")}
+                className="block"
               >
                 <MemoCard memofiche={memofiche} onDelete={undefined} />
               </div>

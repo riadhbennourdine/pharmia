@@ -31,7 +31,7 @@ const HighlightedText: React.FC<HighlightedTextProps> = ({ text, terms }) => {
                     return (
                         <span key={i} className="relative group cursor-pointer font-semibold text-green-700 underline decoration-green-300 decoration-2 underline-offset-2">
                             {part}
-                            <span className="absolute bottom-full mb-2 w-72 p-3 bg-gray-800 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none transform -translate-x-1/2 left-1/2">
+                            <span className="absolute bottom-full mb-2 w-96 p-3 bg-gray-700 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none transform -translate-x-1/2 left-1/2">
                                 <strong className="font-bold block mb-1">{matchingTerm.term}</strong>
                                 {matchingTerm.definition}
                                 <svg className="absolute text-gray-800 h-2 w-full left-0 top-full" x="0px" y="0px" viewBox="0 0 255 255"><polygon className="fill-current" points="0,0 127.5,127.5 255,0"/></svg>
@@ -105,7 +105,7 @@ const ContentSection: React.FC<ContentSectionProps> = ({ sections, glossaryTerms
                     <div key={section.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden" style={{ marginLeft: `${level * 20}px` }}>
                         <button 
                             onClick={() => handleToggle(section.id)}
-                            className="w-full flex items-center gap-3 p-4 font-semibold text-lg text-left cursor-pointer hover:bg-slate-50 transition-colors"
+                            className="w-full flex items-center gap-3 p-4 font-semibold text-lg text-left cursor-pointer transition-colors bg-gray-100 text-green-700 hover:bg-gray-200"
                             aria-expanded={isOpen}
                             aria-controls={`section-content-${section.id}`}
                         >

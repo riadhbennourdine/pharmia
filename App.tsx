@@ -134,17 +134,15 @@ const DataProvider: React.FC<{ children: React.ReactNode; logout: () => void }> 
       setLoading(true);
       setError(null);
       try {
-        if (!token) {
-          setLoading(false);
-          return;
+        const headers: HeadersInit = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
         }
-        
-        // Fetch general data and learner-specific data in parallel
-        await Promise.all([
-          (async () => {
-            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/data`, { 
-              headers: { 'Authorization': `Bearer ${token}` }
-            });
+
+        // Fetch general data
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/data`, { 
+          headers: headers
+        });
             if (!response.ok) {
               if (response.status === 401 || response.status === 403) {
                 logout(); // Déconnecte si le token est invalide ou non autorisé
@@ -152,10 +150,14 @@ const DataProvider: React.FC<{ children: React.ReactNode; logout: () => void }> 
               throw new Error(`Erreur HTTP: ${response.status}`);
             }
             const fetchedData: PharmIaData = await response.json();
-            setData(fetchedData);
-          })(),
-          fetchLearnerData(),
-        ]);
+        setData(fetchedData);
+
+        // Fetch learner-specific data only if logged in
+        if (isLoggedIn) {
+          await fetchLearnerData();
+        } else {
+          setLearnerData(null); // Ensure learnerData is null if not logged in
+        }
 
       } catch (e: any) {
         console.error("Impossible de charger les données depuis le backend", e);
@@ -166,13 +168,7 @@ const DataProvider: React.FC<{ children: React.ReactNode; logout: () => void }> 
       }
     };
     
-    if (isLoggedIn) {
-      fetchInitialData();
-    } else {
-      setLoading(false);
-      setData(null);
-      setLearnerData(null);
-    }
+    fetchInitialData(); // Always fetch initial data
   }, [token, isLoggedIn, fetchLearnerData, logout]);
 
   const addMemoFiche = useCallback(async (newFiche: MemoFiche): Promise<MemoFiche> => {

@@ -638,7 +638,7 @@ app.get('/api/users/find-by-email', verifyToken, authorizeRoles(['Admin', 'Forma
 
 
 // Get Pharmacien users for Preparateur selection
-app.get('/api/pharmaciens', verifyToken, authorizeRoles(['Preparateur', 'Admin', 'Formateur']), async (req, res) => {
+app.get('/api/pharmaciens', async (req, res) => {
     try {
         const db = getDb();
         const pharmaciens = await db.collection('users').find({ role: 'Pharmacien' }).project({ password: 0 }).toArray();
