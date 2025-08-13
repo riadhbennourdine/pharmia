@@ -26,11 +26,11 @@ const HomePage: React.FC = () => {
     const iconBaseUrl = "https://pharmaconseilbmb.com/photos/site/icone/png/";
 
     const trainers = [
-        { name: "Riadh Barhoumi", imageUrl: "https://pharmaconseilbmb.com/photos/site/formateur/1.png", title: "Pharmacien Formateur", phone: "+216 20 123 456", email: "riadh.b@example.com", social: { facebook: "https://facebook.com/riadh", linkedin: "https://linkedin.com/in/riadh" } },
-        { name: "Emna Mili", imageUrl: "https://pharmaconseilbmb.com/photos/site/formateur/2.png", title: "Pharmacien Formateur", phone: "+216 21 789 012", email: "emna.m@example.com", social: { facebook: "https://facebook.com/emna", linkedin: "https://linkedin.com/in/emna" } },
-        { name: "Senda Yahia", imageUrl: "https://pharmaconseilbmb.com/photos/site/formateur/3.png", title: "Pharmacien Formateur", phone: "+216 22 345 678", email: "senda.y@example.com", social: { facebook: "https://facebook.com/senda", linkedin: "https://linkedin.com/in/senda" } },
-        { name: "Ghassen Khalaf", imageUrl: "https://pharmaconseilbmb.com/photos/site/formateur/4.png", title: "Pharmacien Formateur", phone: "+216 23 987 654", email: "ghassen.k@example.com", social: { facebook: "https://facebook.com/ghassen", linkedin: "https://linkedin.com/in/ghassen" } },
-        { name: "Kmar Ben Abdessalem", imageUrl: "https://pharmaconseilbmb.com/photos/site/formateur/5.png", title: "Pharmacien Formateur", phone: "+216 24 123 456", email: "kmar.b@example.com", social: { facebook: "https://facebook.com/kmar", linkedin: "https://linkedin.com/in/kmar" } },
+        { name: "Riadh Barhoumi", imageUrl: "https://pharmaconseilbmb.com/photos/site/formateur/1.png", title: "Pharmacien Coach & Formateur", phone: "+216 52 847 241", email: "contact@pharmaconseilbmb.com", social: { facebook: "", linkedin: "" } },
+        { name: "Emna Mili", imageUrl: "https://pharmaconseilbmb.com/photos/site/formateur/2.png", title: "Pharmacienne Formatrice", phone: "+216 56 599 000", email: "emnamili0106@gmail.com", social: { facebook: "", linkedin: "" } },
+        { name: "Senda Yahia", imageUrl: "https://pharmaconseilbmb.com/photos/site/formateur/3.png", title: "Pharmacienne Formatrice", phone: "+216 58 678 441", email: "yahiasenda92@gmail.com", social: { facebook: "", linkedin: "" } },
+        { name: "Ghassen Khalaf", imageUrl: "https://pharmaconseilbmb.com/photos/site/formateur/4.png", title: "Pharmacien Formateur", phone: "+216 27 775 315", email: "", social: { facebook: "", linkedin: "" } },
+        { name: "Kmar Ben Abdessalem", imageUrl: "https://pharmaconseilbmb.com/photos/site/formateur/5.png", title: "Pharmacienne Formatrice", phone: "", email: "", social: { facebook: "", linkedin: "" } },
     ];
 
     const learningThemes = [
@@ -105,9 +105,9 @@ const HomePage: React.FC = () => {
                     <div className="text-center mb-12">
                         <h2 className="text-3xl font-bold text-gray-800">Nos Formateurs Experts</h2>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+                    <div className="flex flex-wrap justify-center gap-8 max-w-5xl mx-auto">
                         {trainers.map((trainer, index) => (
-                            <div key={index} className="group relative flex flex-col items-center text-center bg-white p-6 rounded-lg shadow-md border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105">
+                            <div key={index} className="group relative flex flex-col items-center text-center bg-white p-6 rounded-lg shadow-md border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 w-72">
                                 <img src={trainer.imageUrl} alt={trainer.name} className="w-32 h-32 rounded-full object-cover mb-4 border-2 border-green-500 transition-transform duration-300 group-hover:scale-110" />
                                 <h3 className="text-xl font-semibold text-gray-800 mb-1">{trainer.name}</h3>
                                 <p className="text-gray-600 text-sm">{trainer.title}</p>
