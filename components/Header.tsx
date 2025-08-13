@@ -41,7 +41,9 @@ const Header: React.FC = () => {
           <Link to="/" className="text-2xl font-bold">
             <span className="animated-gradient-text font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-green-600 to-green-800">PharmIA</span>
           </Link>
-          <nav className="flex items-center space-x-1">
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-1">
             <NavLink to="/" className={navLinkClass} end>
               Accueil
             </NavLink>
@@ -79,8 +81,57 @@ const Header: React.FC = () => {
               </NavLink>
             )}
           </nav>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
+            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-gray-500 hover:text-green-600 focus:outline-none">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                {isMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
+                )}
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      {isMenuOpen && (
+        <div className="md:hidden bg-white border-t border-gray-200" ref={menuRef}>
+          <nav className="flex flex-col space-y-1 px-2 pt-2 pb-3">
+            <NavLink to="/" className={navLinkClass} onClick={() => setIsMenuOpen(false)} end>
+              Accueil
+            </NavLink>
+            <NavLink to="/fiches" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>
+              Mémofiches
+            </NavLink>
+            <NavLink to="/tarifs" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>
+              Tarifs
+            </NavLink>
+            {canGenerateMemoFiche && (
+              <NavLink to="/generateur" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>
+                Générateur
+              </NavLink>
+            )}
+            {isLoggedIn ? (
+              <>
+                <NavLink to="/learner-space" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>
+                  Espace d'apprentissage
+                </NavLink>
+                <button onClick={() => { handleLogout(); setIsMenuOpen(false); }} className="block w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-green-600">
+                  Déconnexion
+                </button>
+              </>
+            ) : (
+              <NavLink to="/connexion" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>
+                Connexion
+              </NavLink>
+            )}
+          </nav>
+        </div>
+      )}
     </header>
   );
 };
