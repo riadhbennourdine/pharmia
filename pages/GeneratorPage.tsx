@@ -52,6 +52,7 @@ const GeneratorPage: React.FC = () => {
     const [newSystemName, setNewSystemName] = useState('');
 
     const [imageUrl, setImageUrl] = useState('');
+    const [imagePosition, setImagePosition] = useState<"top" | "middle" | "bottom">('middle'); // New state, default to 'middle'
     const [kahootUrl, setKahootUrl] = useState('');
     const [videoUrl, setVideoUrl] = useState('');
     const [podcastUrl, setPodcastUrl] = useState('');
@@ -68,6 +69,7 @@ const GeneratorPage: React.FC = () => {
                 setThemeSelection(ficheToEdit.theme.id);
                 setSystemSelection(ficheToEdit.systeme_organe.id);
                 setImageUrl(ficheToEdit.imageUrl || '');
+                setImagePosition(ficheToEdit.imagePosition || 'middle'); // Load imagePosition
                 setKahootUrl(ficheToEdit.kahootUrl || '');
                 setMemoContent(ficheToEdit.memoContent || []); // Load memoContent for editing
                 // Assuming videoUrl and podcastUrl are part of externalResources
@@ -130,6 +132,7 @@ const GeneratorPage: React.FC = () => {
                     theme: themeForApi,
                     systeme_organe: isCommunicationTheme ? { id: 'communication', Nom: 'Communication' } : data.systemesOrganes.find(s => s.id === systemSelection)!,
                     imageUrl: imageUrl.trim() || '',
+                    imagePosition: imagePosition, // Add imagePosition here
                     kahootUrl: kahootUrl.trim() || '',
                     externalResources: [
                         ...(videoUrl.trim() ? [{ type: 'video', title: 'Vidéo', url: videoUrl.trim() }] : []),
@@ -410,6 +413,47 @@ const GeneratorPage: React.FC = () => {
                            <p className="text-gray-500 mb-4">Fournissez des liens directs pour enrichir la mémofiche. Si laissés vides, l'IA en suggérera.</p>
                            <div className="space-y-4">
                                 <input type="url" value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="URL de l'image de couverture" className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500" disabled={loading} />
+                                <div className="flex items-center space-x-4">
+                                    <label className="block text-sm font-medium text-gray-700">Position de l'image :</label>
+                                    <div className="mt-1 flex space-x-4">
+                                        <label className="inline-flex items-center">
+                                            <input
+                                                type="radio"
+                                                className="form-radio h-4 w-4 text-green-600"
+                                                name="imagePosition"
+                                                value="top"
+                                                checked={imagePosition === 'top'}
+                                                onChange={() => setImagePosition('top')}
+                                                disabled={loading}
+                                            />
+                                            <span className="ml-2 text-gray-700">Haut</span>
+                                        </label>
+                                        <label className="inline-flex items-center">
+                                            <input
+                                                type="radio"
+                                                className="form-radio h-4 w-4 text-green-600"
+                                                name="imagePosition"
+                                                value="middle"
+                                                checked={imagePosition === 'middle'}
+                                                onChange={() => setImagePosition('middle')}
+                                                disabled={loading}
+                                            />
+                                            <span className="ml-2 text-gray-700">Milieu</span>
+                                        </label>
+                                        <label className="inline-flex items-center">
+                                            <input
+                                                type="radio"
+                                                className="form-radio h-4 w-4 text-green-600"
+                                                name="imagePosition"
+                                                value="bottom"
+                                                checked={imagePosition === 'bottom'}
+                                                onChange={() => setImagePosition('bottom')}
+                                                disabled={loading}
+                                            />
+                                            <span className="ml-2 text-gray-700">Bas</span>
+                                        </label>
+                                    </div>
+                                </div>
                                 <input type="url" value={kahootUrl} onChange={e => setKahootUrl(e.target.value)} placeholder="URL du quiz Kahoot!" className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500" disabled={loading} />
                                 <input type="url" value={videoUrl} onChange={e => setVideoUrl(e.target.value)} placeholder="URL de la vidéo YouTube" className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500" disabled={loading} />
                                 <input type="url" value={podcastUrl} onChange={e => setPodcastUrl(e.target.value)} placeholder="URL du podcast" className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500" disabled={loading} />
