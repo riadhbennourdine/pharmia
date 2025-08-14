@@ -6,6 +6,7 @@ import { connectToServer, getDb } from './db.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import crypto from 'crypto'; // Added for crypto.randomUUID()
 
 // --- AI Configuration ---
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
@@ -162,11 +163,15 @@ app.post('/api/memofiches', verifyToken, authorizeRoles(['Admin', 'Formateur']),
         if (newFiche.systeme_organe && newFiche.systeme_organe.Nom) {
             let systemeOrgane = await db.collection('systemesOrganes').findOne({ Nom: newFiche.systeme_organe.Nom });
             if (!systemeOrgane) {
-                const result = await db.collection('systemesOrganes').insertOne({ Nom: newFiche.systeme_organe.Nom });
-                newFiche.systeme_organe.id = result.insertedId.toString();
+                const newSystemId = crypto.randomUUID();
+                const result = await db.collection('systemesOrganes').insertOne({ id: newSystemId, Nom: newFiche.systeme_organe.Nom });
+                newFiche.systeme_organe.id = newSystemId;
             } else {
-                newFiche.systeme_organe.id = systemeOrgane._id.toString();
+                newFiche.systeme_organe.id = systemeOrgane.id;
             }
+        } else {
+            // If it doesn't exist, create a default placeholder to avoid breaking the data model
+            newFiche.systeme_organe = { id: 'N/A', Nom: 'Non applicable' };
         } else {
             newFiche.systeme_organe = { id: 'N/A', Nom: 'Non applicable' };
         }
