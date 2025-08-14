@@ -172,8 +172,6 @@ app.post('/api/memofiches', verifyToken, authorizeRoles(['Admin', 'Formateur']),
         } else {
             // If it doesn't exist, create a default placeholder to avoid breaking the data model
             newFiche.systeme_organe = { id: 'N/A', Nom: 'Non applicable' };
-        } else {
-            newFiche.systeme_organe = { id: 'N/A', Nom: 'Non applicable' };
         }
 
         // Insert the new memo fiche
