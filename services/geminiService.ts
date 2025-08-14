@@ -205,3 +205,82 @@ export const generateSingleMemoFiche = async (
         throw new Error("Impossible de générer la mémofiche depuis l'IA. Veuillez réessayer.");
     }
 };
+
+// New schema for communication fiches
+const communicationMemoFicheSchema = {
+    ...memoFicheItemSchema,
+    properties: {
+        ...memoFicheItemSchema.properties,
+        memoContent: {
+            type: Type.ARRAY,
+            description: "The main content of the memo fiche, structured into sections based on the provided text's paragraph titles. The 'Références bibliographiques' section should be last, if present.",
+            items: sectionSchema
+        },
+    }
+};
+
+// New function for generating communication fiches
+export const generateCommunicationMemoFiche = async (
+    rawText: string,
+    theme: Theme,
+    options: GenerationOptions = {}
+): Promise<MemoFiche> => {
+
+    const prompt = `
+        Vous êtes un expert en ingénierie pédagogique et en communication pharmaceutique. Votre mission de transformer un texte brut sur une technique ou une situation de communication à l'officine en une mémofiche structurée et prête à l'emploi pour l'application PharmIA.
+
+        **Thème :** Communication
+
+        **Instructions :**
+        Analysez le texte fourni ci-dessous. Extrayez sa structure, son contenu et ses informations clés pour générer une mémofiche complète au format JSON. Le contenu des flashcards, du quiz et du glossaire doit être **exclusivement basé sur les informations présentes dans le texte fourni**.
+
+        **Texte à traiter :**
+        ---
+        ${rawText}
+        ---
+
+        **Format de sortie JSON attendu et consignes :**
+        - La réponse DOIT être un objet JSON valide qui respecte scrupuleusement le schéma fourni.
+        - **title**: Le titre du sujet de communication (à extraire du texte).
+        - **shortDescription**: Une description courte (1-2 phrases) qui résume le contenu du texte fourni.
+        - **flashSummary**: Un résumé ultra-rapide en 3 points clés maximum, basés sur les conseils les plus importants du texte.
+        - **memoContent**: Le texte fourni contient des paragraphes avec des titres. Chaque paragraphe doit devenir un objet dans le tableau 
+memoContent
+. Le 
+Title
+ de l'objet JSON sera le titre du paragraphe, et le 
+content
+ sera le texte de ce paragraphe.
+        - **Références bibliographiques**: Si le texte fourni contient une section de références, assurez-vous qu'elle soit la dernière entrée dans le tableau 
+memoContent
+.
+        - **Catégorisation Imposée**: Tu DOIS utiliser les informations suivantes pour la classification. Ne les modifie PAS.
+          - Thème: { id: "${theme.id}", Nom: "${theme.Nom}" }
+          - Système/Organe: { id: "communication", Nom: "Communication" } // Hardcoded for this theme
+        - **Contenu Pédagogique**: Crée EXACTEMENT 10 flashcards, et 10 questions de quiz (variées, QCM et Vrai/Faux).
+        - **Termes Techniques**: Identifie 10 termes techniques pertinents dans le texte et fournis leurs définitions pour le glossaire.
+        - **Génération**: Tout le contenu (descriptions, résumés, flashcards, quiz, glossaire) doit être dérivé uniquement du texte que vous fournissez.
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: communicationMemoFicheSchema,
+            }
+        });
+
+        const jsonText = response.text.trim();
+        const data = JSON.parse(jsonText) as MemoFiche;
+        
+        data.createdAt = new Date().toISOString().split('T')[0];
+
+        return data;
+
+    } catch (error) {
+        console.error("Error generating communication memo fiche with Gemini:", error);
+        throw new Error("Impossible de générer la mémofiche de communication depuis l'IA. Veuillez réessayer.");
+    }
+};

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useData } from '../App';
-import { generateSingleMemoFiche } from '../services/geminiService';
+import { generateSingleMemoFiche, generateCommunicationMemoFiche } from '../services/geminiService';
 import { MemoFiche, Theme, SystemeOrgane } from '../types';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import MemoCard from '../components/MemoCard';
@@ -57,6 +57,8 @@ const GeneratorPage: React.FC = () => {
     const [podcastUrl, setPodcastUrl] = useState('');
     const [memoContent, setMemoContent] = useState<MemoFiche['memoContent']>([]);
 
+    const isCommunicationTheme = data?.themes.find(t => t.id === themeSelection)?.Nom === 'Communication';
+
     // Effect to load memo fiche data if in edit mode
     useEffect(() => {
         if (memoFicheId && data) {
@@ -86,7 +88,7 @@ const GeneratorPage: React.FC = () => {
         e.preventDefault();
         
         const isThemeReady = themeSelection && (themeSelection !== 'CREATE_NEW' || (themeSelection === 'CREATE_NEW' && newThemeName.trim()));
-        const isSystemReady = systemSelection && (systemSelection !== 'CREATE_NEW' || (systemSelection === 'CREATE_NEW' && newSystemName.trim()));
+        const isSystemReady = isCommunicationTheme || (systemSelection && (systemSelection !== 'CREATE_NEW' || (systemSelection === 'CREATE_NEW' && newSystemName.trim())));
 
         if (!prompt || loading || !isThemeReady || !isSystemReady) return;
 
@@ -108,13 +110,6 @@ const GeneratorPage: React.FC = () => {
                 themeForApi = data.themes.find(t => t.id === themeSelection)!;
             }
 
-            let systemForApi: SystemeOrgane;
-            if (systemSelection === 'CREATE_NEW') {
-                systemForApi = { id: crypto.randomUUID(), Nom: newSystemName.trim() };
-            } else {
-                systemForApi = data.systemesOrganes.find(s => s.id === systemSelection)!;
-            }
-
             const generationOptions = {
                 imageUrl: imageUrl.trim() || undefined,
                 kahootUrl: kahootUrl.trim() || undefined,
@@ -133,7 +128,7 @@ const GeneratorPage: React.FC = () => {
                     ...existingFiche,
                     flashSummary: prompt, // Assuming prompt is the main editable content
                     theme: themeForApi,
-                    systeme_organe: systemForApi,
+                    systeme_organe: isCommunicationTheme ? { id: 'communication', Nom: 'Communication' } : data.systemesOrganes.find(s => s.id === systemSelection)!,
                     imageUrl: imageUrl.trim() || '',
                     kahootUrl: kahootUrl.trim() || '',
                     externalResources: [
@@ -141,20 +136,28 @@ const GeneratorPage: React.FC = () => {
                         ...(podcastUrl.trim() ? [{ type: 'podcast', title: 'Podcast', url: podcastUrl.trim() }] : []),
                     ],
                     memoContent: memoContent, // Include memoContent in the update
-                    // Other fields might need to be updated based on your UI
                 };
-                console.log("Calling updateMemoFiche with:", updatedFiche);
                 savedFiche = await updateMemoFiche(updatedFiche);
             } else {
                 // Generate and add new memo fiche
-                const ficheFromGemini = await generateSingleMemoFiche(prompt, themeForApi, systemForApi, generationOptions);
+                let ficheFromGemini: MemoFiche;
+                if (isCommunicationTheme) {
+                    ficheFromGemini = await generateCommunicationMemoFiche(prompt, themeForApi, generationOptions);
+                } else {
+                    let systemForApi: SystemeOrgane;
+                    if (systemSelection === 'CREATE_NEW') {
+                        systemForApi = { id: crypto.randomUUID(), Nom: newSystemName.trim() };
+                    } else {
+                        systemForApi = data.systemesOrganes.find(s => s.id === systemSelection)!;
+                    }
+                    ficheFromGemini = await generateSingleMemoFiche(prompt, themeForApi, systemForApi, generationOptions);
+                }
                 savedFiche = await addMemoFiche(ficheFromGemini);
             }
 
             setGeneratedFiche(savedFiche);
             setIsSuccess(true);
             
-            // Reset form (only if creating new, or if you want to clear after edit)
             if (!memoFicheId) {
                 setPrompt('');
                 setThemeSelection('');
@@ -165,7 +168,7 @@ const GeneratorPage: React.FC = () => {
                 setKahootUrl('');
                 setVideoUrl('');
                 setPodcastUrl('');
-                setMemoContent([]); // Clear memoContent after new fiche creation
+                setMemoContent([]);
             }
 
         } catch (err: any) {
@@ -178,7 +181,7 @@ const GeneratorPage: React.FC = () => {
 
     const isReadyToSubmit = prompt.trim() &&
         (themeSelection && (themeSelection !== 'CREATE_NEW' || (themeSelection === 'CREATE_NEW' && newThemeName.trim()))) &&
-        (systemSelection && (systemSelection !== 'CREATE_NEW' || (systemSelection === 'CREATE_NEW' && newSystemName.trim())));
+        (isCommunicationTheme || (systemSelection && (systemSelection !== 'CREATE_NEW' || (systemSelection === 'CREATE_NEW' && newSystemName.trim()))));
 
     return (
         <div className="container mx-auto p-4 md:p-8">
@@ -216,7 +219,8 @@ const GeneratorPage: React.FC = () => {
                         </div>
 
                         {/* SYSTEMS */}
-                         <div>
+                        {!isCommunicationTheme && (
+                             <div>
                             <h2 className="text-xl font-bold text-gray-800 mb-1">Étape 2 : Choisissez un Organe / Système</h2>
                             <p className="text-gray-500 mb-4">Associez la mémofiche au système corporel pertinent.</p>
                              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -234,6 +238,7 @@ const GeneratorPage: React.FC = () => {
                                  </div>
                             )}
                         </div>
+                        )}
                         
                         {/* PROMPT */}
                         <div>

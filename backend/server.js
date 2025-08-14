@@ -142,31 +142,33 @@ app.get('/api/data', async (req, res) => {
     }
 });
 
-app.post('/api/memofiches', verifyToken, authorizeRoles(['Admin']), async (req, res) => {
+app.post('/api/memofiches', verifyToken, authorizeRoles(['Admin', 'Formateur']), async (req, res) => {
     try {
         const db = getDb();
         const newFiche = req.body;
         
         // Find existing theme by Nom
-        let theme = await db.collection('themes').findOne({ Nom: newFiche.theme.Nom });
-        if (!theme) {
-            // If not found, insert new theme and use its _id
-            const result = await db.collection('themes').insertOne({ Nom: newFiche.theme.Nom });
-            newFiche.theme.id = result.insertedId.toString();
-        } else {
-            // If theme exists, use its _id for the new fiche
-            newFiche.theme.id = theme._id.toString();
+        if (newFiche.theme && newFiche.theme.Nom) {
+            let theme = await db.collection('themes').findOne({ Nom: newFiche.theme.Nom });
+            if (!theme) {
+                const result = await db.collection('themes').insertOne({ Nom: newFiche.theme.Nom });
+                newFiche.theme.id = result.insertedId.toString();
+            } else {
+                newFiche.theme.id = theme._id.toString();
+            }
         }
 
-        // Find existing systeme_organe by Nom
-        let systemeOrgane = await db.collection('systemesOrganes').findOne({ Nom: newFiche.systeme_organe.Nom });
-        if (!systemeOrgane) {
-            // If not found, insert new systeme_organe and use its _id
-            const result = await db.collection('systemesOrganes').insertOne({ Nom: newFiche.systeme_organe.Nom });
-            newFiche.systeme_organe.id = result.insertedId.toString();
+        // Find existing systeme_organe by Nom, or create a default if it doesn't exist
+        if (newFiche.systeme_organe && newFiche.systeme_organe.Nom) {
+            let systemeOrgane = await db.collection('systemesOrganes').findOne({ Nom: newFiche.systeme_organe.Nom });
+            if (!systemeOrgane) {
+                const result = await db.collection('systemesOrganes').insertOne({ Nom: newFiche.systeme_organe.Nom });
+                newFiche.systeme_organe.id = result.insertedId.toString();
+            } else {
+                newFiche.systeme_organe.id = systemeOrgane._id.toString();
+            }
         } else {
-            // If systeme_organe exists, use its _id for the new fiche
-            newFiche.systeme_organe.id = systemeOrgane._id.toString();
+            newFiche.systeme_organe = { id: 'N/A', Nom: 'Non applicable' };
         }
 
         // Insert the new memo fiche
