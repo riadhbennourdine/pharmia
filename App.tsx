@@ -310,6 +310,17 @@ const LoggedInRoute: React.FC = () => {
     return <Outlet />;
 };
 
+const GeneratorRoute: React.FC = () => {
+    const { isLoggedIn, isAdmin } = useAuth();
+    if (!isLoggedIn) {
+        return <Navigate to="/connexion" replace />;
+    }
+    if (!isAdmin) {
+       return <Navigate to="/" replace />;
+    }
+    return <Outlet />;
+};
+
 
 const App: React.FC = () => {
   return (
