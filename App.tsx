@@ -9,6 +9,7 @@ import GeneratorPage from './pages/GeneratorPage';
 import LoginPage from './pages/LoginPage';
 import LearnerSpacePage from './pages/LearnerSpacePage';
 import PricingPage from './pages/PricingPage';
+import AdminDashboardPage from './pages/AdminDashboardPage'; // Import the new page
 import Header from './components/Header';
 import { LoadingSpinner } from './components/LoadingSpinner';
 
@@ -25,15 +26,14 @@ export const useAuth = () => {
 };
 
 const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [userRole, setUserRole] = useState<UserRole>(() => {
+  const [userRole, setUserRole] = useState<UserRole | null>(() => {
     const storedRole = localStorage.getItem('userRole');
-    // Map stored string to UserRole enum, default to Guest if invalid or not found
+    // Map stored string to UserRole enum, default to null if invalid or not found
     switch (storedRole) {
-      case 'Admin': return UserRole.Admin;
-      case 'Formateur': return UserRole.Formateur;
-      case 'Pharmacien': return UserRole.Pharmacien;
-      case 'Préparateur': return UserRole.Preparateur;
-      default: return UserRole.Guest;
+      case 'admin': return 'admin';
+      case 'pharmacien': return 'pharmacien';
+      case 'préparateur': return 'préparateur';
+      default: return null;
     }
   });
   const [token, setToken] = useState<string | null>(() => {
@@ -56,7 +56,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     localStorage.removeItem('userRole');
     localStorage.removeItem('token');
     localStorage.removeItem('username');
-    setUserRole(UserRole.Guest);
+    setUserRole(null);
     setToken(null);
     setUsername(null);
   };
@@ -67,10 +67,8 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     username,
     login,
     logout,
-    isLoggedIn: userRole !== UserRole.Guest,
-    canGenerateMemoFiche: userRole === UserRole.Admin,
-    canEditMemoFiches: userRole === UserRole.Admin || userRole === UserRole.Formateur,
-    canDeleteMemoFiches: userRole === UserRole.Admin
+    isLoggedIn: userRole !== null,
+    isAdmin: userRole === 'admin',
   }), [userRole, token, username]);
 
   return (
@@ -293,13 +291,13 @@ const MemoFicheDetailWrapper = () => {
     return <DetailPage memoFiche={memoFiche} />;
 };
 
-const ProtectedRoute: React.FC = () => {
-    const { canEditMemoFiches, isLoggedIn } = useAuth();
+const AdminRoute: React.FC = () => {
+    const { isLoggedIn, isAdmin } = useAuth();
     if (!isLoggedIn) {
         return <Navigate to="/connexion" replace />;
     }
-    if (!canEditMemoFiches) {
-       return <Navigate to="/fiches" replace />;
+    if (!isAdmin) {
+       return <Navigate to="/" replace />;
     }
     return <Outlet />;
 };
@@ -338,9 +336,12 @@ const AppContent: React.FC = () => {
               <Route element={<LoggedInRoute />}>
                 <Route path="/learner-space" element={<LearnerSpacePage />} />
               </Route>
-              <Route element={<ProtectedRoute />}>
+              <Route element={<GeneratorRoute />}>
                 <Route path="/generateur" element={<GeneratorPage />} />
                 <Route path="/edit-memofiche/:id" element={<GeneratorPage />} />
+              </Route>
+              <Route element={<AdminRoute />}>
+                <Route path="/admin" element={<AdminDashboardPage />} />
               </Route>
             </Routes>
           </main>

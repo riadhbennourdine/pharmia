@@ -4,7 +4,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../App';
 
 const Header: React.FC = () => {
-  const { isLoggedIn, logout, canGenerateMemoFiche, username } = useAuth();
+  const { isLoggedIn, logout, isAdmin, username } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -53,7 +53,7 @@ const Header: React.FC = () => {
             <NavLink to="/tarifs" className={navLinkClass}>
               Tarifs
             </NavLink>
-            {canGenerateMemoFiche && (
+            {isAdmin && (
               <NavLink to="/generateur" className={navLinkClass}>
                 Générateur
               </NavLink>
@@ -69,6 +69,11 @@ const Header: React.FC = () => {
                     <NavLink to="/learner-space" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setIsMenuOpen(false)}>
                       Espace d'apprentissage
                     </NavLink>
+                    {isAdmin && (
+                      <NavLink to="/admin" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setIsMenuOpen(false)}>
+                        Admin Dashboard
+                      </NavLink>
+                    )}
                     <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                       Déconnexion
                     </button>
@@ -110,7 +115,7 @@ const Header: React.FC = () => {
             <NavLink to="/tarifs" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>
               Tarifs
             </NavLink>
-            {canGenerateMemoFiche && (
+            {isAdmin && (
               <NavLink to="/generateur" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>
                 Générateur
               </NavLink>
@@ -120,6 +125,11 @@ const Header: React.FC = () => {
                 <NavLink to="/learner-space" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>
                   Espace d'apprentissage
                 </NavLink>
+                {isAdmin && (
+                  <NavLink to="/admin" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>
+                    Admin Dashboard
+                  </NavLink>
+                )}
                 <button onClick={() => { handleLogout(); setIsMenuOpen(false); }} className="block w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-green-600">
                   Déconnexion
                 </button>
