@@ -48,6 +48,7 @@ const memoFicheItemSchema = {
         title: { type: Type.STRING, description: "Titre de la mémofiche." },
         shortDescription: { type: Type.STRING, description: "A very brief, one-sentence summary for card previews." },
         imageUrl: { type: Type.STRING, description: "A placeholder image URL from picsum.photos" },
+        imagePosition: { type: Type.STRING, enum: ['top', 'middle', 'bottom'], description: "Position of the image within its container. Default to 'middle'." },
         flashSummary: { type: Type.STRING, description: "Synthèse flash de 2-3 phrases (résumé)." },
         level: { type: Type.STRING, description: "Niveau de difficulté (e.g., 'Débutant', 'Intermédiaire', 'Expert')." },
         createdAt: { type: Type.STRING, description: "Date of creation in YYYY-MM-DD format. Use today's date." },
@@ -118,7 +119,7 @@ const memoFicheItemSchema = {
             items: externalResourceSchema
         },
     },
-    required: ["id", "title", "shortDescription", "imageUrl", "flashSummary", "memoContent", "theme", "systeme_organe", "flashcards", "quiz", "glossaryTerms", "level", "createdAt", "externalResources"],
+    required: ["id", "title", "shortDescription", "imageUrl", "imagePosition", "flashSummary", "memoContent", "theme", "systeme_organe", "flashcards", "quiz", "glossaryTerms", "level", "createdAt", "externalResources"],
 };
 
 interface GenerationOptions {
@@ -166,6 +167,7 @@ export const generateSingleMemoFiche = async (
         - **Contenu Pédagogique**: Crée EXACTEMENT 10 flashcards, et 10 questions de quiz (variées, QCM et Vrai/Faux).
         - **Termes Techniques**: Identifie 10 termes techniques pertinents dans le texte et fournis leurs définitions pour le glossaire.
         - **Image**: ${options.imageUrl ? `Utilise CETTE URL EXACTE pour 'imageUrl': ${options.imageUrl}` : "Utilise 'https://picsum.photos/800/600' pour imageUrl."}
+        - **Position Image**: Pour 'imagePosition', utilise 'middle' par défaut, ou 'top' ou 'bottom' si le sujet le suggère.
         - **Kahoot**: ${options.kahootUrl ? `Utilise CETTE URL EXACTE pour 'kahootUrl': ${options.kahootUrl}` : "Si pertinent, fournis un lien vers un quiz Kahoot public sur le sujet dans 'kahootUrl'. Sinon, laisse ce champ vide ou null."}
         - **Ressources Externes**: 
           ${providedResourcesInstructions || "Suggère 1 ou 2 liens pertinents (vidéos YouTube, articles, podcasts). Pour les vidéos, utilise des URLs 'embed'."}
@@ -260,6 +262,7 @@ memoContent
         - **Contenu Pédagogique**: Crée EXACTEMENT 10 flashcards, et 10 questions de quiz (variées, QCM et Vrai/Faux).
         - **Termes Techniques**: Identifie 10 termes techniques pertinents dans le texte et fournis leurs définitions pour le glossaire.
         - **Génération**: Tout le contenu (descriptions, résumés, flashcards, quiz, glossaire) doit être dérivé uniquement du texte que vous fournissez.
+        - **Position Image**: Pour 'imagePosition', utilise 'middle' par défaut, ou 'top' ou 'bottom' si le sujet le suggère.
     `;
 
     try {

@@ -53,6 +53,7 @@ export interface MemoFiche {
   title: string;
   shortDescription: string;
   imageUrl: string;
+  imagePosition?: 'top' | 'middle' | 'bottom';
   flashSummary: string;
   memoContent: Section[];
   flashcards: Flashcard[];

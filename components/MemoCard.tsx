@@ -9,12 +9,14 @@ interface MemoCardProps {
 }
 
 const MemoCard: React.FC<MemoCardProps> = ({ memofiche, onDelete }) => {
-  const { id, title, shortDescription, imageUrl, theme, systeme_organe, createdAt } = memofiche;
+  const { id, title, shortDescription, imageUrl, theme, systeme_organe, createdAt, imagePosition } = memofiche;
 
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('fr-FR', options);
   };
+
+  const imagePositionClass = imagePosition ? `object-${imagePosition}` : 'object-center';
 
   return (
     <div className="group relative bg-white rounded-xl overflow-hidden shadow-sm transition-all duration-300 flex flex-col h-full border border-gray-200 hover:border-gray-300 hover:shadow-lg">
@@ -27,7 +29,7 @@ const MemoCard: React.FC<MemoCardProps> = ({ memofiche, onDelete }) => {
           <TrashIcon className="w-5 h-5" />
         </button>
       )}
-      <img src={imageUrl} alt={title} className="w-full h-48 object-cover" />
+      <img src={imageUrl} alt={title} className={`w-full h-48 object-cover ${imagePositionClass}`} />
       <div className="p-5 flex flex-col flex-grow">
         <h3 className="text-lg font-bold text-gray-800 mb-2 line-clamp-2">{title}</h3>
         <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-grow">{shortDescription}</p>

@@ -24,6 +24,10 @@ const DetailPage: React.FC<DetailPageProps> = ({ memoFiche }) => {
   const { canEditMemoFiches, canDeleteMemoFiches } = useAuth();
   const navigate = useNavigate();
 
+  const { id, title, shortDescription, imageUrl, theme, systeme_organe, createdAt, imagePosition } = memoFiche;
+
+  const imagePositionClass = imagePosition ? `object-${imagePosition}` : 'object-center';
+
   useEffect(() => {
     const recordFicheRead = async () => {
       try {
@@ -202,7 +206,7 @@ const DetailPage: React.FC<DetailPageProps> = ({ memoFiche }) => {
       <div className="container mx-auto p-4 md:p-8 mt-1">
         <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
           <div className="relative">
-              <img src={memoFiche.imageUrl} alt={memoFiche.title} className="w-full h-48 md:h-64 object-cover" />
+              <img src={memoFiche.imageUrl} alt={memoFiche.title} className={`w-full h-48 md:h-64 object-cover ${imagePositionClass}`} />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
                {canEditMemoFiches && (
                 <div className="absolute top-4 right-4 z-10 flex space-x-2">
