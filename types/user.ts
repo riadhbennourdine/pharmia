@@ -8,7 +8,8 @@ export interface User {
   _id: string;
   email: string;
   username: string;
-  role: string;
+  role: 'pharmacien' | 'préparateur' | 'admin';
+  subscriptionStatus: 'free' | 'premium';
   skillLevel: 'Débutant' | 'Intermédiaire' | 'Expert';
   readFicheIds: string[];
   quizHistory: QuizAttempt[];

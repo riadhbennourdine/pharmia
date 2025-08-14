@@ -710,6 +710,77 @@ app.put('/api/migrate-memofiches-ids', verifyToken, authorizeRoles(['Admin']), a
     }
 });
 
+// --- Admin Routes ---
+// Get all users (Admin only)
+app.get('/api/admin/users', verifyToken, authorizeRoles(['admin']), async (req, res) => {
+    try {
+        const db = getDb();
+        const users = await db.collection('users').find({}, { projection: { password: 0 } }).toArray(); // Exclude passwords
+        res.status(200).json(users);
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+// Update a user (Admin only)
+app.put('/api/admin/users/:id', verifyToken, authorizeRoles(['admin']), async (req, res) => {
+    try {
+        const db = getDb();
+        const { id } = req.params;
+        const { role, subscriptionStatus } = req.body;
+
+        if (!ObjectId.isValid(id)) {
+            return res.status(400).json({ message: 'Invalid user ID format' });
+        }
+
+        const updateFields = {};
+        if (role) updateFields.role = role;
+        if (subscriptionStatus) updateFields.subscriptionStatus = subscriptionStatus;
+
+        if (Object.keys(updateFields).length === 0) {
+            return res.status(400).json({ message: 'No update fields provided.' });
+        }
+
+        const result = await db.collection('users').updateOne(
+            { _id: new ObjectId(id) },
+            { $set: updateFields }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({ message: 'User updated successfully' });
+    } catch (error) {
+        console.error('Error updating user:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+// Delete a user (Admin only)
+app.delete('/api/admin/users/:id', verifyToken, authorizeRoles(['admin']), async (req, res) => {
+    try {
+        const db = getDb();
+        const { id } = req.params;
+
+        if (!ObjectId.isValid(id)) {
+            return res.status(400).json({ message: 'Invalid user ID format' });
+        }
+
+        const result = await db.collection('users').deleteOne({ _id: new ObjectId(id) });
+
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({ message: 'User deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
 // Start server after DB connection
 connectToServer().then(() => {
     app.listen(port, () => {
