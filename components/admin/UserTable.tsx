@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { User } from '../../types/user';
-import { FiEdit, FiTrash2, FiSave, FiXCircle } from 'react-icons/fi';
+import { FiEdit, FiTrash2, FiSave, FiXCircle, FiEye } from 'react-icons/fi';
 
 interface UserTableProps {
   users: User[];
@@ -131,6 +132,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, onUpdateUser, onDeleteUser
                         </>
                         ) : (
                         <>
+                            <Link to={`/users/${user._id}`} className="text-blue-600 hover:text-blue-900 mr-4"><FiEye size={18} /></Link>
                             <button onClick={() => handleEdit(user)} className="text-indigo-600 hover:text-indigo-900 mr-4"><FiEdit size={18} /></button>
                             <button onClick={() => onDeleteUser(user._id)} className="text-red-600 hover:text-red-900"><FiTrash2 size={18} /></button>
                         </>

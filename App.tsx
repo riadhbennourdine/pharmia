@@ -9,7 +9,7 @@ import GeneratorPage from './pages/GeneratorPage';
 import LoginPage from './pages/LoginPage';
 import LearnerSpacePage from './pages/LearnerSpacePage';
 import PricingPage from './pages/PricingPage';
-import AdminDashboardPage from './pages/AdminDashboardPage'; // Import the new page
+import UserDetailPage from './pages/UserDetailPage';
 import Header from './components/Header';
 import { LoadingSpinner } from './components/LoadingSpinner';
 
@@ -368,7 +368,8 @@ const AppContent: React.FC = () => {
                 <Route path="/edit-memofiche/:id" element={<GeneratorPage />} />
               </Route>
               <Route element={<AdminRoute />}>
-                <Route path="/admin" element={<AdminDashboardPage />} />
+                <Route path="/admin" element={<LearnerSpacePage />} />
+                <Route path="/users/:userId" element={<UserDetailPage />} />
               </Route>
             </Routes>
           </main>
