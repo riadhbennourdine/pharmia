@@ -187,6 +187,8 @@ app.post('/api/memofiches', verifyToken, authorizeRoles(['Admin', 'Formateur']),
     }
 });
 
+
+
 app.delete('/api/memofiches/:id', verifyToken, authorizeRoles(['Admin', 'Formateur']), async (req, res) => {
     try {
         const db = getDb();
@@ -457,7 +459,6 @@ app.post('/api/users/me/quiz-history', verifyToken, async (req, res) => {
     }
 });
 
-/*
 // --- AI Coach Endpoint ---
 app.post('/api/ai-coach/suggest-challenge', verifyToken, async (req, res) => {
     try {
@@ -529,13 +530,76 @@ app.post('/api/ai-coach/suggest-challenge', verifyToken, async (req, res) => {
         res.status(500).json({ message: 'Error generating suggestion from AI Coach.' });
     }
 });
-*/
+
+
+// --- Chatbot Endpoint ---
+app.post('/api/chatbot/message', verifyToken, async (req, res) => {
+    try {
+        if (!GEMINI_API_KEY) {
+            return res.status(503).json({ message: 'Chatbot is not configured on the server. Missing API Key.' });
+        }
+
+        const db = getDb();
+        const userId = new ObjectId(req.user.userId);
+        const { message } = req.body;
+
+        if (!message) {
+            return res.status(400).json({ message: 'Message is required.' });
+        }
+
+        // Find or create conversation for the user
+        let conversation = await db.collection('conversations').findOne({ userId: userId });
+
+        if (!conversation) {
+            conversation = {
+                userId: userId,
+                messages: [],
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+            await db.collection('conversations').insertOne(conversation);
+        }
+
+        // Add user message to conversation
+        conversation.messages.push({ sender: 'user', text: message, timestamp: new Date() });
+        await db.collection('conversations').updateOne(
+            { _id: conversation._id },
+            { $set: { messages: conversation.messages, updatedAt: new Date() } }
+        );
+
+        // Prepare prompt for AI (last 5 messages for context)
+        const conversationHistory = conversation.messages.slice(-5).map(msg => `${msg.sender}: ${msg.text}`).join('\n');
+        const prompt = `You are PharmiaBot, a helpful and concise AI assistant for pharmacy students. Provide short and relevant answers.        
+        Conversation history:
+        ${conversationHistory}
+        user: ${message}
+        PharmiaBot:`
+
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const result = await model.generateContent(prompt);
+        const aiResponse = result.response.text();
+
+        // Add AI response to conversation
+        conversation.messages.push({ sender: 'ai', text: aiResponse, timestamp: new Date() });
+        await db.collection('conversations').updateOne(
+            { _id: conversation._id },
+            { $set: { messages: conversation.messages, updatedAt: new Date() } }
+        );
+
+        res.status(200).json({ response: aiResponse });
+
+    } catch (error) {
+        console.error('Error with Chatbot:', error);
+        res.status(500).json({ message: 'Error generating chatbot response.' });
+    }
+});
 
 
 // --- Badge Awarding Logic ---
 const checkAndAwardBadges = async (userId, options = {}) => {
     const db = getDb();
     const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
+
 
     if (!user) return;
 
