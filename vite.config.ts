@@ -13,6 +13,14 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
-      }
+      },
+      optimizeDeps: {
+        include: ['axios'], // Explicitly include axios for optimization
+      },
+      build: {
+        rollupOptions: {
+          external: [], // Ensure axios is not externalized
+        },
+      },
     };
 });
