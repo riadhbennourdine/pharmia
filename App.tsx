@@ -10,6 +10,7 @@ import LoginPage from './pages/LoginPage';
 import LearnerSpacePage from './pages/LearnerSpacePage';
 import PricingPage from './pages/PricingPage';
 import UserDetailPage from './pages/UserDetailPage';
+import AICoachPage from './pages/AICoachPage';
 import Header from './components/Header';
 import { LoadingSpinner } from './components/LoadingSpinner';
 
@@ -362,6 +363,7 @@ const AppContent: React.FC = () => {
               <Route path="/tarifs" element={<PricingPage />} />
               <Route element={<LoggedInRoute />}>
                 <Route path="/learner-space" element={<LearnerSpacePage />} />
+                <Route path="/coach" element={<AICoachPage />} />
               </Route>
               <Route element={<GeneratorRoute />}>
                 <Route path="/generateur" element={<GeneratorPage />} />

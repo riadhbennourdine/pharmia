@@ -6,6 +6,21 @@ const getAuthToken = () => {
     return localStorage.getItem('token');
 };
 
+// Fetch admin stats
+export const getAdminStats = async (): Promise<any> => {
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/admin/stats`, {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch admin stats');
+    }
+    return response.json();
+};
+
 // Fetch all users
 export const getAllUsers = async (): Promise<User[]> => {
     const token = getAuthToken();
@@ -17,6 +32,21 @@ export const getAllUsers = async (): Promise<User[]> => {
 
     if (!response.ok) {
         throw new Error('Failed to fetch users');
+    }
+    return response.json();
+};
+
+// Fetch a single user by ID
+export const getUserById = async (userId: string): Promise<User> => {
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/admin/users/${userId}`, {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch user');
     }
     return response.json();
 };

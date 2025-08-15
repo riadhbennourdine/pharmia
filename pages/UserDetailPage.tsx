@@ -4,7 +4,7 @@ import { useAuth } from '../App';
 import { User } from '../types/user';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import LearnerProfile from '../components/LearnerProfile';
-import { getUserById } from '../services/adminService'; // Assuming you have this service function
+import { getUserById } from '../services/adminService';
 import { useData } from '../App';
 
 const UserDetailPage: React.FC = () => {
@@ -23,7 +23,7 @@ const UserDetailPage: React.FC = () => {
                 return;
             }
             try {
-                const userData = await getUserById(token, userId);
+                const userData = await getUserById(userId);
                 setUser(userData);
             } catch (err: any) {
                 console.error('Error fetching user data:', err);

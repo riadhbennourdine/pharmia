@@ -25,8 +25,8 @@ const AdminDashboard: React.FC = () => {
         try {
             setLoading(true);
             const [statsData, usersData] = await Promise.all([
-                getAdminStats(token),
-                getAllUsers(token)
+                getAdminStats(),
+                getAllUsers()
             ]);
             setStats(statsData);
             setUsers(usersData);
@@ -45,7 +45,7 @@ const AdminDashboard: React.FC = () => {
     const handleUpdateUser = async (userId: string, data: { role?: string; subscriptionStatus?: string }) => {
         if (!token) return;
         try {
-            await updateUser(token, userId, data);
+            await updateUser(userId, data);
             fetchData(); // Refetch data to update the UI
         } catch (error) {
             console.error('Failed to update user', error);
