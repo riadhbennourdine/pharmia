@@ -49,7 +49,7 @@ const verifyToken = (req, res, next) => {
 const authorizeRoles = (roles) => {
     return (req, res, next) => {
         console.log('Authorizing roles. Required:', roles, 'User role:', req.user?.role); // ADDED LOG
-        if (!req.user || !roles.includes(req.user.role)) {
+        if (!req.user || !roles.map(role => role.toLowerCase()).includes(req.user.role.toLowerCase())) {
             console.warn('Access Denied: User role mismatch or no user.', req.user); // ADDED LOG
             return res.status(403).json({ message: 'Access Denied: Insufficient permissions.' });
         }
