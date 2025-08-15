@@ -727,11 +727,13 @@ app.get('/api/pharmacien/preparateurs', verifyToken, authorizeRoles(['Pharmacien
     try {
         const db = getDb();
         const pharmacienId = new ObjectId(req.user.userId);
+        console.log('Fetching preparateurs for Pharmacien ID:', pharmacienId); // ADDED LOG
 
         const preparateurs = await db.collection('users').find(
             { role: 'Preparateur', pharmacienResponsableId: pharmacienId },
             { projection: { password: 0 } } // Exclude password
         ).toArray();
+        console.log('Found preparateurs:', preparateurs.length, preparateurs); // ADDED LOG
 
         // For each preparateur, calculate fiches read count and quiz average score
         const preparateursWithStats = preparateurs.map(p => ({
