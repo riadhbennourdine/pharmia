@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "npm install axios --prefix ./node_modules/axios"
   },
   "dependencies": {
     "@google/genai": "^1.10.0",
+    "axios": "^1.11.0",
     "chart.js": "^4.5.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
