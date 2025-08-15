@@ -814,6 +814,26 @@ app.get('/api/admin/users', verifyToken, authorizeRoles(['admin']), async (req, 
     }
 });
 
+app.get('/api/admin/stats', verifyToken, authorizeRoles(['admin']), async (req, res) => {
+    try {
+        const db = getDb();
+        const usersCount = await db.collection('users').countDocuments();
+        const memofichesCount = await db.collection('memofiches').countDocuments();
+        const themesCount = await db.collection('themes').countDocuments();
+        const systemesOrganesCount = await db.collection('systemesOrganes').countDocuments();
+
+        res.status(200).json({
+            users: usersCount,
+            memofiches: memofichesCount,
+            themes: themesCount,
+            systemesOrganes: systemesOrganesCount,
+        });
+    } catch (error) {
+        console.error('Error fetching admin stats:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
 // Update a user (Admin only)
 app.put('/api/admin/users/:id', verifyToken, authorizeRoles(['admin']), async (req, res) => {
     try {
