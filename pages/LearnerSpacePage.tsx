@@ -35,10 +35,7 @@ const LearnerSpacePage: React.FC = () => {
         return <div className="text-center mt-10">Aucune donnée utilisateur trouvée.</div>;
     }
 
-    // Pharmacien Dashboard Section
-    if (user.role === 'Pharmacien') {
-        return <PharmacienDashboard pharmacienId={user._id} />;
-    }
+    
 
     // --- Calculations ---
     const totalFiches = data.memofiches?.length || 0;
@@ -155,7 +152,7 @@ const LearnerSpacePage: React.FC = () => {
                                             <Link to={`/fiches/${quiz.quizId}`} className="hover:underline">{getFicheTitle(quiz.quizId)}</Link>: <span className="font-bold text-green-600">{Math.round(quiz.score)}%</span>
                                         </li>
                                     ))}
-                                </ul>
+                                }</ul>
                             ) : (
                                 <p className="text-gray-500">Aucun quiz effectué pour le moment.</p>
                             )}
@@ -163,6 +160,10 @@ const LearnerSpacePage: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {user.role === 'Pharmacien' && (
+                <PharmacienDashboard pharmacienId={user._id} />
+            )}
         </div>
     );
 };
