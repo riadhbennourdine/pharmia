@@ -37,8 +37,10 @@ const verifyToken = (req, res, next) => {
     try {
         const verified = jwt.verify(token, process.env.JWT_SECRET || 'supersecretjwtkey');
         req.user = verified; // Attach user payload to request
+        console.log('Token verified. User payload:', req.user); // ADDED LOG
         next();
     } catch (err) {
+        console.error('Token verification failed:', err); // ADDED LOG
         res.status(403).json({ message: 'Invalid Token.' });
     }
 };
@@ -46,7 +48,9 @@ const verifyToken = (req, res, next) => {
 // Middleware to check user roles
 const authorizeRoles = (roles) => {
     return (req, res, next) => {
+        console.log('Authorizing roles. Required:', roles, 'User role:', req.user?.role); // ADDED LOG
         if (!req.user || !roles.includes(req.user.role)) {
+            console.warn('Access Denied: User role mismatch or no user.', req.user); // ADDED LOG
             return res.status(403).json({ message: 'Access Denied: Insufficient permissions.' });
         }
         next();
