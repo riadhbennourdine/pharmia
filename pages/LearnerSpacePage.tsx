@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useData } from '../App';
+import { useData, useAuth } from '../App';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import PharmacienDashboard from '../components/PharmacienDashboard'; // Import the new component
 
 import * as FiIcons from 'react-icons/fi';
 
@@ -32,6 +33,11 @@ const LearnerSpacePage: React.FC = () => {
 
     if (!user || !data) {
         return <div className="text-center mt-10">Aucune donnée utilisateur trouvée.</div>;
+    }
+
+    // Pharmacien Dashboard Section
+    if (user.role === 'Pharmacien') {
+        return <PharmacienDashboard pharmacienId={user._id} />;
     }
 
     // --- Calculations ---

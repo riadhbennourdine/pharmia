@@ -19,4 +19,7 @@ export interface User {
     email: string;
   };
   createdAt: string;
+  lastLogin?: string; // New field for last login date
+  fichesReadCount?: number; // New calculated field
+  averageQuizScore?: string; // New calculated field (string because of toFixed(1))
 }

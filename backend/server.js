@@ -654,6 +654,33 @@ app.get('/api/pharmaciens', async (req, res) => {
     }
 });
 
+// Get Preparateurs for a Pharmacien (Pharmacien only)
+app.get('/api/pharmacien/preparateurs', verifyToken, authorizeRoles(['Pharmacien']), async (req, res) => {
+    try {
+        const db = getDb();
+        const pharmacienId = new ObjectId(req.user.userId);
+
+        const preparateurs = await db.collection('users').find(
+            { role: 'Preparateur', pharmacienResponsableId: pharmacienId },
+            { projection: { password: 0 } } // Exclude password
+        ).toArray();
+
+        // For each preparateur, calculate fiches read count and quiz average score
+        const preparateursWithStats = preparateurs.map(p => ({
+            ...p,
+            fichesReadCount: p.readFicheIds ? p.readFicheIds.length : 0,
+            averageQuizScore: p.quizHistory && p.quizHistory.length > 0
+                ? (p.quizHistory.reduce((sum, q) => sum + q.score, 0) / p.quizHistory.length).toFixed(1)
+                : 'N/A'
+        }));
+
+        res.status(200).json(preparateursWithStats);
+    } catch (error) {
+        console.error('Error fetching preparateurs for pharmacien:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
 // Migration endpoint to fix memo fiche theme/system IDs
 app.put('/api/migrate-memofiches-ids', verifyToken, authorizeRoles(['Admin']), async (req, res) => {
     try {
