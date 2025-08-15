@@ -311,7 +311,10 @@ app.post('/api/register', async (req, res) => {
             newUser.pharmacienResponsableId = new ObjectId(pharmacienResponsableId);
         }
 
+        console.log('Attempting to insert new user:', newUser); // ADDED LOG
+
         const result = await db.collection('users').insertOne(newUser);
+        console.log('User insertion result:', result); // ADDED LOG
         res.status(201).json({ message: 'User registered successfully', userId: result.insertedId });
 
     } catch (error) {
