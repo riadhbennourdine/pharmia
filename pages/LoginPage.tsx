@@ -69,6 +69,8 @@ const LoginPage: React.FC = () => {
             ? { email: loginIdentifier, password, role, username, ...(role === UserRole.Preparateur && { pharmacienResponsableId }) }
             : { loginIdentifier, password }; // For login, loginIdentifier can be email or username
 
+        console.log('Sending registration/login request with body:', body); // ADDED LOG
+
         try {
             const response = await fetch(import.meta.env.VITE_BACKEND_URL + endpoint, {
                 method: 'POST',
