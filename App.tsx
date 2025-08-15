@@ -12,6 +12,7 @@ import PricingPage from './pages/PricingPage';
 import UserDetailPage from './pages/UserDetailPage';
 import AICoachPage from './pages/AICoachPage';
 import Header from './components/Header';
+import Chatbot from './components/Chatbot';
 import { LoadingSpinner } from './components/LoadingSpinner';
 
 
@@ -375,6 +376,7 @@ const AppContent: React.FC = () => {
               </Route>
             </Routes>
           </main>
+          <Chatbot />
         </div>
       </HashRouter>
     </DataProvider>
