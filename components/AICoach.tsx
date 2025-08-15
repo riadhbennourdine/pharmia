@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiMessageSquare, FiZap, FiTarget } from 'react-icons/fi';
+import { getRecommendations, Recommendation } from '../services/aiCoachService';
+import { useData } from '../App';
 
 const AICoach: React.FC = () => {
+    const { learnerData: user } = useData();
     const [messages, setMessages] = useState([
         {
             sender: 'coach',
@@ -12,24 +15,53 @@ const AICoach: React.FC = () => {
             ]
         }
     ]);
+    const [loading, setLoading] = useState(false);
 
-    const handleAction = (actionType: string) => {
-        if (actionType === 'recommendation') {
+    const fetchRecommendations = async () => {
+        if (!user) return;
+        setLoading(true);
+        try {
+            const recommendations = await getRecommendations(user._id);
+            if (recommendations.length > 0) {
+                const firstRecommendation = recommendations[0];
+                setMessages(prev => [...prev, {
+                    sender: 'user',
+                    text: 'Oui, montrez-moi!',
+                }, {
+                    sender: 'coach',
+                    text: `Excellent! En fonction de vos derniers quiz, je vous suggère de revoir la fiche sur les **${firstRecommendation.fiche.title}**. C'est un sujet clé!`,
+                    recommendation: {
+                        title: firstRecommendation.fiche.title,
+                        reason: firstRecommendation.reason,
+                    },
+                    actions: [
+                        { text: 'Commencer à étudier', type: 'study', ficheId: firstRecommendation.fiche.id },
+                        { text: 'Une autre suggestion?', type: 'suggestion' },
+                    ]
+                }]);
+            } else {
+                 setMessages(prev => [...prev, {
+                    sender: 'coach',
+                    text: "Je n'ai pas de nouvelles recommandations pour vous pour le moment. Excellent travail!",
+                }]);
+            }
+        } catch (error) {
+            console.error("Failed to fetch recommendations", error);
             setMessages(prev => [...prev, {
-                sender: 'user',
-                text: 'Oui, montrez-moi!',
-            }, {
                 sender: 'coach',
-                text: 'Excellent! En fonction de vos derniers quiz, je vous suggère de revoir la fiche sur les **anti-hypertenseurs**. C\'est un sujet clé!',
-                recommendation: {
-                    title: 'Cardiologie: Les anti-hypertenseurs',
-                    reason: "J'ai remarqué que vous avez eu des difficultés avec les quiz sur la cardiologie. Je vous recommande de revoir cette fiche pour renforcer vos connaissances.",
-                },
-                actions: [
-                    { text: 'Commencer à étudier', type: 'study' },
-                    { text: 'Une autre suggestion?', type: 'suggestion' },
-                ]
+                text: "Oups, je n'arrive pas à récupérer vos recommandations pour le moment. Veuillez réessayer plus tard.",
             }]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleAction = (actionType: string, ficheId?: string) => {
+        if (actionType === 'recommendation') {
+            fetchRecommendations();
+        } else if (actionType === 'study' && ficheId) {
+            // Navigate to the fiche detail page
+            window.location.href = `# /fiches/${ficheId}`;
         } else {
             // Handle other actions later
         }
@@ -59,8 +91,9 @@ const AICoach: React.FC = () => {
                                     {msg.actions.map((action, i) => (
                                         <button 
                                             key={i}
-                                            onClick={() => handleAction(action.type)}
+                                            onClick={() => handleAction(action.type, action.ficheId)}
                                             className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-1 px-3 rounded-full"
+                                            disabled={loading}
                                         >
                                             {action.text}
                                         </button>
@@ -70,6 +103,7 @@ const AICoach: React.FC = () => {
                         </div>
                     </div>
                 ))}
+                 {loading && <div className="text-center text-gray-500">Chargement...</div>}
             </div>
 
             <div className="mt-8 pt-4 border-t">
