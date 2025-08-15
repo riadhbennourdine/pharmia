@@ -4,7 +4,7 @@ import { FiMessageCircle, FiX } from 'react-icons/fi';
 const Chatbot: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
-        { sender: 'bot', text: 'Bonjour! Comment puis-je vous aider aujourd\'hui?' }
+        { sender: 'bot', text: 'Bonjour! Comment puis-je vous aider aujourd\'today?' }
     ]);
     const [inputValue, setInputValue] = useState('');
 
@@ -51,7 +51,7 @@ const Chatbot: React.FC = () => {
                             onChange={e => setInputValue(e.target.value)}
                             onKeyPress={e => e.key === 'Enter' && handleSendMessage()}
                             placeholder="Posez votre question..."
-                            className="flex-grow border rounded-l-md p-2"
+                            className="flex-grow border rounded-md p-2"
                         />
                         <button onClick={handleSendMessage} className="bg-blue-600 text-white px-4 rounded-r-md hover:bg-blue-700">
                             Envoyer
