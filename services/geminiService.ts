@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { MemoFiche, Theme, SystemeOrgane, ExternalResource } from '../types';
 
@@ -149,8 +148,7 @@ export const generateSingleMemoFiche = async (
         La réponse DOIT être un objet JSON valide qui respecte scrupuleusement le schéma fourni.
 
         **Texte Brut à Analyser:**
-        ---
-        ${rawText}
+        ---\n        ${rawText}
         ---
 
         **Instructions de Génération:**
@@ -162,7 +160,7 @@ export const generateSingleMemoFiche = async (
           - Système/Organe: { id: "${system.id}", Nom: "${system.Nom}" }
         - **Réponse JSON**: Remplis les champs 'theme' et 'systeme_organe' de l'objet JSON de sortie avec EXACTEMENT ces valeurs.
         - **Sections**: Crée les sections avec les titres suivants : 'Mémo : Cas comptoir', 'Questions à poser', 'Limites du conseil', 'Conseil traitement Produits', 'Conseils Hygiène de vie', 'Références bibliographiques'.
-        - **Contenu**: Le contenu de chaque section doit être en Markdown, avec des paragraphes bien délimités et des retours à la ligne. Chaque section ne doit pas dépasser 10-15 lignes. Si le contenu est plus long, crée une nouvelle section accordéon avec un titre numéroté (par exemple, 'Conseil traitement Produits (1/2)', 'Conseil traitement Produits (2/2)').
+        - **Contenu**: Le contenu de chaque section doit être en Markdown, avec des paragraphes bien délimités et des retours à la ligne. Chaque section ne doit pas dépasser 10-15 lines. Si le contenu est plus long, crée une nouvelle section accordéon avec un titre numéroté (par exemple, 'Conseil traitement Produits (1/2)', 'Conseil traitement Produits (2/2)').
         - **Références**: Inclure des références bibliographiques dans la section dédiée.
         - **Contenu Pédagogique**: Crée EXACTEMENT 10 flashcards, et 10 questions de quiz (variées, QCM et Vrai/Faux).
         - **Termes Techniques**: Identifie 10 termes techniques pertinents dans le texte et fournis leurs définitions pour le glossaire.
@@ -187,7 +185,6 @@ export const generateSingleMemoFiche = async (
         const jsonText = response.text.trim();
         const data = JSON.parse(jsonText) as MemoFiche;
         
-        // Override creation date for accuracy
         data.createdAt = new Date().toISOString().split('T')[0];
 
         // Ensure provided resources are present
@@ -237,8 +234,7 @@ export const generateCommunicationMemoFiche = async (
         Analysez le texte fourni ci-dessous. Extrayez sa structure, son contenu et ses informations clés pour générer une mémofiche complète au format JSON. Le contenu des flashcards, du quiz et du glossaire doit être **exclusivement basé sur les informations présentes dans le texte fourni**.
 
         **Texte à traiter :**
-        ---
-        ${rawText}
+        ---\n        ${rawText}
         ---
 
         **Format de sortie JSON attendu et consignes :**
@@ -285,5 +281,27 @@ memoContent
     } catch (error) {
         console.error("Error generating communication memo fiche with Gemini:", error);
         throw new Error("Impossible de générer la mémofiche de communication depuis l'IA. Veuillez réessayer.");
+    }
+};
+
+export const askChatbot = async (question: string): Promise<string> => {
+    const prompt = `
+        Tu es un chatbot expert en pharmacie d'officine et tu réponds aux questions des utilisateurs de l'application PharmIA.
+        Réponds à la question suivante en te basant sur tes connaissances en pharmacie. Sois concis et précis.
+
+        Question: ${question}
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-pro", // Use a suitable model for chat
+            contents: prompt,
+        });
+
+        return response.text.trim();
+
+    } catch (error) {
+        console.error("Error asking chatbot:", error);
+        throw new Error("Impossible de contacter le chatbot pour le moment. Veuillez réessayer.");
     }
 };

@@ -1,21 +1,31 @@
 import React, { useState } from 'react';
 import { FiMessageCircle, FiX } from 'react-icons/fi';
+import { askChatbot } from '../services/geminiService';
 
 const Chatbot: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
-        { sender: 'bot', text: 'Bonjour! Comment puis-je vous aider aujourd\'today?' }
+        { sender: 'bot', text: 'Bonjour! Comment puis-je vous aider aujourd\'aujourd\'hui?' }
     ]);
     const [inputValue, setInputValue] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleSendMessage = () => {
+    const handleSendMessage = async () => {
         if (inputValue.trim()) {
-            setMessages(prev => [...prev, { sender: 'user', text: inputValue }]);
-            // Simulate a bot response
-            setTimeout(() => {
-                setMessages(prev => [...prev, { sender: 'bot', text: 'Je recherche dans ma base de données...' }]);
-            }, 1000);
+            const userMessage = { sender: 'user', text: inputValue };
+            setMessages(prev => [...prev, userMessage]);
             setInputValue('');
+            setLoading(true);
+
+            try {
+                const botResponse = await askChatbot(inputValue);
+                setMessages(prev => [...prev, { sender: 'bot', text: botResponse }]);
+            } catch (error) {
+                console.error("Error asking chatbot:", error);
+                setMessages(prev => [...prev, { sender: 'bot', text: "Désolé, je n'ai pas pu traiter votre demande pour le moment. Veuillez réessayer." }]);
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
@@ -43,6 +53,13 @@ const Chatbot: React.FC = () => {
                                 </div>
                             </div>
                         ))}
+                        {loading && (
+                            <div className="flex items-end mb-3">
+                                <div className="px-3 py-2 rounded-lg bg-blue-100 text-blue-900">
+                                    Typing...
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <div className="p-4 border-t flex">
                         <input 
@@ -52,8 +69,13 @@ const Chatbot: React.FC = () => {
                             onKeyPress={e => e.key === 'Enter' && handleSendMessage()}
                             placeholder="Posez votre question..."
                             className="flex-grow border rounded-md p-2"
+                            disabled={loading}
                         />
-                        <button onClick={handleSendMessage} className="bg-blue-600 text-white px-4 rounded-r-md hover:bg-blue-700">
+                        <button 
+                            onClick={handleSendMessage} 
+                            className="bg-blue-600 text-white px-4 rounded-r-md hover:bg-blue-700"
+                            disabled={loading}
+                        >
                             Envoyer
                         </button>
                     </div>
