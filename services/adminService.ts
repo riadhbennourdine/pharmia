@@ -1,6 +1,6 @@
 import { User } from '../types/user';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001/api';
 
 const getAuthToken = () => {
     return localStorage.getItem('token');
