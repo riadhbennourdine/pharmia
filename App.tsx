@@ -26,22 +26,28 @@ export const useAuth = () => {
 };
 
 const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [userRole, setUserRole] = useState<UserRole | null>(() => {
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true); // New loading state
+
+  useEffect(() => {
     const storedRole = localStorage.getItem('userRole');
-    // Map stored string to UserRole enum, default to null if invalid or not found
+    const storedToken = localStorage.getItem('token');
+    const storedUsername = localStorage.getItem('username');
+
+    let role: UserRole | null = null;
     switch (storedRole) {
-      case 'admin': return 'admin';
-      case 'pharmacien': return 'pharmacien';
-      case 'préparateur': return 'préparateur';
-      default: return null;
+      case 'admin': role = 'admin'; break;
+      case 'pharmacien': role = 'pharmacien'; break;
+      case 'préparateur': role = 'préparateur'; break;
     }
-  });
-  const [token, setToken] = useState<string | null>(() => {
-    return localStorage.getItem('token');
-  });
-  const [username, setUsername] = useState<string | null>(() => {
-    return localStorage.getItem('username');
-  });
+
+    setUserRole(role);
+    setToken(storedToken);
+    setUsername(storedUsername);
+    setLoading(false); // Set loading to false after initial load
+  }, []);
 
   const login = (role: UserRole, newToken: string, newUsername: string) => {
     localStorage.setItem('userRole', role);
@@ -69,7 +75,8 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     logout,
     isLoggedIn: userRole !== null,
     isAdmin: userRole === 'admin',
-  }), [userRole, token, username]);
+    loading, // Include loading in the context value
+  }), [userRole, token, username, loading]);
 
   return (
     <AuthContext.Provider value={authValue}>
@@ -331,7 +338,16 @@ const App: React.FC = () => {
 };
 
 const AppContent: React.FC = () => {
-  const { logout } = useAuth();
+  const { logout, loading: authLoading } = useAuth(); // Get authLoading from useAuth
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
   return (
     <DataProvider logout={logout}>
       <HashRouter>
