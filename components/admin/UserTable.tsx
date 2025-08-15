@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { User } from '../../types/user';
 import { FiEdit, FiTrash2, FiSave, FiXCircle } from 'react-icons/fi';
 
@@ -13,6 +13,8 @@ interface UserTableProps {
 const UserTable: React.FC<UserTableProps> = ({ users, onUpdateUser, onDeleteUser, loading, error }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedUser, setEditedUser] = useState<Partial<User>>({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
 
   const handleEdit = (user: User) => {
     setEditingId(user._id);
@@ -38,6 +40,18 @@ const UserTable: React.FC<UserTableProps> = ({ users, onUpdateUser, onDeleteUser
     setEditedUser(prev => ({ ...prev, [name]: value }));
   };
 
+  const filteredUsers = useMemo(() => {
+    return users
+      .filter(user => {
+        if (roleFilter === 'all') return true;
+        return user.role === roleFilter;
+      })
+      .filter(user => 
+        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+  }, [users, searchTerm, roleFilter]);
+
   if (loading) {
     return <div className="text-center p-8">Chargement des utilisateurs...</div>;
   }
@@ -49,6 +63,25 @@ const UserTable: React.FC<UserTableProps> = ({ users, onUpdateUser, onDeleteUser
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-xl font-bold mb-4">Gestion des Utilisateurs</h2>
+        
+        <div className="flex justify-between mb-4">
+            <input 
+                type="text"
+                placeholder="Rechercher par nom ou email..."
+                className="border p-2 rounded-md w-1/3"
+                onChange={e => setSearchTerm(e.target.value)}
+            />
+            <select 
+                className="border p-2 rounded-md"
+                onChange={e => setRoleFilter(e.target.value)}
+            >
+                <option value="all">Tous les rôles</option>
+                <option value="admin">Admin</option>
+                <option value="pharmacien">Pharmacien</option>
+                <option value="préparateur">Préparateur</option>
+            </select>
+        </div>
+
         <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -61,7 +94,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, onUpdateUser, onDeleteUser
                 </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                {users.map((user) => (
+                {filteredUsers.map((user) => (
                     <tr key={user._id}>
                     <td className="px-6 py-4 whitespace-nowrap">{user.username}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{user.email}</td>
