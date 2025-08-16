@@ -10,6 +10,7 @@ import crypto from 'crypto'; // Added for crypto.randomUUID()
 
 // --- AI Configuration ---
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+console.log(`[DEBUG] Gemini API Key Loaded: ${GEMINI_API_KEY ? 'Yes' : 'No'}`); // <-- ADDED FOR DEBUGGING
 let genAI;
 if (GEMINI_API_KEY) {
     genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
@@ -222,6 +223,8 @@ app.put('/api/memofiches/:id', verifyToken, authorizeRoles(['Admin', 'Formateur'
         const db = getDb();
         const { id } = req.params;
         const updatedFiche = req.body;
+        console.log('Attempting to update memofiche:', id); // ADDED LOG
+        console.log('User attempting update:', req.user); // ADDED LOG
 
         if (!ObjectId.isValid(id)) {
             return res.status(400).json({ message: 'Invalid ID format' });
@@ -548,62 +551,75 @@ app.post('/api/ai-coach/suggest-challenge', verifyToken, async (req, res) => {
 
 // --- Chatbot Endpoint ---
 app.post('/api/chatbot/message', verifyToken, async (req, res) => {
+    console.log('\n--- New Chatbot Request ---');
     try {
         if (!GEMINI_API_KEY) {
+            console.log('[LOG] Gemini API Key missing.');
             return res.status(503).json({ message: 'Chatbot is not configured on the server. Missing API Key.' });
         }
 
         const db = getDb();
         const userId = new ObjectId(req.user.userId);
         const { message } = req.body;
+        console.log(`[LOG] Received message: "${message}" from user: ${userId}`);
 
         if (!message) {
+            console.log('[LOG] Message is empty.');
             return res.status(400).json({ message: 'Message is required.' });
         }
 
-        // Find or create conversation for the user
-        let conversation = await db.collection('conversations').findOne({ userId: userId });
+        console.log('[LOG] Fetching user and fiches from DB...');
+        const user = await db.collection('users').findOne({ _id: userId });
+        const allFiches = await db.collection('memofiches').find({}).project({ _id: 1, title: 1 }).toArray();
+        const fichesListForPrompt = allFiches.map(f => ({ id: f._id.toString(), title: f.title }));
+        console.log('[LOG] User and fiches fetched successfully.');
 
+        let conversation = await db.collection('conversations').findOne({ userId: userId });
         if (!conversation) {
-            conversation = {
-                userId: userId,
-                messages: [],
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            };
+            conversation = { userId: userId, messages: [], createdAt: new Date() };
             await db.collection('conversations').insertOne(conversation);
+            console.log('[LOG] New conversation created for user.');
         }
 
-        // Add user message to conversation
-        conversation.messages.push({ sender: 'user', text: message, timestamp: new Date() });
-        await db.collection('conversations').updateOne(
-            { _id: conversation._id },
-            { $set: { messages: conversation.messages, updatedAt: new Date() } }
-        );
+        const userMessage = { role: 'user', text: message, timestamp: new Date() };
+        await db.collection('conversations').updateOne({ _id: conversation._id }, { $push: { messages: userMessage }, $set: { updatedAt: new Date() } });
 
-        // Prepare prompt for AI (last 5 messages for context)
-        const conversationHistory = conversation.messages.slice(-5).map(msg => `${msg.sender}: ${msg.text}`).join('\n');
-        const prompt = `You are PharmiaBot, a helpful and concise AI assistant for pharmacy students. Provide short and relevant answers.        
-        Conversation history:
-        ${conversationHistory}
-        user: ${message}
-        PharmiaBot:`
+        const geminiHistory = conversation.messages.map(msg => ({ role: msg.role === 'ai' ? 'model' : 'user', parts: [{ text: msg.text }] }));
+        console.log(`[LOG] Mapped conversation history for Gemini. Length: ${geminiHistory.length}`);
 
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-        const result = await model.generateContent(prompt);
-        const aiResponse = result.response.text();
+        const systemPrompt = `
+            Tu es PharmIA Coach, un assistant expert de conseil à l'officine pour les pharmaciens et préparateurs en pharmacie.
+            Ton objectif est de fournir des réponses précises, concises et fiables, basées sur les connaissances et les pratiques pharmaceutiques françaises.
+            Adopte un ton professionnel, mais accessible et encourageant.
 
-        // Add AI response to conversation
-        conversation.messages.push({ sender: 'ai', text: aiResponse, timestamp: new Date() });
-        await db.collection('conversations').updateOne(
-            { _id: conversation._id },
-            { $set: { messages: conversation.messages, updatedAt: new Date() } }
-        );
+            INFORMATIONS IMPORTANTES POUR PERSONNALISER TES RÉPONSES:
+            1.  L'utilisateur avec qui tu parles s'appelle "${user?.username || 'Utilisateur'}". Tu peux t'adresser à lui par son nom de temps en temps pour rendre la conversation plus conviviale, mais sans en abuser.
+            2.  Voici une liste des mémofiches de formation disponibles dans l'application : ${JSON.stringify(fichesListForPrompt)}.
+            3.  Si la discussion aborde un de ces sujets, tu DOIS proposer un lien vers la fiche correspondante pour aider l'utilisateur.
+            4.  Formate TOUJOURS les liens en Markdown comme ceci : [Titre de la Fiche](/fiches/ID_DE_LA_FICHE). Par exemple, si tu parles de la digestion, tu peux dire : "Pour en savoir plus, consultez la fiche sur [la Digestion](/fiches/digestion-id-example)".
+            5.  N'invente JAMAIS de fiches ou de liens. Ne propose que les fiches de la liste fournie.
+        `;
 
+        const model = genAI.getGenerativeModel({ model: "gemini-pro", systemInstruction: { role: "system", parts: [{ text: systemPrompt }] } });
+        const chat = model.startChat({ history: geminiHistory });
+
+        console.log('[LOG] Sending request to Gemini API...');
+        const result = await chat.sendMessage(message);
+        const response = await result.response;
+        console.log('[LOG] Received response from Gemini.');
+        console.log('[LOG] Full Gemini Response Object:', JSON.stringify(response, null, 2));
+
+        const aiResponse = response.text();
+        console.log('[LOG] Extracted text from response.');
+
+        const aiMessage = { role: 'ai', text: aiResponse, timestamp: new Date() };
+        await db.collection('conversations').updateOne({ _id: conversation._id }, { $push: { messages: aiMessage }, $set: { updatedAt: new Date() } });
+
+        console.log('[LOG] Sending successful response to client.');
         res.status(200).json({ response: aiResponse });
 
     } catch (error) {
-        console.error('Error with Chatbot:', error);
+        console.error('--- ERROR IN CHATBOT ENDPOINT ---', error);
         res.status(500).json({ message: 'Error generating chatbot response.' });
     }
 });

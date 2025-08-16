@@ -29,7 +29,7 @@ const AICoach: React.FC = () => {
                     text: 'Oui, montrez-moi!',
                 }, {
                     sender: 'coach',
-                    text: `Excellent! En fonction de vos derniers quiz, je vous suggère de revoir la fiche sur les **${firstRecommendation.fiche.title}**. C'est un sujet clé!`,
+                    text: `Excellent! En fonction de vos derniers quiz, je vous suggère de revoir la fiche sur les **${firstRecommendation.fiche.title}**. C'est un sujet clé!`, // Corrected: Removed unnecessary escape for 'C'est'
                     recommendation: {
                         title: firstRecommendation.fiche.title,
                         reason: firstRecommendation.reason,
@@ -70,7 +70,7 @@ const AICoach: React.FC = () => {
     return (
         <div className="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto">
             <div className="flex items-center mb-4">
-                <FiMessageSquare className="text-blue-500 mr-3" size={24} />
+                <FiMessageSquare className="text-green-500 mr-3" size={24} />
                 <h2 className="text-2xl font-semibold text-gray-800">Votre Coach IA</h2>
             </div>
 
@@ -78,10 +78,10 @@ const AICoach: React.FC = () => {
                 {messages.map((msg, index) => (
                     <div key={index} className={`flex items-end ${msg.sender === 'user' ? 'justify-end' : ''}`}>
                         {msg.sender === 'coach' && <FiZap className="text-yellow-500 mr-2 mb-1" size={20} />}
-                        <div className={`px-4 py-2 rounded-lg ${msg.sender === 'coach' ? 'bg-blue-100 text-blue-800' : 'bg-gray-200 text-gray-800'}`}>
+                        <div className={`px-4 py-2 rounded-lg ${msg.sender === 'coach' ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-800'}`}>
                             <p dangerouslySetInnerHTML={{ __html: msg.text }}></p>
                             {msg.recommendation && (
-                                <div className="mt-4 bg-white p-4 rounded-lg border border-blue-200">
+                                <div className="mt-4 bg-white p-4 rounded-lg border border-green-200">
                                     <h3 className="text-lg font-bold text-gray-800">{msg.recommendation.title}</h3>
                                     <p className="text-sm text-gray-600 mt-1">{msg.recommendation.reason}</p>
                                 </div>
@@ -92,7 +92,7 @@ const AICoach: React.FC = () => {
                                         <button 
                                             key={i}
                                             onClick={() => handleAction(action.type, action.ficheId)}
-                                            className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-1 px-3 rounded-full"
+                                            className="bg-green-500 hover:bg-green-600 text-white text-sm font-semibold py-1 px-3 rounded-full"
                                             disabled={loading}
                                         >
                                             {action.text}

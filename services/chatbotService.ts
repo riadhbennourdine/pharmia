@@ -1,4 +1,4 @@
-import axios from '../node_modules/axios/index.js';
+import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
 

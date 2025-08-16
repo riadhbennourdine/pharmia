@@ -50,6 +50,16 @@ const PharmacienDashboard: React.FC<PharmacienDashboardProps> = ({ pharmacienId 
         return <div className="text-red-500 text-center mt-10">{error}</div>;
     }
 
+    const getScoreColorClass = (score: number): string => {
+        if (score >= 80) {
+            return 'bg-green-500';
+        } else if (score >= 50) {
+            return 'bg-orange-500';
+        } else {
+            return 'bg-red-500';
+        }
+    };
+
     return (
         <div className="container mx-auto p-6 bg-gray-50 min-h-screen">
             <h1 className="text-4xl font-bold text-black mb-8">Tableau de Bord Pharmacien</h1>
@@ -98,7 +108,14 @@ const PharmacienDashboard: React.FC<PharmacienDashboardProps> = ({ pharmacienId 
                                             {preparateur.fichesReadCount}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {preparateur.averageQuizScore}
+                                            {preparateur.averageQuizScore !== 'N/A' ? (
+                                                <div className="flex items-center">
+                                                    <span className={`w-3 h-3 rounded-full mr-2 ${getScoreColorClass(parseFloat(preparateur.averageQuizScore))}`}></span>
+                                                    {preparateur.averageQuizScore}%
+                                                </div>
+                                            ) : (
+                                                'N/A'
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {preparateur.lastLogin ? new Date(preparateur.lastLogin).toLocaleDateString('fr-FR') : 'N/A'}
