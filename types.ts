@@ -78,7 +78,7 @@ export enum UserRole {
   Admin = 'Admin',
   Formateur = 'Formateur',
   Pharmacien = 'Pharmacien',
-  Preparateur = 'Préparateur',
+  Preparateur = 'Preparateur',
   Guest = 'Guest'
 }
 
