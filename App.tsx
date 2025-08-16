@@ -76,7 +76,9 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     login,
     logout,
     isLoggedIn: userRole !== null,
-    isAdmin: userRole === 'admin',
+    isAdmin: userRole === 'Admin', // Use 'Admin' as per UserRole enum
+    canEditMemoFiches: userRole === 'Admin' || userRole === 'Formateur', // Logic for editing
+    canDeleteMemoFiches: userRole === 'Admin', // Logic for deleting
     loading, // Include loading in the context value
   }), [userRole, token, username, loading]);
 
