@@ -74,7 +74,7 @@ const Header: React.FC = () => {
                         Admin Dashboard
                       </NavLink>
                     )}
-                    <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    <button onClick={() => { console.log('Logout button clicked!'); handleLogout(); }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                       Déconnexion
                     </button>
                   </div>
@@ -130,7 +130,7 @@ const Header: React.FC = () => {
                     Admin Dashboard
                   </NavLink>
                 )}
-                <button onClick={() => { handleLogout(); setIsMenuOpen(false); }} className="block w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-green-600">
+                <button onClick={() => { console.log('Mobile Logout button clicked!'); handleLogout(); setIsMenuOpen(false); }} className="block w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-green-600">
                   Déconnexion
                 </button>
               </>
