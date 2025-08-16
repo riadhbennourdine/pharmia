@@ -90,3 +90,22 @@ export const deleteUser = async (userId: string): Promise<any> => {
     }
     return response.json();
 };
+
+// Assign a preparateur to a pharmacist
+export const assignPreparateurToPharmacien = async (preparateurId: string, pharmacienId: string): Promise<any> => {
+    const token = getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/admin/users/${preparateurId}/assign-pharmacien`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ pharmacienId }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to assign preparateur to pharmacist.');
+    }
+    return response.json();
+};
