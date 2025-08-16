@@ -60,7 +60,7 @@ const Header: React.FC = () => {
             )}
             {isLoggedIn ? (
               <div className="relative" ref={menuRef}>
-                <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="flex items-center text-sm font-medium px-3 py-2 rounded-md transition-colors text-gray-500 hover:text-green-600">
+                <button onClick={() => { console.log('Username button clicked! Toggling menu.'); setIsMenuOpen(!isMenuOpen); }} className="flex items-center text-sm font-medium px-3 py-2 rounded-md transition-colors text-gray-500 hover:text-green-600">
                   {username}
                   <svg className={`w-4 h-4 ml-1 transition-transform ${isMenuOpen ? 'transform rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
