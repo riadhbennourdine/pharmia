@@ -308,6 +308,7 @@ app.post('/api/register', async (req, res) => {
         };
 
         if (role === 'Preparateur') {
+            console.log('Pharmacien Responsable ID from request body:', pharmacienResponsableId, 'Type:', typeof pharmacienResponsableId); // ADDED LOG
             newUser.pharmacienResponsableId = new ObjectId(pharmacienResponsableId);
         }
 
