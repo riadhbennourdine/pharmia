@@ -61,12 +61,14 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   };
 
   const logout = () => {
+    console.log('Logging out user...'); // ADDED LOG
     localStorage.removeItem('userRole');
     localStorage.removeItem('token');
     localStorage.removeItem('username');
     setUserRole(null);
     setToken(null);
     setUsername(null);
+    console.log('User logged out. State and localStorage cleared.'); // ADDED LOG
   };
 
   const authValue = useMemo(() => ({
