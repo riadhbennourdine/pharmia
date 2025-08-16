@@ -355,6 +355,12 @@ app.post('/api/login', async (req, res) => {
             { expiresIn: '1h' }
         );
 
+        // Update lastLogin timestamp
+        await db.collection('users').updateOne(
+            { _id: user._id },
+            { $set: { lastLogin: new Date() } }
+        );
+
         res.status(200).json({ message: 'Logged in successfully', token, role: user.role });
 
     } catch (error) {
@@ -898,6 +904,47 @@ app.delete('/api/admin/users/:id', verifyToken, authorizeRoles(['admin']), async
         res.status(200).json({ message: 'User deleted successfully' });
     } catch (error) {
         console.error('Error deleting user:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+// Assign a Preparateur to a Pharmacien (Admin only)
+app.put('/api/admin/users/:preparateurId/assign-pharmacien', verifyToken, authorizeRoles(['admin']), async (req, res) => {
+    try {
+        const db = getDb();
+        const { preparateurId } = req.params;
+        const { pharmacienId } = req.body; // The ID of the pharmacist to assign
+
+        if (!ObjectId.isValid(preparateurId) || !ObjectId.isValid(pharmacienId)) {
+            return res.status(400).json({ message: 'Invalid ID format for preparateur or pharmacist.' });
+        }
+
+        // Ensure the preparateur exists and has the 'Preparateur' role
+        const preparateur = await db.collection('users').findOne({ _id: new ObjectId(preparateurId), role: 'Preparateur' });
+        if (!preparateur) {
+            return res.status(404).json({ message: 'Preparateur not found or not a Preparateur role.' });
+        }
+
+        // Ensure the pharmacist exists and has the 'Pharmacien' role
+        const pharmacien = await db.collection('users').findOne({ _id: new ObjectId(pharmacienId), role: 'Pharmacien' });
+        if (!pharmacien) {
+            return res.status(404).json({ message: 'Pharmacien not found or not a Pharmacien role.' });
+        }
+
+        // Update the preparateur's pharmacienResponsableId
+        const result = await db.collection('users').updateOne(
+            { _id: new ObjectId(preparateurId) },
+            { $set: { pharmacienResponsableId: new ObjectId(pharmacienId) } }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ message: 'Preparateur not found or no changes made.' });
+        }
+
+        res.status(200).json({ message: 'Preparateur assigned to Pharmacien successfully.' });
+
+    } catch (error) {
+        console.error('Error assigning preparateur to pharmacist:', error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
