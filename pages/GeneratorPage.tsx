@@ -58,6 +58,8 @@ const GeneratorPage: React.FC = () => {
     const [podcastUrl, setPodcastUrl] = useState('');
     const [title, setTitle] = useState('');
     const [memoContent, setMemoContent] = useState<MemoFiche['memoContent']>([]);
+    const [flashcards, setFlashcards] = useState<MemoFiche['flashcards']>([]);
+    const [quiz, setQuiz] = useState<MemoFiche['quiz']>([]);
 
     const isCommunicationTheme = data?.themes.find(t => t.id === themeSelection)?.Nom === 'Communication';
 
@@ -74,6 +76,8 @@ const GeneratorPage: React.FC = () => {
                 setImagePosition(ficheToEdit.imagePosition || 'middle'); // Load imagePosition
                 setKahootUrl(ficheToEdit.kahootUrl || '');
                 setMemoContent(ficheToEdit.memoContent || []); // Load memoContent for editing
+                setFlashcards(ficheToEdit.flashcards || []);
+                setQuiz(ficheToEdit.quiz || []);
                 // Assuming videoUrl and podcastUrl are part of externalResources
                 const videoRes = ficheToEdit.externalResources?.find(r => r.type === 'video');
                 setVideoUrl(videoRes ? videoRes.url : '');
@@ -142,6 +146,8 @@ const GeneratorPage: React.FC = () => {
                         ...(podcastUrl.trim() ? [{ type: 'podcast', title: 'Podcast', url: podcastUrl.trim() }] : []),
                     ],
                     memoContent: memoContent, // Include memoContent in the update
+                    flashcards: flashcards,
+                    quiz: quiz,
                 };
                 savedFiche = await updateMemoFiche(updatedFiche);
             } else {
@@ -424,6 +430,152 @@ const GeneratorPage: React.FC = () => {
                                 </div>
                             </div>
                         )}
+
+                        {/* FLASHCARDS (EDIT MODE ONLY) */}
+                        {memoFicheId && (
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-800 mb-1">Flashcards</h2>
+                                <div className="space-y-4">
+                                    {flashcards.map((flashcard, index) => (
+                                        <div key={index} className="p-4 border border-gray-200 rounded-md bg-gray-50">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <h3 className="font-semibold text-gray-700">Flashcard {index + 1}</h3>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setFlashcards(prev => prev.filter((_, i) => i !== index));
+                                                    }}
+                                                    className="text-red-500 hover:text-red-700 transition-colors"
+                                                >
+                                                    Supprimer
+                                                </button>
+                                            </div>
+                                            <textarea
+                                                rows={2}
+                                                value={flashcard.question}
+                                                onChange={(e) => {
+                                                    const newFlashcards = [...flashcards];
+                                                    newFlashcards[index].question = e.target.value;
+                                                    setFlashcards(newFlashcards);
+                                                }}
+                                                placeholder="Question"
+                                                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 mb-2"
+                                                disabled={loading}
+                                            />
+                                            <textarea
+                                                rows={3}
+                                                value={flashcard.answer}
+                                                onChange={(e) => {
+                                                    const newFlashcards = [...flashcards];
+                                                    newFlashcards[index].answer = e.target.value;
+                                                    setFlashcards(newFlashcards);
+                                                }}
+                                                placeholder="Réponse"
+                                                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+                                                disabled={loading}
+                                            />
+                                        </div>
+                                    ))}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setFlashcards(prev => [...prev, { question: '', answer: '' }]);
+                                        }}
+                                        className="w-full bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors disabled:bg-gray-400"
+                                        disabled={loading}
+                                    >
+                                        Ajouter une Flashcard
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* QUIZ (EDIT MODE ONLY) */}
+                        {memoFicheId && (
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-800 mb-1">Quiz</h2>
+                                <div className="space-y-4">
+                                    {quiz.map((quizItem, index) => (
+                                        <div key={index} className="p-4 border border-gray-200 rounded-md bg-gray-50">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <h3 className="font-semibold text-gray-700">Question {index + 1}</h3>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setQuiz(prev => prev.filter((_, i) => i !== index));
+                                                    }}
+                                                    className="text-red-500 hover:text-red-700 transition-colors"
+                                                >
+                                                    Supprimer
+                                                </button>
+                                            </div>
+                                            <textarea
+                                                rows={2}
+                                                value={quizItem.question}
+                                                onChange={(e) => {
+                                                    const newQuiz = [...quiz];
+                                                    newQuiz[index].question = e.target.value;
+                                                    setQuiz(newQuiz);
+                                                }}
+                                                placeholder="Question du quiz"
+                                                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 mb-2"
+                                                disabled={loading}
+                                            />
+                                            {quizItem.options.map((option, optionIndex) => (
+                                                <div key={optionIndex} className="flex items-center mb-2">
+                                                    <input
+                                                        type="text"
+                                                        value={option}
+                                                        onChange={(e) => {
+                                                            const newQuiz = [...quiz];
+                                                            newQuiz[index].options[optionIndex] = e.target.value;
+                                                            setQuiz(newQuiz);
+                                                        }}
+                                                        placeholder={`Option ${optionIndex + 1}`}
+                                                        className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+                                                        disabled={loading}
+                                                    />
+                                                </div>
+                                            ))}
+                                            <input
+                                                type="text"
+                                                value={quizItem.correctAnswer}
+                                                onChange={(e) => {
+                                                    const newQuiz = [...quiz];
+                                                    newQuiz[index].correctAnswer = e.target.value;
+                                                    setQuiz(newQuiz);
+                                                }}
+                                                placeholder="Réponse correcte"
+                                                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 mb-2"
+                                                disabled={loading}
+                                            />
+                                            <textarea
+                                                rows={3}
+                                                value={quizItem.explanation}
+                                                onChange={(e) => {
+                                                    const newQuiz = [...quiz];
+                                                    newQuiz[index].explanation = e.target.value;
+                                                    setQuiz(newQuiz);
+                                                }}
+                                                placeholder="Explication"
+                                                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+                                                disabled={loading}
+                                            />
+                                        </div>
+                                    ))}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setQuiz(prev => [...prev, { question: '', type: 'mcq', options: ['', '', '', ''], correctAnswer: '', explanation: '' }]);
+                                        }}
+                                        className="w-full bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors disabled:bg-gray-400"
+                                        disabled={loading}
+                                    >
+                                        Ajouter une Question de Quiz
+                                    </button>
+                                </div>
+                            </div>
+                        )}}
                         
                         {/* OPTIONAL RESOURCES */}
                         <div>
