@@ -612,8 +612,13 @@ app.post('/api/chatbot/message', verifyToken, async (req, res) => {
         console.log('[LOG] Received response from Gemini.');
         console.log('[LOG] Full Gemini Response Object:', JSON.stringify(response, null, 2));
 
-        const aiResponse = response.text();
+        let aiResponse = response.text();
         console.log('[LOG] Extracted text from response.');
+
+        // Post-process AI response to ensure '#' in memo fiche links
+        aiResponse = aiResponse.replace(/\[(.*?)\]\(\/fiches\/(.*?)\)/g, (match, p1, p2) => {
+            return `[${p1}](#/fiches/${p2})`;
+        });
 
         const aiMessage = { role: 'ai', text: aiResponse, timestamp: new Date() };
         await db.collection('conversations').updateOne({ _id: conversation._id }, { $push: { messages: aiMessage }, $set: { updatedAt: new Date() } });
