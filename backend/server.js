@@ -110,7 +110,7 @@ app.get('/api/health', (req, res) => {
     res.status(200).send('OK');
 });
 
-app.get('/api/data', async (req, res) => {
+app.get('/api/data', verifyToken, async (req, res) => {
     try {
         const db = getDb();
         const collections = {
