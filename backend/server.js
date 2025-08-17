@@ -600,8 +600,7 @@ app.post('/api/chatbot/message', verifyToken, async (req, res) => {
             1.  L'utilisateur avec qui tu parles s'appelle "${user?.username || 'Utilisateur'}". Tu peux t'adresser à lui par son nom de temps en temps pour rendre la conversation plus conviviale, mais sans en abuser.
             2.  Voici une liste des mémofiches de formation disponibles dans l'application : ${JSON.stringify(fichesListForPrompt)}.
             3.  Si la discussion aborde un de ces sujets, tu DOIS proposer un lien vers la fiche correspondante pour aider l'utilisateur.
-            4.  Formate TOUJOURS les liens en Markdown comme ceci : [Titre de la Fiche](/fiches/ID_DE_LA_FICHE). Par exemple, si tu parles de la digestion, tu peux dire : "Pour en savoir plus, consultez la fiche sur [la Digestion](/fiches/digestion-id-example)".
-            5.  N'invente JAMAIS de fiches ou de liens. Ne propose que les fiches de la liste fournie.
+            4.  Formate TOUJOURS les liens en Markdown comme ceci : [Titre de la Fiche](#/fiches/ID_DE_LA_FICHE). Par exemple, si tu parles de la digestion, tu peux dire : "Pour en savoir plus, consultez la fiche sur [la Digestion](#/fiches/digestion-id-example)".
         `;
 
         const model = genAI.getGenerativeModel({ model: "models/gemini-2.5-flash", systemInstruction: { role: "system", parts: [{ text: systemPrompt }] } });
