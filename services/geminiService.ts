@@ -131,9 +131,7 @@ interface GenerationOptions {
 const ORDONNANCES_TEMPLATE = `
 Template fiche conseil associé à l’ordonnance
 
-Rédige une fiche conseil destinée au préparateur en pharmacie.
-Utiliser les sources du Notebook.
-Voici la structure typique pour la création de fiches conseils intitulées " Fiche CAO [Maladie] concernée " destinées aux préparateurs en pharmacie:
+Fiche CAO [Maladie] concernée " destinées aux pharmaciens et aux  préparateurs en pharmacie:
 Analyse de l'ordonnance
 la prescription médicale et des besoins du patient
 - Déterminer s'il s'agit d'une première prescription ou d'un renouvellement
@@ -205,6 +203,7 @@ export const generateSingleMemoFiche = async (
               - Thème: { id: "${theme.id}", Nom: "${theme.Nom}" }
               - Système/Organe: { id: "${system.id}", Nom: "${system.Nom}" }
             - **Réponse JSON**: Remplis les champs 'theme' et 'systeme_organe' de l'objet JSON de sortie avec EXACTEMENT ces valeurs.
+            - **Éviter la Redondance**: Ne pas inclure les informations sur le Thème ou le Système/Organe dans les sections de `memoContent`, car elles sont déjà spécifiées dans leurs champs dédiés.
             - **Contenu Pédagogique**: Crée EXACTEMENT 10 flashcards, et 10 questions de quiz (variées, QCM et Vrai/Faux).
             - **Termes Techniques**: Identifie 10 termes techniques pertinents dans le texte et fournis leurs définitions pour le glossaire.
             - **Image**: ${options.imageUrl ? `Utilise CETTE URL EXACTE pour 'imageUrl': ${options.imageUrl}` : "Utilise 'https://picsum.photos/800/600' pour imageUrl."}
