@@ -178,7 +178,7 @@ export const generateSingleMemoFiche = async (
 
     let prompt = "";
 
-    if (theme.Nom === "Ordonnances") {
+    if (theme.Nom.trim().toLowerCase() === "ordonnances") {
         console.log("[DEBUG] Generating 'Ordonnances' prompt."); // DEBUG LOG
         // For "Ordonnances" theme, use the specific template
         // We need to extract the [Maladie] from the rawText or assume it's part of the title
