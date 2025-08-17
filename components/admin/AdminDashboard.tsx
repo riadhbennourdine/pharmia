@@ -6,6 +6,7 @@ import SummaryCards from './SummaryCards';
 import UserTable from './UserTable';
 import SubscriptionManagement from './SubscriptionManagement';
 import LearningProgress from './LearningProgress';
+import TrainerManagement from './TrainerManagement'; // Import TrainerManagement
 import { getAdminStats, getAllUsers, updateUser, assignPreparateurToPharmacien } from '../../services/adminService'; // Added assignPreparateurToPharmacien
 
 const AdminDashboard: React.FC = () => {
