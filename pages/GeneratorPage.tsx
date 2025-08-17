@@ -56,6 +56,7 @@ const GeneratorPage: React.FC = () => {
     const [kahootUrl, setKahootUrl] = useState('');
     const [videoUrl, setVideoUrl] = useState('');
     const [podcastUrl, setPodcastUrl] = useState('');
+    const [title, setTitle] = useState('');
     const [memoContent, setMemoContent] = useState<MemoFiche['memoContent']>([]);
 
     const isCommunicationTheme = data?.themes.find(t => t.id === themeSelection)?.Nom === 'Communication';
@@ -65,6 +66,7 @@ const GeneratorPage: React.FC = () => {
         if (memoFicheId && data) {
             const ficheToEdit = getMemoFicheById(memoFicheId);
             if (ficheToEdit) {
+                setTitle(ficheToEdit.title);
                 setPrompt(ficheToEdit.flashSummary); // Using flashSummary as the prompt for editing
                 setThemeSelection(ficheToEdit.theme.id);
                 setSystemSelection(ficheToEdit.systeme_organe.id);
@@ -128,6 +130,7 @@ const GeneratorPage: React.FC = () => {
                 }
                 const updatedFiche: MemoFiche = {
                     ...existingFiche,
+                    title: title,
                     flashSummary: prompt, // Assuming prompt is the main editable content
                     theme: themeForApi,
                     systeme_organe: isCommunicationTheme ? { id: 'communication', Nom: 'Communication' } : data.systemesOrganes.find(s => s.id === systemSelection)!,
@@ -243,6 +246,21 @@ const GeneratorPage: React.FC = () => {
                         </div>
                         )}
                         
+                        {memoFicheId && (
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-800 mb-1">Titre</h2>
+                                <input
+                                    type="text"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    placeholder="Titre de la mémofiche"
+                                    className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+                                    disabled={loading}
+                                    required
+                                />
+                            </div>
+                        )}
+
                         {/* PROMPT */}
                         <div>
                            <h2 className="text-xl font-bold text-gray-800 mb-1">Étape 3 : Texte brut à analyser</h2>
