@@ -355,7 +355,7 @@ app.post('/api/login', async (req, res) => {
         const token = jwt.sign(
             { userId: user._id, email: user.email, role: user.role, username: user.username },
             process.env.JWT_SECRET || 'supersecretjwtkey', // Use a strong secret from .env
-            { expiresIn: '1h' }
+            { expiresIn: '8h' } // Increased for debugging
         );
 
         // Update lastLogin timestamp
