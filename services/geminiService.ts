@@ -147,20 +147,20 @@ Conseils sur le traitement médicamenteux
 Informations sur la maladie
 - Présenter les informations essentielles sur la [Maladie]
 - Expliquer les spécificités de la pathologie qui peuvent affecter le traitement
-- Donner une idée sur l'objectif du traitement
+- Donner une idée sur l objectif du traitement
 
 Conseils hygiéno-diététiques
-- Fournir des conseils d'hygiène de vie, y compris l'exercice et le sommeil
+- Fournir des conseils dhygiène de vie, y compris lexercice et le sommeil
 - Offrir des conseils alimentaires adaptés à la pathologie
 
 Vente complémentaire
-- Identifier les produits ou accessoires complémentaires pertinents qu'on peut proposer au patient
-- Expliquer comment ces produits peuvent améliorer l'efficacité, la tolérance ou le confort du traitement, ou alors assurer la prévention contre les récidives et les complications.
+- Identifier les produits ou accessoires complémentaires pertinents quon peut proposer au patient
+- Expliquer comment ces produits peuvent améliorer lefficacité, la tolérance ou le confort du traitement, ou alors assurer la prévention contre les récidives et les complications.
 
 Mettre les références bibliographiques qui ont servi pour la rédaction de cette fiche, en liste numérotée sous format citation APA 7th edition, comme indiqué dans le titre de la source. Ne pas citer dans la liste la référence Template fiche CAO.
 
 
-Cette procédure vise à assurer un suivi complet et personnalisé du patient, optimiser l'efficacité du traitement prescrit et améliorer le confort du patient
+Cette procédure vise à assurer un suivi complet et personnalisé du patient, optimiser lefficacité du traitement prescrit et améliorer le confort du patient
 `;
 
 export const generateSingleMemoFiche = async (
@@ -172,17 +172,16 @@ export const generateSingleMemoFiche = async (
     
     let providedResourcesInstructions = "";
     if (options.videoUrl) {
-        providedResourcesInstructions += `- Vidéo YouTube à inclure OBLIGATOIREMENT : ${options.videoUrl}
-`;
+        providedResourcesInstructions += `- Vidéo YouTube à inclure OBLIGATOIREMENT : ${options.videoUrl}\n`;
     }
     if (options.podcastUrl) {
-        providedResourcesInstructions += `- Podcast à inclure OBLIGATOIREMENT : ${options.podcastUrl}
-`;
+        providedResourcesInstructions += `- Podcast à inclure OBLIGATOIREMENT : ${options.podcastUrl}\n`;
     }
 
     let prompt = "";
 
     if (theme.Nom === "Ordonnances") {
+        console.log("[DEBUG] Generating 'Ordonnances' prompt."); // DEBUG LOG
         // For "Ordonnances" theme, use the specific template
         // We need to extract the [Maladie] from the rawText or assume it's part of the title
         // For now, let's assume the rawText is the "Maladie" or contains it.
@@ -191,7 +190,7 @@ export const generateSingleMemoFiche = async (
             Tu es un expert en pharmacie d’officine et en pédagogie active. À partir du texte brut ci-dessous, génère une mémofiche pédagogique complète en FRANÇAIS.
             La réponse DOIT être un objet JSON valide qui respecte scrupuleusement le schéma fourni.
 
-            ${'ORDONNANCES_TEMPLATE'}
+            ${ORDONNANCES_TEMPLATE}
 
             **Texte Brut à Analyser:**
             ---
@@ -216,6 +215,7 @@ export const generateSingleMemoFiche = async (
             - **IDs**: Assure-toi que l'ID de la fiche et les IDs des sections sont des chaînes de caractères uniques (similaire à un UUID).
         `;
     } else {
+        console.log(`[DEBUG] Generating generic prompt for theme: ${theme.Nom}`); // DEBUG LOG
         // Existing generic prompt for other themes
         prompt = `
             Tu es un expert en pharmacie d’officine et en pédagogie active. À partir du texte brut ci-dessous, génère une mémofiche pédagogique complète en FRANÇAIS.
@@ -248,6 +248,7 @@ export const generateSingleMemoFiche = async (
         `;
     }
     
+    console.log("[DEBUG] Final Prompt for Gemini:", prompt); // DEBUG LOG
     try {
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
