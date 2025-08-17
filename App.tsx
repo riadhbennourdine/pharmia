@@ -324,11 +324,11 @@ const LoggedInRoute: React.FC = () => {
 };
 
 const GeneratorRoute: React.FC = () => {
-    const { isLoggedIn, isAdmin } = useAuth();
+    const { isLoggedIn, canEditMemoFiches } = useAuth(); // Use canEditMemoFiches
     if (!isLoggedIn) {
         return <Navigate to="/connexion" replace />;
     }
-    if (!isAdmin) {
+    if (!canEditMemoFiches) { // Check canEditMemoFiches instead of isAdmin
        return <Navigate to="/" replace />;
     }
     return <Outlet />;
