@@ -128,6 +128,41 @@ interface GenerationOptions {
     podcastUrl?: string;
 }
 
+const ORDONNANCES_TEMPLATE = `
+Template fiche conseil associé à l’ordonnance
+
+Rédige une fiche conseil destinée au préparateur en pharmacie.
+Utiliser les sources du Notebook.
+Voici la structure typique pour la création de fiches conseils intitulées " Fiche CAO [Maladie] concernée " destinées aux préparateurs en pharmacie:
+Analyse de l'ordonnance
+la prescription médicale et des besoins du patient
+- Déterminer s'il s'agit d'une première prescription ou d'un renouvellement
+- Collecter des informations sur l'âge, les antécédents médicaux et le motif de consultation du patient
+
+Conseils sur le traitement médicamenteux
+- La propriété et le mode d'action de chaque médicament.
+- Expliquer le mode d'administration, les horaires de prise et les effets indésirables possibles
+- Informer sur les interactions médicamenteuses ou alimentaires et les contre-indications
+
+Informations sur la maladie
+- Présenter les informations essentielles sur la [Maladie]
+- Expliquer les spécificités de la pathologie qui peuvent affecter le traitement
+- Donner une idée sur l'objectif du traitement
+
+Conseils hygiéno-diététiques
+- Fournir des conseils d'hygiène de vie, y compris l'exercice et le sommeil
+- Offrir des conseils alimentaires adaptés à la pathologie
+
+Vente complémentaire
+- Identifier les produits ou accessoires complémentaires pertinents qu'on peut proposer au patient
+- Expliquer comment ces produits peuvent améliorer l'efficacité, la tolérance ou le confort du traitement, ou alors assurer la prévention contre les récidives et les complications.
+
+Mettre les références bibliographiques qui ont servi pour la rédaction de cette fiche, en liste numérotée sous format citation APA 7th edition, comme indiqué dans le titre de la source. Ne pas citer dans la liste la référence Template fiche CAO.
+
+
+Cette procédure vise à assurer un suivi complet et personnalisé du patient, optimiser l'efficacité du traitement prescrit et améliorer le confort du patient
+`;
+
 export const generateSingleMemoFiche = async (
     rawText: string, 
     theme: Theme, 
@@ -137,34 +172,114 @@ export const generateSingleMemoFiche = async (
     
     let providedResourcesInstructions = "";
     if (options.videoUrl) {
-        providedResourcesInstructions += `- Vidéo YouTube à inclure OBLIGATOIREMENT : ${options.videoUrl}\n`;
+        providedResourcesInstructions += `- Vidéo YouTube à inclure OBLIGATOIREMENT : ${options.videoUrl}
+`;
     }
     if (options.podcastUrl) {
-        providedResourcesInstructions += `- Podcast à inclure OBLIGATOIREMENT : ${options.podcastUrl}\n`;
+        providedResourcesInstructions += `- Podcast à inclure OBLIGATOIREMENT : ${options.podcastUrl}
+`;
     }
 
-    const prompt = `
-        Tu es un expert en pharmacie d’officine et en pédagogie active. À partir du texte brut ci-dessous, génère une mémofiche pédagogique complète en FRANÇAIS.
-        La réponse DOIT être un objet JSON valide qui respecte scrupuleusement le schéma fourni.
+    let prompt = "";
 
-        **Texte Brut à Analyser:**
-        ---\n        ${rawText}
-        ---
+    if (theme.Nom === "Ordonnances") {
+        // For "Ordonnances" theme, use the specific template
+        // We need to extract the [Maladie] from the rawText or assume it's part of the title
+        // For now, let's assume the rawText is the "Maladie" or contains it.
+        // The AI will need to figure out the [Maladie] from the rawText for the title.
+        prompt = `
+            Tu es un expert en pharmacie d’officine et en pédagogie active. À partir du texte brut ci-dessous, génère une mémofiche pédagogique complète en FRANÇAIS.
+            La réponse DOIT être un objet JSON valide qui respecte scrupuleusement le schéma fourni.
 
-        **Instructions de Génération:**
-        - **Structure Complète**: Génère tous les champs requis par le schéma JSON.
-        - **Titre, Niveau**: Déduis ces informations du texte. Le niveau doit être 'Débutant', 'Intermédiaire', ou 'Expert'.
-        - **Date**: Pour le champ 'createdAt', utilise la date d'aujourd'hui au format YYYY-MM-DD.
-        - **Catégorisation Imposée**: Tu DOIS utiliser les informations suivantes pour la classification. Ne les modifie PAS.
-          - Thème: { id: "${theme.id}", Nom: "${theme.Nom}" }
-          - Système/Organe: { id: "${system.id}", Nom: "${system.Nom}" }
-        - **Réponse JSON**: Remplis les champs 'theme' et 'systeme_organe' de l'objet JSON de sortie avec EXACTEMENT ces valeurs.
-        - **Sections**: Crée les sections avec les titres suivants : 'Mémo : Cas comptoir', 'Questions à poser', 'Limites du conseil', 'Conseil traitement Produits', 'Conseils Hygiène de vie', 'Références bibliographiques'.
-        - **Contenu**: Le contenu de chaque section doit être en Markdown, avec des paragraphes bien délimités et des retours à la ligne. Chaque section ne doit pas dépasser 10-15 lines. Si le contenu est plus long, crée une nouvelle section accordéon avec un titre numéroté (par exemple, 'Conseil traitement Produits (1/2)', 'Conseil traitement Produits (2/2)').
-        - **Références**: Inclure des références bibliographiques dans la section dédiée.
-        - **Contenu Pédagogique**: Crée EXACTEMENT 10 flashcards, et 10 questions de quiz (variées, QCM et Vrai/Faux).
-        - **Termes Techniques**: Identifie 10 termes techniques pertinents dans le texte et fournis leurs définitions pour le glossaire.
-        - **Image**: ${options.imageUrl ? `Utilise CETTE URL EXACTE pour 'imageUrl': ${options.imageUrl}` : "Utilise 'https://picsum.photos/800/600' pour imageUrl."}
+            ${'ORDONNANCES_TEMPLATE'}
+
+            **Texte Brut à Analyser:**
+            ---
+            ${rawText}
+            ---
+
+            **Instructions de Génération Spécifiques pour Ordonnances:**
+            - Le titre de la mémofiche doit être "Fiche CAO [Maladie] concernée", où [Maladie] est déduit du texte brut.
+            - Assure-toi que toutes les sections de la "Template fiche conseil associé à l’ordonnance" sont remplies de manière pertinente.
+            - Pour les "Références bibliographiques", utilise des sources crédibles et formatées en APA 7th edition. Ne pas inclure "Template fiche CAO" dans les références.
+            - **Catégorisation Imposée**: Tu DOIS utiliser les informations suivantes pour la classification. Ne les modifie PAS.
+              - Thème: { id: "${theme.id}", Nom: "${theme.Nom}" }
+              - Système/Organe: { id: "${system.id}", Nom: "${system.Nom}" }
+            - **Réponse JSON**: Remplis les champs 'theme' et 'systeme_organe' de l'objet JSON de sortie avec EXACTEMENT ces valeurs.
+            - **Contenu Pédagogique**: Crée EXACTEMENT 10 flashcards, et 10 questions de quiz (variées, QCM et Vrai/Faux).
+            - **Termes Techniques**: Identifie 10 termes techniques pertinents dans le texte et fournis leurs définitions pour le glossaire.
+            - **Image**: ${options.imageUrl ? `Utilise CETTE URL EXACTE pour 'imageUrl': ${options.imageUrl}` : "Utilise 'https://picsum.photos/800/600' pour imageUrl."}
+            - **Position Image**: Pour 'imagePosition', utilise 'middle' par défaut, ou 'top' ou 'bottom' si le sujet le suggère.
+            - **Kahoot**: ${options.kahootUrl ? `Utilise CETTE URL EXACTE pour 'kahootUrl': ${options.kahootUrl}` : "Si pertinent, fournis un lien vers un quiz Kahoot public sur le sujet dans 'kahootUrl'. Sinon, laisse ce champ vide ou null."}
+            - **Ressources Externes**: 
+              ${providedResourcesInstructions || "Suggère 1 ou 2 liens pertinents (vidéos YouTube, articles, podcasts). Pour les vidéos, utilise des URLs 'embed'."}
+            - **IDs**: Assure-toi que l'ID de la fiche et les IDs des sections sont des chaînes de caractères uniques (similaire à un UUID).
+        `;
+    } else {
+        // Existing generic prompt for other themes
+        prompt = `
+            Tu es un expert en pharmacie d’officine et en pédagogie active. À partir du texte brut ci-dessous, génère une mémofiche pédagogique complète en FRANÇAIS.
+            La réponse DOIT être un objet JSON valide qui respecte scrupuleusement le schéma fourni.
+
+            **Texte Brut à Analyser:**
+            ---
+            ${rawText}
+            ---
+
+            **Instructions de Génération:**
+            - **Structure Complète**: Génère tous les champs requis par le schéma JSON.
+            - **Titre, Niveau**: Déduis ces informations du texte. Le niveau doit être 'Débutant', 'Intermédiaire', ou 'Expert'.
+            - **Date**: Pour le champ 'createdAt', utilise la date d'aujourd'hui au format YYYY-MM-DD.
+            - **Catégorisation Imposée**: Tu DOIS utiliser les informations suivantes pour la classification. Ne les modifie PAS.
+              - Thème: { id: "${theme.id}", Nom: "${theme.Nom}" }
+              - Système/Organe: { id: "${system.id}", Nom: "${system.Nom}" }
+            - **Réponse JSON**: Remplis les champs 'theme' et 'systeme_organe' de l'objet JSON de sortie avec EXACTEMENT ces valeurs.
+            - **Sections**: Crée les sections avec les titres suivants : 'Mémo : Cas comptoir', 'Questions à poser', 'Limites du conseil', 'Conseil traitement Produits', 'Conseils Hygiène de vie', 'Références bibliographiques'.
+            - **Contenu**: Le contenu de chaque section doit être en Markdown, avec des paragraphes bien délimités et des retours à la ligne. Chaque section ne doit pas dépasser 10-15 lines. Si le contenu est plus long, crée une nouvelle section accordéon avec un titre numéroté (par exemple, 'Conseil traitement Produits (1/2)', 'Conseil traitement Produits (2/2)').
+            - **Références**: Inclure des références bibliographiques dans la section dédiée.
+            - **Contenu Pédagogique**: Crée EXACTEMENT 10 flashcards, et 10 questions de quiz (variées, QCM et Vrai/Faux).
+            - **Termes Techniques**: Identifie 10 termes techniques pertinents dans le texte et fournis leurs définitions pour le glossaire.
+            - **Image**: ${options.imageUrl ? `Utilise CETTE URL EXACTE pour 'imageUrl': ${options.imageUrl}` : "Utilise 'https://picsum.photos/800/600' pour imageUrl."}
+            - **Position Image**: Pour 'imagePosition', utilise 'middle' par défaut, ou 'top' ou 'bottom' si le sujet le suggère.
+            - **Kahoot**: ${options.kahootUrl ? `Utilise CETTE URL EXACTE pour 'kahootUrl': ${options.kahootUrl}` : "Si pertinent, fournis un lien vers un quiz Kahoot public sur le sujet dans 'kahootUrl'. Sinon, laisse ce champ vide ou null."}
+            - **Ressources Externes**: 
+              ${providedResourcesInstructions || "Suggère 1 ou 2 liens pertinents (vidéos YouTube, articles, podcasts). Pour les vidéos, utilise des URLs 'embed')."}
+            - **IDs**: Assure-toi que l'ID de la fiche et les IDs des sections sont des chaînes de caractères uniques (similaire à un UUID).
+        `;
+    }
+    
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: memoFicheItemSchema,
+            }
+        });
+
+        const jsonText = response.text.trim();
+        const data = JSON.parse(jsonText) as MemoFiche;
+        
+        data.createdAt = new Date().toISOString().split('T')[0];
+
+        // Ensure provided resources are present
+        const finalResources: ExternalResource[] = data.externalResources || [];
+        if (options.videoUrl && !finalResources.some(r => r.url === options.videoUrl)) {
+            finalResources.push({ type: 'video', title: 'Vidéo recommandée', url: options.videoUrl });
+        }
+        if (options.podcastUrl && !finalResources.some(r => r.url === options.podcastUrl)) {
+            finalResources.push({ type: 'podcast', title: 'Podcast recommandé', url: options.podcastUrl });
+        }
+        data.externalResources = finalResources;
+
+        return data;
+
+    } catch (error) {
+        console.error("Error generating single memo fiche with Gemini:", error);
+        throw new Error("Impossible de générer la mémofiche depuis l'IA. Veuillez réessayer.");
+    }
+}; "Utilise 'https://picsum.photos/800/600' pour imageUrl."}
         - **Position Image**: Pour 'imagePosition', utilise 'middle' par défaut, ou 'top' ou 'bottom' si le sujet le suggère.
         - **Kahoot**: ${options.kahootUrl ? `Utilise CETTE URL EXACTE pour 'kahootUrl': ${options.kahootUrl}` : "Si pertinent, fournis un lien vers un quiz Kahoot public sur le sujet dans 'kahootUrl'. Sinon, laisse ce champ vide ou null."}
         - **Ressources Externes**: 
