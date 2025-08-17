@@ -549,6 +549,25 @@ app.post('/api/ai-coach/suggest-challenge', verifyToken, async (req, res) => {
 });
 
 
+app.get('/api/list-gemini-models', async (req, res) => {
+    try {
+        if (!genAI) {
+            return res.status(503).json({ message: 'Gemini AI not initialized. API Key missing.' });
+        }
+        const models = await genAI.listModels();
+        const availableModels = Array.from(models).map(model => ({
+            name: model.name,
+            supportedGenerationMethods: model.supportedGenerationMethods,
+            inputTokenLimit: model.inputTokenLimit,
+            outputTokenLimit: model.outputTokenLimit,
+        }));
+        res.status(200).json(availableModels);
+    } catch (error) {
+        console.error('Error listing Gemini models:', error);
+        res.status(500).json({ message: 'Failed to list Gemini models.' });
+    }
+});
+
 // --- Chatbot Endpoint ---
 app.post('/api/chatbot/message', verifyToken, async (req, res) => {
     console.log('\n--- New Chatbot Request ---');
