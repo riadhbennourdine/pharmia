@@ -575,7 +575,7 @@ const GeneratorPage: React.FC = () => {
                                     </button>
                                 </div>
                             </div>
-                        )}}
+                        )}
                         
                         {/* OPTIONAL RESOURCES */}
                         <div>
