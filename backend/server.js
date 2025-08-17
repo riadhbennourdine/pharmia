@@ -874,6 +874,18 @@ app.get('/api/admin/stats', verifyToken, authorizeRoles(['admin']), async (req, 
     }
 });
 
+// Get all trainers (Admin only)
+app.get('/api/admin/formateurs', verifyToken, authorizeRoles(['admin']), async (req, res) => {
+    try {
+        const db = getDb();
+        const formateurs = await db.collection('users').find({ role: 'Formateur' }, { projection: { password: 0 } }).toArray();
+        res.status(200).json(formateurs);
+    } catch (error) {
+        console.error('Error fetching trainers:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
 // Update a user (Admin only)
 app.put('/api/admin/users/:id', verifyToken, authorizeRoles(['admin']), async (req, res) => {
     try {
