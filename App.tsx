@@ -134,6 +134,7 @@ const DataProvider: React.FC<{ children: React.ReactNode; logout: () => void }> 
         throw new Error('Failed to fetch learner data');
       }
       const userData: User = await response.json();
+      console.log("Learner data fetched:", userData); // DEBUG LOG
       setLearnerData(userData);
     } catch (err) {
       console.error('Error fetching learner data:', err);
