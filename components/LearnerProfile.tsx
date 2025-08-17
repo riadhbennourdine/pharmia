@@ -30,7 +30,8 @@ interface LearnerProfileProps {
 const LearnerProfile: React.FC<LearnerProfileProps> = ({ user, data }) => {
     // --- Calculations ---
     const totalFiches = data.memofiches?.length || 0;
-    const fichesRead = user.readFicheIds?.length || 0;
+    const existingFicheIds = new Set(data.memofiches.map(f => f.id));
+    const fichesRead = user.readFicheIds?.filter(id => existingFicheIds.has(id)).length || 0;
     const fichesReadProgress = totalFiches > 0 ? (fichesRead / totalFiches) * 100 : 0;
 
     const totalQuizzes = data.memofiches?.filter(f => f.quiz && f.quiz.questions && f.quiz.questions.length > 0).length || 0;
