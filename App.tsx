@@ -11,6 +11,7 @@ import LearnerSpacePage from './pages/LearnerSpacePage';
 import PricingPage from './pages/PricingPage';
 import UserDetailPage from './pages/UserDetailPage';
 import AICoachPage from './pages/AICoachPage';
+import CoachAccueilPage from './pages/CoachAccueilPage';
 import Header from './components/Header';
 import Chatbot from './components/Chatbot';
 import { LoadingSpinner } from './components/LoadingSpinner';
@@ -367,6 +368,7 @@ const AppContent: React.FC = () => {
               <Route path="/fiches/:id" element={<MemoFicheDetailWrapper />} />
               <Route path="/tarifs" element={<PricingPage />} />
               <Route element={<LoggedInRoute />}>
+                <Route path="/coach-accueil" element={<CoachAccueilPage />} />
                 <Route path="/learner-space" element={<LearnerSpacePage />} />
                 <Route path="/coach" element={<AICoachPage />} />
               </Route>
