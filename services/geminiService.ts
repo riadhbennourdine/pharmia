@@ -280,45 +280,6 @@ export const generateSingleMemoFiche = async (
         console.error("Error generating single memo fiche with Gemini:", error);
         throw new Error("Impossible de générer la mémofiche depuis l'IA. Veuillez réessayer.");
     }
-}; "Utilise 'https://picsum.photos/800/600' pour imageUrl."}
-        - **Position Image**: Pour 'imagePosition', utilise 'middle' par défaut, ou 'top' ou 'bottom' si le sujet le suggère.
-        - **Kahoot**: ${options.kahootUrl ? `Utilise CETTE URL EXACTE pour 'kahootUrl': ${options.kahootUrl}` : "Si pertinent, fournis un lien vers un quiz Kahoot public sur le sujet dans 'kahootUrl'. Sinon, laisse ce champ vide ou null."}
-        - **Ressources Externes**: 
-          ${providedResourcesInstructions || "Suggère 1 ou 2 liens pertinents (vidéos YouTube, articles, podcasts). Pour les vidéos, utilise des URLs 'embed'."}
-        - **IDs**: Assure-toi que l'ID de la fiche et les IDs des sections sont des chaînes de caractères uniques (similaire à un UUID).
-    `;
-    
-    try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: memoFicheItemSchema,
-            }
-        });
-
-        const jsonText = response.text.trim();
-        const data = JSON.parse(jsonText) as MemoFiche;
-        
-        data.createdAt = new Date().toISOString().split('T')[0];
-
-        // Ensure provided resources are present
-        const finalResources: ExternalResource[] = data.externalResources || [];
-        if (options.videoUrl && !finalResources.some(r => r.url === options.videoUrl)) {
-            finalResources.push({ type: 'video', title: 'Vidéo recommandée', url: options.videoUrl });
-        }
-        if (options.podcastUrl && !finalResources.some(r => r.url === options.podcastUrl)) {
-            finalResources.push({ type: 'podcast', title: 'Podcast recommandé', url: options.podcastUrl });
-        }
-        data.externalResources = finalResources;
-
-        return data;
-
-    } catch (error) {
-        console.error("Error generating single memo fiche with Gemini:", error);
-        throw new Error("Impossible de générer la mémofiche depuis l'IA. Veuillez réessayer.");
-    }
 };
 
 // New schema for communication fiches
