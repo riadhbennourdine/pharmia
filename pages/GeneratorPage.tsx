@@ -184,7 +184,7 @@ const GeneratorPage: React.FC = () => {
                 setKahootUrl('');
                 setVideoUrl('');
                 setPodcastUrl('');
-                setSummaryVideoUrl('');
+                setSummaryYoutubeUrl('');
                 setMemoContent([]);
             }
 
