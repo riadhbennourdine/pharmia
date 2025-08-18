@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FiMessageSquare, FiZap, FiTarget } from 'react-icons/fi';
-import { getRecommendations, Recommendation } from '../services/aiCoachService';
+import { getChallengeSuggestion, AISuggestion } from '../services/aiCoachService';
 import { useData } from '../App';
 import { User } from '../types/user'; // Importer le type User
 
@@ -88,26 +88,25 @@ const AICoach: React.FC = () => {
             const summaryMessage = coachPersona.createSummary(user);
             setMessages(prev => [...prev, { sender: 'coach', text: summaryMessage }]);
 
-            // 2. Récupérer les recommandations
-            const recommendations = await getRecommendations(user._id);
+            // 2. Récupérer la suggestion de défi
+            const suggestion: AISuggestion = await getChallengeSuggestion();
             
             // 3. Ajouter le message de recommandation (avec un petit délai pour le naturel)
             setTimeout(() => {
-                if (recommendations.length > 0) {
-                    const firstRecommendation = recommendations[0];
+                if (suggestion) {
                     const hook = getRandomItem(coachPersona.recommendationHooks);
-                    const suggestion = getRandomItem(coachPersona.recommendationPhrases(firstRecommendation.fiche.title));
+                    const suggestionText = getRandomItem(coachPersona.recommendationPhrases(suggestion.title));
                     const encouragement = getRandomItem(coachPersona.encouragements);
 
                     setMessages(prev => [...prev, {
                         sender: 'coach',
-                        text: `${hook} ${suggestion} <br/><br/> *${encouragement}*`,
+                        text: `${hook} ${suggestionText} <br/><br/> *${encouragement}*`,
                         recommendation: {
-                            title: firstRecommendation.fiche.title,
-                            reason: firstRecommendation.reason,
+                            title: suggestion.title,
+                            reason: suggestion.reasoning,
                         },
                         actions: [
-                            { text: 'Commencer à étudier', type: 'study', ficheId: firstRecommendation.fiche.id },
+                            { text: 'Commencer à étudier', type: 'study', ficheId: suggestion.ficheId },
                             { text: 'Une autre suggestion ?', type: 'suggestion' },
                         ]
                     }]);

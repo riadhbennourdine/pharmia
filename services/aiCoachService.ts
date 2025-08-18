@@ -7,24 +7,35 @@ export interface Recommendation {
   reason: string;
 }
 
+// The backend now returns a single suggestion, not an array
+export interface AISuggestion {
+    type: "fiche" | "quiz";
+    ficheId: string;
+    title: string;
+    reasoning: string;
+}
+
 const getAuthToken = () => {
     return localStorage.getItem('token');
 };
 
-export const getRecommendations = async (userId: string): Promise<Recommendation[]> => {
+// This function is now adapted to call the correct endpoint
+export const getChallengeSuggestion = async (): Promise<AISuggestion> => {
   const token = getAuthToken();
   if (!token) {
     throw new Error('Authentication token not found.');
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/ai-coach/recommendations/${userId}`, {
+  const response = await fetch(`${API_BASE_URL}/api/ai-coach/suggest-challenge`, {
+    method: 'POST', // It's a POST request
     headers: {
       'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
     },
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch recommendations: ${response.statusText}`);
+    throw new Error(`Failed to fetch challenge suggestion: ${response.statusText}`);
   }
 
   return response.json();
