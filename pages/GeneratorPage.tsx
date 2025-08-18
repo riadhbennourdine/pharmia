@@ -83,10 +83,6 @@ const GeneratorPage: React.FC = () => {
                 setVideoUrl(videoRes ? videoRes.url : '');
                 const podcastRes = ficheToEdit.externalResources?.find(r => r.type === 'podcast');
                 setPodcastUrl(podcastRes ? podcastRes.url : '');
-                // Load youtubeUrl if it exists
-                if (ficheToEdit.youtubeUrl) {
-                    setVideoUrl(ficheToEdit.youtubeUrl);
-                }
             } else {
                 setError("Mémofiche non trouvée pour l'édition.");
             }
@@ -125,8 +121,9 @@ const GeneratorPage: React.FC = () => {
             const generationOptions = {
                 imageUrl: imageUrl.trim() || undefined,
                 kahootUrl: kahootUrl.trim() || undefined,
-                videoUrl: videoUrl.trim() || undefined,
+                videoUrl: videoUrl.trim() || undefined, // This is for the long video in resources
                 podcastUrl: podcastUrl.trim() || undefined,
+                summaryVideoUrl: summaryVideoUrl.trim() || undefined, // This is for the short video in summary
             };
 
             let savedFiche: MemoFiche;
@@ -146,9 +143,9 @@ const GeneratorPage: React.FC = () => {
                     imagePosition: imagePosition, // Add imagePosition here
                     kahootUrl: kahootUrl.trim() || '',
                     externalResources: [
+                        ...(videoUrl.trim() ? [{ type: 'video', title: 'Vidéo', url: videoUrl.trim() }] : []),
                         ...(podcastUrl.trim() ? [{ type: 'podcast', title: 'Podcast', url: podcastUrl.trim() }] : []),
                     ],
-                    youtubeUrl: videoUrl.trim() || undefined, // Set youtubeUrl directly
                     memoContent: memoContent, // Include memoContent in the update
                     flashcards: flashcards,
                     quiz: quiz,
@@ -285,6 +282,17 @@ const GeneratorPage: React.FC = () => {
                                 disabled={loading}
                                 required
                             />
+                            <div className="mt-4">
+                                <h3 className="text-lg font-bold text-gray-800 mb-1">Vidéo YouTube (Résumé) (Optionnel)</h3>
+                                <p className="text-gray-500 mb-2">Lien YouTube pour la vidéo courte du résumé de la mémofiche.</p>
+                                <input type="url" value={summaryVideoUrl} onChange={e => setSummaryVideoUrl(e.target.value)} placeholder="URL YouTube pour le résumé" className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500" disabled={loading} />
+                            </div>
+                        </div>
+
+                        <div className="mt-4">
+                            <h3 className="text-lg font-bold text-gray-800 mb-1">Vidéo YouTube (Résumé) (Optionnel)</h3>
+                            <p className="text-gray-500 mb-2">Lien YouTube pour la vidéo courte du résumé de la mémofiche.</p>
+                            <input type="url" value={summaryVideoUrl} onChange={e => setSummaryVideoUrl(e.target.value)} placeholder="URL YouTube pour le résumé" className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500" disabled={loading} />
                         </div>
 
                         {/* MEMO CONTENT SECTIONS (EDIT MODE ONLY) */}
