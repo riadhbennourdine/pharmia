@@ -94,6 +94,21 @@ const DetailPage: React.FC<DetailPageProps> = ({ memoFiche }) => {
           <div className="prose max-w-none text-gray-700">
              <h3 className="text-xl font-bold text-gray-800 mb-2">Résumé Flash</h3>
             <p>{memoFiche.flashSummary}</p>
+            {memoFiche.summaryVideoUrl && (
+              <div className="mt-4">
+                <h4 className="text-lg font-semibold text-gray-800 mb-3">Vidéo Explicative</h4>
+                <div className="relative" style={{ paddingBottom: '56.25%', height: 0, overflow: 'hidden' }}>
+                  <iframe
+                    src={memoFiche.summaryVideoUrl}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title="Vidéo Explicative"
+                    className="absolute top-0 left-0 w-full h-full"
+                  ></iframe>
+                </div>
+              </div>
+            )}
           </div>
         );
       case 'flashcards':
