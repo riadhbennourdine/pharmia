@@ -196,6 +196,3 @@ const AICoach: React.FC = () => {
 };
 
 export default AICoach;
-
-
-export default AICoach;
