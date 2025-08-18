@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { MemoFiche } from '../types';
-import { TrashIcon } from './icons';
+import { TrashIcon, VideoCameraIcon } from './icons';
 
 interface MemoCardProps {
   memofiche: MemoFiche;
@@ -9,7 +9,9 @@ interface MemoCardProps {
 }
 
 const MemoCard: React.FC<MemoCardProps> = ({ memofiche, onDelete }) => {
-  const { id, title, shortDescription, imageUrl, theme, systeme_organe, createdAt, imagePosition } = memofiche;
+  const { id, title, shortDescription, imageUrl, theme, systeme_organe, createdAt, imagePosition, summaryYoutubeUrl, externalResources } = memofiche;
+
+  const hasVideo = summaryYoutubeUrl || externalResources?.some(r => r.type === 'video');
 
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -20,6 +22,14 @@ const MemoCard: React.FC<MemoCardProps> = ({ memofiche, onDelete }) => {
 
   return (
     <div className="group relative bg-white rounded-xl overflow-hidden shadow-sm transition-all duration-300 flex flex-col h-full border border-gray-200 hover:border-gray-300 hover:shadow-lg">
+      {hasVideo && (
+        <div
+          className="absolute top-3 left-3 z-10 p-2 bg-white/80 rounded-full text-gray-700"
+          aria-label="Contient une vidéo"
+        >
+          <VideoCameraIcon className="w-5 h-5" />
+        </div>
+      )}
       {onDelete && (
         <button
           onClick={(e) => onDelete(e, id)}

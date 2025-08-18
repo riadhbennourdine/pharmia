@@ -55,6 +55,7 @@ const GeneratorPage: React.FC = () => {
     const [imagePosition, setImagePosition] = useState<"top" | "middle" | "bottom">('middle'); // New state, default to 'middle'
     const [kahootUrl, setKahootUrl] = useState('');
     const [videoUrl, setVideoUrl] = useState('');
+    const [summaryVideoUrl, setSummaryVideoUrl] = useState('');
     const [podcastUrl, setPodcastUrl] = useState('');
     const [title, setTitle] = useState('');
     const [memoContent, setMemoContent] = useState<MemoFiche['memoContent']>([]);
@@ -75,6 +76,7 @@ const GeneratorPage: React.FC = () => {
                 setImageUrl(ficheToEdit.imageUrl || '');
                 setImagePosition(ficheToEdit.imagePosition || 'middle'); // Load imagePosition
                 setKahootUrl(ficheToEdit.kahootUrl || '');
+                setSummaryVideoUrl(ficheToEdit.summaryYoutubeUrl || '');
                 setMemoContent(ficheToEdit.memoContent || []); // Load memoContent for editing
                 setFlashcards(ficheToEdit.flashcards || []);
                 setQuiz(ficheToEdit.quiz || []);
@@ -142,6 +144,7 @@ const GeneratorPage: React.FC = () => {
                     imageUrl: imageUrl.trim() || '',
                     imagePosition: imagePosition, // Add imagePosition here
                     kahootUrl: kahootUrl.trim() || '',
+                    summaryYoutubeUrl: summaryVideoUrl.trim() || undefined,
                     externalResources: [
                         ...(videoUrl.trim() ? [{ type: 'video', title: 'Vidéo', url: videoUrl.trim() }] : []),
                         ...(podcastUrl.trim() ? [{ type: 'podcast', title: 'Podcast', url: podcastUrl.trim() }] : []),
@@ -181,6 +184,7 @@ const GeneratorPage: React.FC = () => {
                 setKahootUrl('');
                 setVideoUrl('');
                 setPodcastUrl('');
+                setSummaryVideoUrl('');
                 setMemoContent([]);
             }
 
@@ -282,17 +286,6 @@ const GeneratorPage: React.FC = () => {
                                 disabled={loading}
                                 required
                             />
-                            <div className="mt-4">
-                                <h3 className="text-lg font-bold text-gray-800 mb-1">Vidéo YouTube (Résumé) (Optionnel)</h3>
-                                <p className="text-gray-500 mb-2">Lien YouTube pour la vidéo courte du résumé de la mémofiche.</p>
-                                <input type="url" value={summaryVideoUrl} onChange={e => setSummaryVideoUrl(e.target.value)} placeholder="URL YouTube pour le résumé" className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500" disabled={loading} />
-                            </div>
-                        </div>
-
-                        <div className="mt-4">
-                            <h3 className="text-lg font-bold text-gray-800 mb-1">Vidéo YouTube (Résumé) (Optionnel)</h3>
-                            <p className="text-gray-500 mb-2">Lien YouTube pour la vidéo courte du résumé de la mémofiche.</p>
-                            <input type="url" value={summaryVideoUrl} onChange={e => setSummaryVideoUrl(e.target.value)} placeholder="URL YouTube pour le résumé" className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500" disabled={loading} />
                         </div>
 
                         {/* MEMO CONTENT SECTIONS (EDIT MODE ONLY) */}
@@ -637,6 +630,11 @@ const GeneratorPage: React.FC = () => {
                                     </div>
                                 </div>
                                 <input type="url" value={kahootUrl} onChange={e => setKahootUrl(e.target.value)} placeholder="URL du quiz Kahoot!" className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500" disabled={loading} />
+                                <div className="mt-4">
+                                    <h3 className="text-lg font-bold text-gray-800 mb-1">Vidéo YouTube (Résumé) (Optionnel)</h3>
+                                    <p className="text-gray-500 mb-2">Lien YouTube pour la vidéo courte du résumé de la mémofiche.</p>
+                                    <input type="url" value={summaryVideoUrl} onChange={e => setSummaryVideoUrl(e.target.value)} placeholder="URL YouTube pour le résumé" className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500" disabled={loading} />
+                                </div>
                                 <input type="url" value={videoUrl} onChange={e => setVideoUrl(e.target.value)} placeholder="URL de la vidéo YouTube" className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500" disabled={loading} />
                                 <input type="url" value={podcastUrl} onChange={e => setPodcastUrl(e.target.value)} placeholder="URL du podcast" className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500" disabled={loading} />
                            </div>
