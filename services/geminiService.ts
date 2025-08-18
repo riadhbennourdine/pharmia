@@ -52,6 +52,7 @@ const memoFicheItemSchema = {
         level: { type: Type.STRING, description: "Niveau de difficulté (e.g., 'Débutant', 'Intermédiaire', 'Expert')." },
         createdAt: { type: Type.STRING, description: "Date of creation in YYYY-MM-DD format. Use today's date." },
         kahootUrl: { type: Type.STRING, description: "Optional URL to a relevant Kahoot! quiz. Must be a valid Kahoot URL if provided." },
+        youtubeUrl: { type: Type.STRING, description: "Optional YouTube video URL related to the memo fiche summary." },
         memoContent: {
             type: Type.ARRAY,
             description: "Sections with titles: 'Mémo : Cas comptoir', 'Questions à poser', 'Limites du conseil', 'Conseil traitement Produits', 'Conseils Hygiène de vie', 'Références bibliographiques'. Content should be in Markdown and not exceed 10-15 lines per section.",
@@ -209,8 +210,9 @@ export const generateSingleMemoFiche = async (
             - **Image**: ${options.imageUrl ? `Utilise CETTE URL EXACTE pour 'imageUrl': ${options.imageUrl}` : "Utilise 'https://picsum.photos/800/600' pour imageUrl."}
             - **Position Image**: Pour 'imagePosition', utilise 'middle' par défaut, ou 'top' ou 'bottom' si le sujet le suggère.
             - **Kahoot**: ${options.kahootUrl ? `Utilise CETTE URL EXACTE pour 'kahootUrl': ${options.kahootUrl}` : "Si pertinent, fournis un lien vers un quiz Kahoot public sur le sujet dans 'kahootUrl'. Sinon, laisse ce champ vide ou null."}
+            - **Vidéo YouTube**: ${options.videoUrl ? `Utilise CETTE URL EXACTE pour 'youtubeUrl': ${options.videoUrl}` : "Si pertinent, fournis un lien YouTube pertinent pour le résumé dans 'youtubeUrl'. Sinon, laisse ce champ vide ou null."}
             - **Ressources Externes**: 
-              ${providedResourcesInstructions || "Suggère 1 ou 2 liens pertinents (vidéos YouTube, articles, podcasts). Pour les vidéos, utilise des URLs 'embed'."}
+              ${providedResourcesInstructions || "Suggère 1 ou 2 liens pertinents (articles, podcasts)."}
             - **IDs**: Assure-toi que l'ID de la fiche et les IDs des sections sont des chaînes de caractères uniques (similaire à un UUID).
         `;
     } else {
@@ -265,9 +267,6 @@ export const generateSingleMemoFiche = async (
 
         // Ensure provided resources are present
         const finalResources: ExternalResource[] = data.externalResources || [];
-        if (options.videoUrl && !finalResources.some(r => r.url === options.videoUrl)) {
-            finalResources.push({ type: 'video', title: 'Vidéo recommandée', url: options.videoUrl });
-        }
         if (options.podcastUrl && !finalResources.some(r => r.url === options.podcastUrl)) {
             finalResources.push({ type: 'podcast', title: 'Podcast recommandé', url: options.podcastUrl });
         }

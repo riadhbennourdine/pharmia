@@ -83,6 +83,10 @@ const GeneratorPage: React.FC = () => {
                 setVideoUrl(videoRes ? videoRes.url : '');
                 const podcastRes = ficheToEdit.externalResources?.find(r => r.type === 'podcast');
                 setPodcastUrl(podcastRes ? podcastRes.url : '');
+                // Load youtubeUrl if it exists
+                if (ficheToEdit.youtubeUrl) {
+                    setVideoUrl(ficheToEdit.youtubeUrl);
+                }
             } else {
                 setError("Mémofiche non trouvée pour l'édition.");
             }
@@ -142,9 +146,9 @@ const GeneratorPage: React.FC = () => {
                     imagePosition: imagePosition, // Add imagePosition here
                     kahootUrl: kahootUrl.trim() || '',
                     externalResources: [
-                        ...(videoUrl.trim() ? [{ type: 'video', title: 'Vidéo', url: videoUrl.trim() }] : []),
                         ...(podcastUrl.trim() ? [{ type: 'podcast', title: 'Podcast', url: podcastUrl.trim() }] : []),
                     ],
+                    youtubeUrl: videoUrl.trim() || undefined, // Set youtubeUrl directly
                     memoContent: memoContent, // Include memoContent in the update
                     flashcards: flashcards,
                     quiz: quiz,

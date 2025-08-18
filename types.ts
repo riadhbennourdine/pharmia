@@ -65,6 +65,7 @@ export interface MemoFiche {
   createdAt: string;
   externalResources: ExternalResource[];
   kahootUrl?: string;
+  youtubeUrl?: string;
 }
 
 export interface PharmIaData {
