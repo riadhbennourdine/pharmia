@@ -498,8 +498,8 @@ app.post('/api/ai-coach/suggest-challenge', verifyToken, async (req, res) => {
         // Filter out sensitive or large data before sending to AI
         const userProfile = {
             skillLevel: user.skillLevel,
-            readFicheIds: user.readFicheIds,
-            quizHistory: user.quizHistory.map(q => ({ quizId: q.quizId, score: q.score })),
+            readFicheIds: user.readFicheIds || [],
+            quizHistory: (user.quizHistory || []).map(q => ({ quizId: q.quizId, score: q.score })),
         };
 
         const availableContent = allFiches.map(f => ({
