@@ -235,7 +235,7 @@ export const generateSingleMemoFiche = async (
               - Thème: { id: "${theme.id}", Nom: "${theme.Nom}" }
               - Système/Organe: { id: "${system.id}", Nom: "${system.Nom}" }
             - **Réponse JSON**: Remplis les champs 'theme' et 'systeme_organe' de l'objet JSON de sortie avec EXACTEMENT ces valeurs.
-            - **Sections**: Crée les sections avec les titres suivants : 'Mémo : Cas comptoir', 'Questions à poser', 'Limites du conseil', 'Conseil traitement Produits', 'Conseils Hygiène de vie', 'Références bibliographiques'.
+            - **Sections**:             **Sections**: Crée les sections avec les titres suivants : 'Aperçu', 'Mémo : Cas comptoir', 'Questions à poser', 'Limites du conseil', 'Conseil traitement Produits', 'Conseils Hygiène de vie', 'Références bibliographiques'. La section 'Aperçu' doit fournir une brève description du contexte ou de la maladie.
             - **Contenu**: Le contenu de chaque section doit être en Markdown, avec des paragraphes bien délimités et des retours à la ligne. Chaque section ne doit pas dépasser 10-15 lines. Si le contenu est plus long, crée une nouvelle section accordéon avec un titre numéroté (par exemple, 'Conseil traitement Produits (1/2)', 'Conseil traitement Produits (2/2)').
             - **Références**: Inclure des références bibliographiques dans la section dédiée.
             - **Contenu Pédagogique**: Crée EXACTEMENT 10 flashcards, et 10 questions de quiz (variées, QCM et Vrai/Faux).
@@ -323,7 +323,7 @@ memoContent
 Title
  de l'objet JSON sera le titre du paragraphe, et le 
 content
- sera le texte de ce paragraphe.
+ sera le texte de ce paragraphe. La première section doit toujours être un 'Aperçu' qui résume brièvement le sujet. La première section doit toujours être un 'Aperçu' qui résume brièvement le sujet.
         - **Références bibliographiques**: Si le texte fourni contient une section de références, assurez-vous qu'elle soit la dernière entrée dans le tableau 
 memoContent
 .
