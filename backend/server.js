@@ -508,7 +508,7 @@ app.post('/api/ai-coach/suggest-challenge', verifyToken, async (req, res) => {
             hasQuiz: f.quiz && f.quiz.questions && f.quiz.questions.length > 0,
         }));
 
-        const model = genAI.getGenerativeModel({ model: "models/gemini-2.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const prompt = `
             You are an expert AI coach for pharmacy students, named PharmiaCoach. Your goal is to suggest a personalized daily challenge.
             The challenge can be to read a memo card ('fiche') or to take a quiz.
