@@ -10,7 +10,7 @@ import { BookOpenIcon, VideoCameraIcon, QuestionMarkCircleIcon, SparklesIcon, Do
 import { FiMic, FiMessageSquare } from 'react-icons/fi';
 import { useData } from '../App';
 import { useAuth } from '../App';
-import AICoachModal from '../components/AICoachModal';
+
 
 interface DetailPageProps {
   memoFiche: MemoFiche;
@@ -24,7 +24,7 @@ const DetailPage: React.FC<DetailPageProps> = ({ memoFiche }) => {
   const { deleteMemoFiche, fetchLearnerData } = useData();
   const { canEditMemoFiches, canDeleteMemoFiches } = useAuth();
   const navigate = useNavigate();
-  const [isCoachModalOpen, setCoachModalOpen] = useState(false);
+  
 
   const { id, title, shortDescription, imageUrl, theme, systeme_organe, createdAt, imagePosition } = memoFiche;
 
@@ -283,16 +283,11 @@ const DetailPage: React.FC<DetailPageProps> = ({ memoFiche }) => {
               {renderContent()}
             </div>
 
-             <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-                <button onClick={() => setCoachModalOpen(true)} className="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full">
-                    <FiMessageSquare />
-                    Demander au Coach IA
-                </button>
-            </div>
+             
           </div>
         </div>
       </div>
-      <AICoachModal isOpen={isCoachModalOpen} onClose={() => setCoachModalOpen(false)} ficheTitle={title} />
+      
     </>
   );
 };
