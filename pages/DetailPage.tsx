@@ -85,20 +85,20 @@ const DetailPage: React.FC<DetailPageProps> = ({ memoFiche }) => {
   
   const multimediaResources = memoFiche.externalResources?.filter(r => r.type === 'video' || r.type === 'podcast') || [];
 
+  const getYouTubeEmbedUrl = (url: string) => {
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*$/;
+      const match = url.match(regExp);
+      if (match && match[2].length === 11) {
+          return `https://www.youtube.com/embed/${match[2]}`;
+      }
+      return null;
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'memo':
         return <ContentSection sections={memoFiche.memoContent} glossaryTerms={memoFiche.glossaryTerms} />;
       case 'summary':
-        const getYouTubeEmbedUrl = (url: string) => {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*$/;
-            const match = url.match(regExp);
-            if (match && match[2].length === 11) {
-                return `https://www.youtube.com/embed/${match[2]}`;
-            }
-            return null;
-        };
-
         return (
           <div className="prose max-w-none text-gray-700">
              <h3 className="text-xl font-bold text-gray-800 mb-2">Résumé Flash</h3>
@@ -159,15 +159,6 @@ const DetailPage: React.FC<DetailPageProps> = ({ memoFiche }) => {
             </div>
         );
       case 'resources':
-        const getYouTubeEmbedUrl = (url: string) => {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*$/;
-            const match = url.match(regExp);
-            if (match && match[2].length === 11) {
-                return `https://www.youtube.com/embed/${match[2]}`;
-            }
-            return null;
-        };
-
         return (
             <div>
                 <h3 className="text-xl font-bold text-gray-800 mb-4">Ressources Multimédia</h3>
