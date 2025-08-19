@@ -551,6 +551,60 @@ app.post('/api/ai-coach/suggest-challenge', verifyToken, async (req, res) => {
     }
 });
 
+app.post('/api/ai-coach/find-by-objective', verifyToken, async (req, res) => {
+    try {
+        if (!GEMINI_API_KEY) {
+            return res.status(503).json({ message: 'AI Coach is not configured on the server. Missing API Key.' });
+        }
+
+        const db = getDb();
+        const { objective } = req.body;
+
+        if (!objective) {
+            return res.status(400).json({ message: "Objective is required." });
+        }
+
+        const allFiches = await db.collection('memofiches').find({}).toArray();
+        const availableContent = allFiches.map(f => ({
+            id: f._id.toString(),
+            title: f.title,
+            shortDescription: f.shortDescription,
+            theme: f.theme.Nom,
+            systeme_organe: f.systeme_organe.Nom
+        }));
+
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const prompt = `
+            You are an expert AI coach for pharmacy students. Your goal is to find the most relevant memo card (fiche) based on a user's learning objective.
+            You must respond in valid JSON format only.
+
+            Here is the user's objective: "${objective}"
+
+            Here is the list of all available memo cards:
+            ${JSON.stringify(availableContent)}
+
+            Your task:
+            1. Analyze the user's objective.
+            2. Find the single most relevant memo card from the list.
+            3. Provide a brief, encouraging reason for your choice in French.
+            4. Your entire response must be a single JSON object with the following structure:
+               { "type": "fiche", "ficheId": "...", "title": "...", "reasoning": "..." }
+        `;
+
+        const result = await model.generateContent(prompt);
+        const responseText = await result.response.text();
+        
+        const cleanedJson = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+        const suggestion = JSON.parse(cleanedJson);
+
+        res.status(200).json(suggestion);
+
+    } catch (error) {
+        console.error('Error with AI Coach find-by-objective:', error);
+        res.status(500).json({ message: 'Error generating suggestion from AI Coach.' });
+    }
+});
+
 
 
 

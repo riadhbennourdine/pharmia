@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FiMessageSquare, FiTarget, FiUser, FiAward } from 'react-icons/fi';
-import { findFicheByObjective, AISuggestion } from '../services/aiCoachService';
+import { findFicheByObjective, getChallengeSuggestion, AISuggestion } from '../services/aiCoachService';
 import { useData } from '../App';
 import { useNavigate } from 'react-router-dom';
 import { MemoFiche } from '../types';
@@ -21,6 +21,8 @@ const AICoach: React.FC = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const navigate = useNavigate();
 
+    console.log('[DEBUG] AICoach component rendered with user data:', user); // DEBUG LOG
+
     useEffect(() => {
         const initializeConversation = async () => {
             setLoading(true);
@@ -39,8 +41,8 @@ const AICoach: React.FC = () => {
                 const bilanContent = (
                     <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                         <h4 className="font-bold text-lg text-green-800 mb-2">Votre Bilan Initial</h4>
-                        <p><strong>Fiches lues:</strong> {user.fichesLues?.length || 0}</p>
-                        <p><strong>Quiz réussis:</strong> {user.quizSuccess?.length || 0}</p>
+                        <p><strong>Fiches lues:</strong> {user.readFicheIds?.length || 0}</p>
+                        <p><strong>Quiz réussis:</strong> {user.quizHistory?.filter(q => q.score >= 80).length || 0}</p>
                     </div>
                 );
                 initialMessages.push({
@@ -194,8 +196,8 @@ const AICoach: React.FC = () => {
         const bilanContent = (
             <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                 <h4 className="font-bold text-lg text-green-800 mb-2">Bilan d'Apprentissage</h4>
-                <p><strong>Fiches lues:</strong> {user.fichesLues?.length || 0}</p>
-                <p><strong>Quiz réussis:</strong> {user.quizSuccess?.length || 0}</p>
+                <p><strong>Fiches lues:</strong> {user.readFicheIds?.length || 0}</p>
+                <p><strong>Quiz réussis:</strong> {user.quizHistory?.filter(q => q.score >= 80).length || 0}</p>
                 <p><strong>Objectifs atteints:</strong> 0</p>
             </div>
         );
