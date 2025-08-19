@@ -40,3 +40,25 @@ export const getChallengeSuggestion = async (): Promise<AISuggestion> => {
 
   return response.json();
 };
+
+export const findFicheByObjective = async (objective: string): Promise<AISuggestion> => {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error('Authentication token not found.');
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/ai-coach/find-by-objective`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ objective })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to find fiche by objective: ${response.statusText}`);
+  }
+
+  return response.json();
+};

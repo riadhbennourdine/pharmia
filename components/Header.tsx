@@ -53,6 +53,11 @@ const Header: React.FC = () => {
             <NavLink to="/tarifs" className={navLinkClass}>
               Tarifs
             </NavLink>
+            {isLoggedIn && (
+              <NavLink to="/coach-accueil" className={navLinkClass}>
+                Mon Coach IA
+              </NavLink>
+            )}
             {isAdmin && (
               <NavLink to="/generateur" className={navLinkClass}>
                 Générateur
@@ -115,6 +120,11 @@ const Header: React.FC = () => {
             <NavLink to="/tarifs" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>
               Tarifs
             </NavLink>
+            {isLoggedIn && (
+              <NavLink to="/coach-accueil" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>
+                Mon Coach IA
+              </NavLink>
+            )}
             {isAdmin && (
               <NavLink to="/generateur" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>
                 Générateur

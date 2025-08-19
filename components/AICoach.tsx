@@ -1,200 +1,114 @@
-import React, { useState, useEffect } from 'react';
-import { FiMessageSquare, FiTarget, FiAward } from 'react-icons/fi'; // Remplacement de FiZap par FiAward
-import ReactMarkdown from 'react-markdown'; // Importation de ReactMarkdown
-import { getChallengeSuggestion, AISuggestion } from '../services/aiCoachService';
+import React, { useState } from 'react';
+import { FiMessageSquare, FiTarget } from 'react-icons/fi';
+import { findFicheByObjective, AISuggestion } from '../services/aiCoachService';
 import { useData } from '../App';
-import { User } from '../types/user';
+import { useNavigate } from 'react-router-dom';
 
-// --- Persona du Coach PharmIA (Ton ajusté) ---
-
-const coachPersona = {
-    greetings: [
-        "Bonjour. Prêt à poursuivre votre parcours de formation continue ?",
-        "Bienvenue. Analysons ensemble vos progrès et définissons vos prochains objectifs.",
-        "Bonjour. Je suis prêt à vous accompagner pour votre session d'aujourd'hui.",
-    ],
-    recommendationHooks: [
-        "En analysant vos récents résultats, une nouvelle opportunité d'apprentissage se présente.",
-        "Compte tenu de votre progression, je vous propose de nous concentrer sur le sujet suivant.",
-        "Pour approfondir vos connaissances, j'ai identifié une fiche pertinente pour vous.",
-    ],
-    recommendationPhrases: (title: string) => [
-        `Je vous suggère la mémofiche sur **${title}**. C'est un sujet fondamental.`,
-        `Approfondissons vos connaissances sur **${title}**. C'est une compétence clé.`,
-        `Le défi du jour : la mémofiche sur **${title}**. Prêt à commencer ?`,
-    ],
-    encouragements: [
-        "Votre régularité est la clé de votre succès. Continuez ainsi.",
-        "Excellent travail. Votre progression est notable.",
-        "Félicitations pour votre engagement dans votre formation continue.",
-    ],
-    noRecommendation: "Pour le moment, je n'ai pas de nouvelles recommandations spécifiques. Votre parcours est à jour. Excellent travail.",
-    error: "Une erreur est survenue lors de la récupération de vos recommandations. Veuillez réessayer ultérieurement.",
-    createSummary: (user: User) => {
-        const fichesCount = user.readFicheIds?.length || 0;
-        const quizCount = user.quizHistory?.length || 0;
-        let averageScore = 0;
-        if (quizCount > 0) {
-            const totalScore = user.quizHistory.reduce((sum, attempt) => sum + attempt.score, 0);
-            averageScore = Math.round(totalScore / quizCount);
-        }
-
-        let summary = `Bilan de votre parcours : **${fichesCount} mémofiche${fichesCount > 1 ? 's' : ''} consultée${fichesCount > 1 ? 's' : ''}**`;
-        if (quizCount > 0) {
-            summary += ` et **${quizCount} quiz réalisé${quizCount > 1 ? 's' : ''}** avec un score moyen de **${averageScore}%**.`;
-        } else {
-            summary += ". C'est un excellent point de départ.";
-        }
-
-        if (averageScore > 80) {
-            summary += " Vos résultats sont excellents.";
-        } else if (averageScore > 60) {
-            summary += " Votre performance est solide et progresse.";
-        } else {
-            summary += " Chaque étape est un progrès significatif.";
-        }
-        return summary;
-    }
-};
-
-const getRandomItem = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
-
-// --- Composant AICoach ---
 
 const AICoach: React.FC = () => {
-    const { learnerData: user, getMemoFicheById } = useData();
-    
-    const getInitialMessage = () => ({
-        sender: 'coach',
-        text: getRandomItem(coachPersona.greetings),
-        actions: [
-            { text: 'Consulter mon bilan', type: 'recommendation' },
-            { text: 'Pas maintenant', type: 'delay' },
-        ]
-    });
-
-    const [messages, setMessages] = useState([getInitialMessage()]);
+    const { learnerData: user } = useData();
+    const [objective, setObjective] = useState('');
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const navigate = useNavigate();
 
-    const fetchRecommendations = async () => {
-        if (!user) return;
+    const handleObjectiveChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setObjective(e.target.value);
+    };
+
+    const handleValidateObjective = async () => {
+        if (!objective.trim()) {
+            setError('Veuillez définir un objectif.');
+            return;
+        }
         setLoading(true);
-
-        setMessages(prev => [...prev, { sender: 'user', text: 'Oui, montrez-moi mon bilan.' }]);
-
+        setError(null);
         try {
-            const summaryMessage = coachPersona.createSummary(user);
-            setMessages(prev => [...prev, { sender: 'coach', text: summaryMessage }]);
-
-            const suggestion: AISuggestion = await getChallengeSuggestion();
-            const recommendedFiche = getMemoFicheById(suggestion.ficheId);
-            
-            setTimeout(() => {
-                if (suggestion && recommendedFiche) {
-                    const hook = getRandomItem(coachPersona.recommendationHooks);
-                    const suggestionText = getRandomItem(coachPersona.recommendationPhrases(suggestion.title));
-
-                    setMessages(prev => [...prev, {
-                        sender: 'coach',
-                        text: `${hook} ${suggestionText}`,
-                        recommendation: {
-                            title: suggestion.title,
-                            reason: suggestion.reasoning,
-                            imageUrl: recommendedFiche.imageUrl, // Add image URL
-                        },
-                        actions: [
-                            { text: 'Commencer l\'étude', type: 'study', ficheId: suggestion.ficheId },
-                            { text: 'Autre suggestion', type: 'suggestion' },
-                        ]
-                    }]);
-                } else if (suggestion && !recommendedFiche) {
-                    // Handle case where fiche is not found (e.g., deleted)
-                    setMessages(prev => [...prev, {
-                        sender: 'coach',
-                        text: coachPersona.noRecommendation + " (La fiche suggérée n\'a pas été trouvée).",
-                    }]);
-                } else {
-                    setMessages(prev => [...prev, {
-                        sender: 'coach',
-                        text: coachPersona.noRecommendation,
-                    }]);
-                }
-                setLoading(false);
-            }, 1200);
-
-        } catch (error) {
-            console.error("Failed to fetch recommendations", error);
-            setMessages(prev => [...prev, {
-                sender: 'coach',
-                text: coachPersona.error,
-            }]);
+            const suggestion: AISuggestion = await findFicheByObjective(objective);
+            if (suggestion && suggestion.ficheId) {
+                navigate(`/fiches/${suggestion.ficheId}`);
+            } else {
+                setError("Désolé, nous n'avons pas trouvé de fiche correspondante à votre objectif.");
+            }
+        } catch (err) {
+            setError("Une erreur est survenue lors de la recherche de votre objectif. Veuillez réessayer.");
+            console.error(err);
+        } finally {
             setLoading(false);
         }
     };
 
-    const handleAction = (actionType: string, ficheId?: string) => {
-        if (actionType === 'recommendation') {
-            fetchRecommendations();
-        } else if (actionType === 'study' && ficheId) {
-            window.location.href = `#/fiches/${ficheId}`;
-        } else if (actionType === 'suggestion') {
-            fetchRecommendations();
-        }
+    const handleConsultBilan = () => {
+        // Placeholder for where the bilan/assessment page would be navigated to
+        // For now, it can navigate to the learner space or another relevant page
+        navigate('/learner-space');
     };
 
+    const handlePasMaintenant = () => {
+        // Placeholder for "Not now" action.
+        // Can close a modal, or navigate away, etc.
+        // For now, we can just log it or do nothing.
+        console.log("L'utilisateur a cliqué sur 'Pas maintenant'");
+    };
+
+
     return (
-        <div className="bg-gray-50 p-4 sm:p-6 rounded-lg shadow-lg max-w-3xl mx-auto border border-gray-200">
-            <div className="flex items-center mb-4 pb-4 border-b border-gray-200">
-                <FiMessageSquare className="text-green-600 mr-3" size={24} />
-                <h2 className="text-xl font-bold text-gray-800">Coach PharmIA</h2>
+        <div className="bg-white p-6 rounded-lg shadow-lg max-w-2xl mx-auto border border-gray-200">
+            <div className="flex items-center mb-4">
+                <FiMessageSquare className="text-green-600 mr-3" size={28} />
+                <h2 className="text-2xl font-bold text-gray-800">Coach PharmIA</h2>
             </div>
 
-            <div className="space-y-4 pr-2 max-h-[50vh] overflow-y-auto">
-                {messages.map((msg, index) => (
-                    <div key={index} className={`flex items-end gap-2 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        {msg.sender === 'coach' && <FiAward className="text-gray-400 mb-2" size={20} />}
-                        <div className={`text-base leading-relaxed px-4 py-3 max-w-md shadow-sm ${msg.sender === 'coach' ? 'bg-white text-gray-800 rounded-2xl rounded-bl-none' : 'bg-green-500 text-white rounded-2xl rounded-br-none'}`}>
-                            <ReactMarkdown>{msg.text}</ReactMarkdown>
-                            {msg.recommendation && (
-                                <div className="mt-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
-                                    {msg.recommendation.imageUrl && (
-                                        <img src={msg.recommendation.imageUrl} alt={msg.recommendation.title} className="w-full h-24 object-cover rounded-md mb-2" />
-                                    )}
-                                    <h3 className="text-md font-bold text-gray-800">{msg.recommendation.title}</h3>
-                                    <p className="text-sm text-gray-600 mt-1">{msg.recommendation.reason}</p>
-                                </div>
-                            )}
-                            {msg.actions && (
-                                <div className="mt-3 flex flex-wrap gap-2">
-                                    {msg.actions.map((action, i) => (
-                                        <button 
-                                            key={i}
-                                            onClick={() => handleAction(action.type, action.ficheId)}
-                                            className="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold py-1.5 px-3 rounded-full transition-colors"
-                                            disabled={loading}
-                                        >
-                                            {action.text}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                ))}
-                 {loading && <div className="text-center text-gray-500 py-4">Chargement...</div>}
+            <div className="mb-6">
+                <p className="text-lg text-gray-700">
+                    Bonjour, {user?.name || 'admin'} !
+                </p>
+                <p className="text-md text-gray-600">
+                    Bienvenue. Analysons ensemble vos progrès et définissons vos prochains objectifs.
+                </p>
             </div>
 
-            <div className="mt-6 pt-4 border-t border-gray-200">
-                 <div className="flex items-center mb-2">
-                    <FiTarget className="text-green-600 mr-3" size={20} />
-                    <h3 className="text-lg font-semibold text-gray-700">Définir un objectif</h3>
+            <div className="flex flex-col gap-4 mb-6">
+                <button
+                    onClick={handleConsultBilan}
+                    className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition-transform transform hover:scale-105"
+                >
+                    Consulter mon bilan
+                </button>
+                <button
+                    onClick={handlePasMaintenant}
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md text-sm"
+                >
+                    Pas maintenant
+                </button>
+            </div>
+
+            <div className="pt-6 border-t border-gray-200">
+                <div className="flex items-center mb-3">
+                    <FiTarget className="text-green-600 mr-3" size={22} />
+                    <h3 className="text-xl font-semibold text-gray-700">Définir un objectif</h3>
                 </div>
-                <div className="flex items-center gap-2">
-                    <input type="text" placeholder="Ex: Maîtriser les anticoagulants" className="border p-2 rounded-lg w-full text-sm" />
-                    <button className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
-                        Valider
+                <p className="text-sm text-gray-500 mb-4">
+                    Ex: Maîtriser les anticoagulants
+                </p>
+                <div className="flex items-center gap-3">
+                    <input
+                        type="text"
+                        value={objective}
+                        onChange={handleObjectiveChange}
+                        placeholder="Votre objectif..."
+                        className="border-gray-300 border p-3 rounded-lg w-full text-base focus:ring-2 focus:ring-green-500"
+                        disabled={loading}
+                    />
+                    <button
+                        onClick={handleValidateObjective}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-5 rounded-lg transition-colors"
+                        disabled={loading}
+                    >
+                        {loading ? '...' : 'Valider'}
                     </button>
                 </div>
+                {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             </div>
         </div>
     );
