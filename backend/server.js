@@ -544,6 +544,7 @@ app.post('/api/ai-coach/suggest-challenge', verifyToken, async (req, res) => {
 
         const result = await model.generateContent(prompt);
         const responseText = await result.response.text();
+        console.log('[DEBUG] Gemini suggest-challenge responseText:', responseText); // DEBUG LOG
         
         // Clean the response to ensure it's valid JSON
         const cleanedJson = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -599,6 +600,7 @@ app.post('/api/ai-coach/find-by-objective', verifyToken, async (req, res) => {
 
         const result = await model.generateContent(prompt);
         const responseText = await result.response.text();
+        console.log('[DEBUG] Gemini find-by-objective responseText:', responseText); // DEBUG LOG
         
         const cleanedJson = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
         const suggestion = JSON.parse(cleanedJson);
