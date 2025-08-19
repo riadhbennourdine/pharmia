@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FiMessageSquare, FiTarget, FiUser, FiAward } from 'react-icons/fi';
 import { findFicheByObjective, getChallengeSuggestion, AISuggestion } from '../services/aiCoachService';
 import { useData } from '../App';
@@ -20,6 +20,7 @@ const AICoach: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
     const navigate = useNavigate();
+    const messagesEndRef = useRef<HTMLDivElement>(null);
 
     console.log('[DEBUG] AICoach component rendered with user data:', user); // DEBUG LOG
 
@@ -76,6 +77,12 @@ const AICoach: React.FC = () => {
             initializeConversation();
         }
     }, [user, data, navigate]);
+
+    useEffect(() => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
+        }
+    }, [messages]);
 
     const handleSuggestFiche = async (excludeId?: string) => {
         setLoading(true);
