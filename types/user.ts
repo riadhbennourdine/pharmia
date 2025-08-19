@@ -13,6 +13,7 @@ export interface User {
   skillLevel: 'Débutant' | 'Intermédiaire' | 'Expert';
   readFicheIds: string[];
   quizHistory: QuizAttempt[];
+  consigne?: string; // New field for pharmacist's instruction
   pharmacienReferent?: {
     _id: string;
     username: string;

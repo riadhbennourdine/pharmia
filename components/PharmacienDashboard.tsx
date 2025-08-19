@@ -7,38 +7,92 @@ interface PharmacienDashboardProps {
     pharmacienId: string;
 }
 
+const ConsigneModal: React.FC<{ preparateur: User; token: string | null; onClose: () => void; onSave: () => void; }> = ({ preparateur, token, onClose, onSave }) => {
+    const [consigne, setConsigne] = useState(preparateur.consigne || '');
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/pharmacien/preparateurs/${preparateur._id}/consigne`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ consigne }),
+            });
+            if (!response.ok) {
+                throw new Error('Failed to save consigne');
+            }
+            onSave();
+            onClose();
+        } catch (error) {
+            console.error('Error saving consigne:', error);
+            // Here you could show an error message to the user
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+                <h3 className="text-xl font-bold mb-4">Consigne pour {preparateur.username}</h3>
+                <textarea
+                    value={consigne}
+                    onChange={(e) => setConsigne(e.target.value)}
+                    rows={5}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    placeholder="Saisissez votre consigne ici..."
+                />
+                <div className="mt-4 flex justify-end gap-4">
+                    <button onClick={onClose} className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
+                        Annuler
+                    </button>
+                    <button onClick={handleSave} disabled={isSaving} className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:bg-gray-400">
+                        {isSaving ? 'Sauvegarde...' : 'Sauvegarder'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const PharmacienDashboard: React.FC<PharmacienDashboardProps> = ({ pharmacienId }) => {
     const { token } = useAuth();
     const [preparateurs, setPreparateurs] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [selectedPreparateur, setSelectedPreparateur] = useState<User | null>(null);
+
+    const fetchPreparateurs = async () => {
+        if (!token) {
+            setError('Authentication token not found.');
+            setLoading(false);
+            return;
+        }
+        setLoading(true);
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/pharmacien/preparateurs`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`Failed to fetch preparateurs: ${response.statusText}`);
+            }
+            const data: User[] = await response.json();
+            setPreparateurs(data);
+        } catch (err: any) {
+            console.error('Error fetching preparateurs:', err);
+            setError(err.message || 'Failed to load preparateur data.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchPreparateurs = async () => {
-            if (!token) {
-                setError('Authentication token not found.');
-                setLoading(false);
-                return;
-            }
-            try {
-                const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/pharmacien/preparateurs`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    },
-                });
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch preparateurs: ${response.statusText}`);
-                }
-                const data: User[] = await response.json();
-                setPreparateurs(data);
-            } catch (err: any) {
-                console.error('Error fetching preparateurs:', err);
-                setError(err.message || 'Failed to load preparateur data.');
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchPreparateurs();
     }, [token, pharmacienId]);
 
@@ -88,7 +142,7 @@ const PharmacienDashboard: React.FC<PharmacienDashboardProps> = ({ pharmacienId 
                                         Score Quiz Moyen
                                     </th>
                                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Dernière Visite
+                                        Actions
                                     </th>
                                 </tr>
                             </thead>
@@ -120,6 +174,14 @@ const PharmacienDashboard: React.FC<PharmacienDashboardProps> = ({ pharmacienId 
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {preparateur.lastLogin ? new Date(preparateur.lastLogin).toLocaleDateString('fr-FR') : 'N/A'}
                                         </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button
+                                                onClick={() => setSelectedPreparateur(preparateur)}
+                                                className="text-indigo-600 hover:text-indigo-900"
+                                            >
+                                                Modifier Consigne
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -127,6 +189,14 @@ const PharmacienDashboard: React.FC<PharmacienDashboardProps> = ({ pharmacienId 
                     </div>
                 )}
             </div>
+            {selectedPreparateur && (
+                <ConsigneModal
+                    preparateur={selectedPreparateur}
+                    token={token}
+                    onClose={() => setSelectedPreparateur(null)}
+                    onSave={fetchPreparateurs}
+                />
+            )}
         </div>
     );
 };

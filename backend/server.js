@@ -848,6 +848,50 @@ app.get('/api/pharmacien/preparateurs', verifyToken, authorizeRoles(['Pharmacien
     }
 });
 
+// Set a consigne for a preparateur (Pharmacien only)
+app.post('/api/pharmacien/preparateurs/:preparateurId/consigne', verifyToken, authorizeRoles(['Pharmacien']), async (req, res) => {
+    try {
+        const db = getDb();
+        const pharmacienId = new ObjectId(req.user.userId);
+        const { preparateurId } = req.params;
+        const { consigne } = req.body;
+
+        if (!ObjectId.isValid(preparateurId)) {
+            return res.status(400).json({ message: 'Invalid preparateur ID format' });
+        }
+
+        if (!consigne) {
+            return res.status(400).json({ message: 'Consigne text is required.' });
+        }
+
+        // Ensure the preparateur is assigned to this pharmacien
+        const preparateur = await db.collection('users').findOne({
+            _id: new ObjectId(preparateurId),
+            pharmacienResponsableId: pharmacienId
+        });
+
+        if (!preparateur) {
+            return res.status(404).json({ message: 'Preparateur not found or not assigned to this pharmacien.' });
+        }
+
+        // Update the consigne for the preparateur
+        const result = await db.collection('users').updateOne(
+            { _id: new ObjectId(preparateurId) },
+            { $set: { consigne: consigne } }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ message: 'Preparateur not found.' });
+        }
+
+        res.status(200).json({ message: 'Consigne updated successfully.' });
+
+    } catch (error) {
+        console.error('Error setting consigne for preparateur:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
 // Migration endpoint to fix memo fiche theme/system IDs
 app.put('/api/migrate-memofiches-ids', verifyToken, authorizeRoles(['Admin']), async (req, res) => {
     try {

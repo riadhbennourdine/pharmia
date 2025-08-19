@@ -59,7 +59,7 @@ const AICoach: React.FC = () => {
                 type: 'text',
                 content: (
                     <button
-                        onClick={handleSuggestFiche}
+                        onClick={() => handleSuggestFiche()}
                         className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
                     >
                         Proposition de Mémofiche
@@ -228,10 +228,12 @@ const AICoach: React.FC = () => {
     };
 
     const handlePharmacienConsigne = () => {
+        if (!user) return;
+
         const consigneMessage: Message = {
             sender: 'ai',
             type: 'consigne',
-            content: "Le pharmacien vous recommande de vous concentrer sur les nouvelles recommandations pour l'hypertension.",
+            content: user.consigne || "Votre pharmacien n'a pas encore défini de consigne pour vous.",
             timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
         };
         setMessages(prev => [...prev, consigneMessage]);
