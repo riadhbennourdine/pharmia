@@ -55,7 +55,7 @@ const Header: React.FC = () => {
             </NavLink>
             {isLoggedIn && (
               <NavLink to="/coach-accueil" className={navLinkClass}>
-                Mon Coach IA
+                Coach IA
               </NavLink>
             )}
             {isAdmin && (
@@ -64,27 +64,19 @@ const Header: React.FC = () => {
               </NavLink>
             )}
             {isLoggedIn ? (
-              <div className="relative" ref={menuRef}>
-                <button onClick={() => { console.log('Username button clicked! Toggling menu.'); setIsMenuOpen(!isMenuOpen); }} className="flex items-center text-sm font-medium px-3 py-2 rounded-md transition-colors text-gray-500 hover:text-green-600">
-                  {username}
-                  <svg className={`w-4 h-4 ml-1 transition-transform ${isMenuOpen ? 'transform rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                {isMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-[100] border border-gray-200">
-                    <NavLink to="/learner-space" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setIsMenuOpen(false)}>
-                      Espace d'apprentissage
-                    </NavLink>
-                    {isAdmin && (
-                      <NavLink to="/admin" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setIsMenuOpen(false)}>
-                        Admin Dashboard
-                      </NavLink>
-                    )}
-                    <button onClick={() => { console.log('Logout button clicked!'); handleLogout(); }} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                      Déconnexion
-                    </button>
-                  </div>
+              <>
+                <NavLink to="/learner-space" className={navLinkClass}>
+                  Mon espace
+                </NavLink>
+                {isAdmin && (
+                  <NavLink to="/admin" className={navLinkClass}>
+                    Admin Dashboard
+                  </NavLink>
                 )}
-              </div>
+                <button onClick={handleLogout} className={navLinkClass}>
+                  Déconnexion
+                </button>
+              </>
             ) : (
               <NavLink to="/connexion" className={navLinkClass}>
                 Connexion
@@ -122,7 +114,7 @@ const Header: React.FC = () => {
             </NavLink>
             {isLoggedIn && (
               <NavLink to="/coach-accueil" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>
-                Mon Coach IA
+                Coach IA
               </NavLink>
             )}
             {isAdmin && (
@@ -133,14 +125,14 @@ const Header: React.FC = () => {
             {isLoggedIn ? (
               <>
                 <NavLink to="/learner-space" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>
-                  Espace d'apprentissage
+                  Mon espace
                 </NavLink>
                 {isAdmin && (
                   <NavLink to="/admin" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>
                     Admin Dashboard
                   </NavLink>
                 )}
-                <button onClick={() => { console.log('Mobile Logout button clicked!'); handleLogout(); setIsMenuOpen(false); }} className="block w-full text-left px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-green-600">
+                <button onClick={() => { handleLogout(); setIsMenuOpen(false); }} className={navLinkClass}>
                   Déconnexion
                 </button>
               </>
