@@ -486,13 +486,19 @@ app.post('/api/ai-coach/suggest-challenge', verifyToken, async (req, res) => {
 
         const db = getDb();
         const userId = new ObjectId(req.user.userId);
+        const { excludeId } = req.body;
 
         // Fetch user and all fiches
         const user = await db.collection('users').findOne({ _id: userId });
-        const allFiches = await db.collection('memofiches').find({}).toArray();
+        let allFiches = await db.collection('memofiches').find({}).toArray();
 
         if (!user) {
             return res.status(404).json({ message: "User not found." });
+        }
+
+        // Exclude the provided ID from the suggestions
+        if (excludeId) {
+            allFiches = allFiches.filter(f => f._id.toString() !== excludeId);
         }
 
         // Filter out sensitive or large data before sending to AI

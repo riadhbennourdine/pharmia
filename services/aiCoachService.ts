@@ -20,18 +20,19 @@ const getAuthToken = () => {
 };
 
 // This function is now adapted to call the correct endpoint
-export const getChallengeSuggestion = async (): Promise<AISuggestion> => {
+export const getChallengeSuggestion = async (excludeId?: string): Promise<AISuggestion> => {
   const token = getAuthToken();
   if (!token) {
     throw new Error('Authentication token not found.');
   }
 
   const response = await fetch(`${API_BASE_URL}/api/ai-coach/suggest-challenge`, {
-    method: 'POST', // It's a POST request
+    method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     },
+    body: JSON.stringify({ excludeId })
   });
 
   if (!response.ok) {

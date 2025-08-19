@@ -60,7 +60,7 @@ const AICoach: React.FC = () => {
                 content: (
                     <button
                         onClick={handleSuggestFiche}
-                        className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+                        className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
                     >
                         Proposition de Mémofiche
                     </button>
@@ -77,10 +77,10 @@ const AICoach: React.FC = () => {
         }
     }, [user, data, navigate]);
 
-    const handleSuggestFiche = async () => {
+    const handleSuggestFiche = async (excludeId?: string) => {
         setLoading(true);
         try {
-            const suggestion = await getChallengeSuggestion();
+            const suggestion = await getChallengeSuggestion(excludeId);
             if (suggestion && suggestion.ficheId && data) {
                 const fiche = data.memofiches.find(f => f.id === suggestion.ficheId);
                 if (fiche) {
@@ -91,20 +91,30 @@ const AICoach: React.FC = () => {
                                 <MemoCard memofiche={fiche} />
                             </div>
                             <button
-                                onClick={handleSuggestFiche}
+                                onClick={() => handleSuggestFiche(fiche.id)}
                                 className="mt-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md text-sm"
                             >
                                 Une autre proposition
                             </button>
                         </div>
                     );
-                    const suggestionMessage: Message = {
+                    const newSuggestionMessage: Message = {
                         sender: 'ai',
                         type: 'suggestion',
                         content: suggestionContent,
                         timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
                     };
-                    setMessages(prev => [...prev, suggestionMessage]);
+
+                    setMessages(prev => {
+                        const lastMessage = prev[prev.length - 1];
+                        if (lastMessage && (lastMessage.type === 'suggestion' || (lastMessage.type === 'text' && lastMessage.content.toString().includes('Proposition de Mémofiche')))) {
+                            // Replace the last message if it was a suggestion or the initial prompt
+                            return [...prev.slice(0, -1), newSuggestionMessage];
+                        } else {
+                            // Otherwise, just add the new suggestion
+                            return [...prev, newSuggestionMessage];
+                        }
+                    });
                 }
             }
         } catch (err) {
