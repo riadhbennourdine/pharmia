@@ -1,16 +1,118 @@
-import React, { useState } from 'react';
-import { FiMessageSquare, FiTarget } from 'react-icons/fi';
+import React, { useState, useEffect } from 'react';
+import { FiMessageSquare, FiTarget, FiUser, FiAward } from 'react-icons/fi';
 import { findFicheByObjective, AISuggestion } from '../services/aiCoachService';
 import { useData } from '../App';
 import { useNavigate } from 'react-router-dom';
+import { MemoFiche } from '../types';
+import MemoCard from './MemoCard';
 
+type Message = {
+    sender: 'user' | 'ai';
+    type: 'text' | 'bilan' | 'suggestion' | 'objective' | 'consigne';
+    content: string | React.ReactNode;
+    timestamp: string;
+};
 
 const AICoach: React.FC = () => {
-    const { learnerData: user } = useData();
+    const { learnerData: user, data } = useData();
     const [objective, setObjective] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [messages, setMessages] = useState<Message[]>([]);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const initializeConversation = async () => {
+            setLoading(true);
+            const initialMessages: Message[] = [];
+
+            // 1. Welcome message
+            initialMessages.push({
+                sender: 'ai',
+                type: 'text',
+                content: `Bonjour, ${user?.name || 'admin'} ! Prêt à définir votre prochain objectif ?`,
+                timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+            });
+
+            // 2. Bilan
+            if (user) {
+                const bilanContent = (
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                        <h4 className="font-bold text-lg text-green-800 mb-2">Votre Bilan Initial</h4>
+                        <p><strong>Fiches lues:</strong> {user.fichesLues?.length || 0}</p>
+                        <p><strong>Quiz réussis:</strong> {user.quizSuccess?.length || 0}</p>
+                    </div>
+                );
+                initialMessages.push({
+                    sender: 'ai',
+                    type: 'bilan',
+                    content: bilanContent,
+                    timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                });
+            }
+
+            // 3. AI Suggestion
+            try {
+                const suggestion = await getChallengeSuggestion();
+                if (suggestion && suggestion.ficheId && data) {
+                    const fiche = data.memofiches.find(f => f.id === suggestion.ficheId);
+                    if (fiche) {
+                        const suggestionContent = (
+                            <div>
+                                <p>{suggestion.reasoning}</p>
+                                <div className="mt-2 cursor-pointer" onClick={() => navigate(`/fiches/${fiche.id}`)}>
+                                    <MemoCard memofiche={fiche} />
+                                </div>
+                            </div>
+                        );
+                        initialMessages.push({
+                            sender: 'ai',
+                            type: 'suggestion',
+                            content: suggestionContent,
+                            timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                        });
+
+                        // Add video suggestion if available
+                        if (fiche.summaryYoutubeUrl) {
+                             const videoContent = (
+                                <div>
+                                    <p>Voici une courte vidéo pour vous aider à démarrer :</p>
+                                    <div className="mt-2 rounded-lg overflow-hidden">
+                                        <iframe 
+                                            width="100%" 
+                                            height="200" 
+                                            src={`https://www.youtube.com/embed/${fiche.summaryYoutubeUrl.split('v=')[1]}`}
+                                            title="YouTube video player" 
+                                            frameBorder="0" 
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                            allowFullScreen>
+                                        </iframe>
+                                    </div>
+                                </div>
+                            );
+                            initialMessages.push({
+                                sender: 'ai',
+                                type: 'suggestion',
+                                content: videoContent,
+                                timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                            });
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to get initial suggestion:", err);
+                // Optionally add an error message to the chat
+            }
+
+            setMessages(initialMessages);
+            setLoading(false);
+        };
+
+        if (user && data) {
+            initializeConversation();
+        }
+    }, [user, data, navigate]);
+
 
     const handleObjectiveChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setObjective(e.target.value);
@@ -23,51 +125,131 @@ const AICoach: React.FC = () => {
         }
         setLoading(true);
         setError(null);
+
+        const userMessage: Message = {
+            sender: 'user',
+            type: 'objective',
+            content: objective,
+            timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+        };
+        setMessages(prev => [...prev, userMessage]);
+
         try {
             const suggestion: AISuggestion = await findFicheByObjective(objective);
-            if (suggestion && suggestion.ficheId) {
-                navigate(`/fiches/${suggestion.ficheId}`);
+            let aiResponse: Message;
+
+            if (suggestion && suggestion.ficheId && data) {
+                const fiche = data.memofiches.find(f => f.id === suggestion.ficheId);
+                if (fiche) {
+                    const suggestionContent = (
+                        <div>
+                            <p>{suggestion.text}</p>
+                            <div className="mt-2 cursor-pointer" onClick={() => navigate(`/fiches/${fiche.id}`)}>
+                                <MemoCard memofiche={fiche} />
+                            </div>
+                        </div>
+                    );
+                    aiResponse = {
+                        sender: 'ai',
+                        type: 'suggestion',
+                        content: suggestionContent,
+                        timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                    };
+                } else {
+                     aiResponse = {
+                        sender: 'ai',
+                        type: 'text',
+                        content: "Désolé, nous n'avons pas trouvé de fiche correspondante à votre objectif.",
+                        timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                    };
+                }
             } else {
-                setError("Désolé, nous n'avons pas trouvé de fiche correspondante à votre objectif.");
+                aiResponse = {
+                    sender: 'ai',
+                    type: 'text',
+                    content: "Désolé, nous n'avons pas trouvé de fiche correspondante à votre objectif.",
+                    timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                };
             }
+            setMessages(prev => [...prev, aiResponse]);
         } catch (err) {
             setError("Une erreur est survenue lors de la recherche de votre objectif. Veuillez réessayer.");
             console.error(err);
+            const errorResponse: Message = {
+                sender: 'ai',
+                type: 'text',
+                content: "Oups, une erreur s'est produite. Réessayez.",
+                timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+            };
+            setMessages(prev => [...prev, errorResponse]);
         } finally {
             setLoading(false);
+            setObjective('');
         }
     };
 
     const handleConsultBilan = () => {
-        // Placeholder for where the bilan/assessment page would be navigated to
-        // For now, it can navigate to the learner space or another relevant page
-        navigate('/learner-space');
+        if (!user) return;
+
+        const bilanContent = (
+            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                <h4 className="font-bold text-lg text-green-800 mb-2">Bilan d'Apprentissage</h4>
+                <p><strong>Fiches lues:</strong> {user.fichesLues?.length || 0}</p>
+                <p><strong>Quiz réussis:</strong> {user.quizSuccess?.length || 0}</p>
+                <p><strong>Objectifs atteints:</strong> 0</p>
+            </div>
+        );
+
+        const bilanMessage: Message = {
+            sender: 'ai',
+            type: 'bilan',
+            content: bilanContent,
+            timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+        };
+        setMessages(prev => [...prev, bilanMessage]);
     };
 
-    const handlePasMaintenant = () => {
-        // Placeholder for "Not now" action.
-        // Can close a modal, or navigate away, etc.
-        // For now, we can just log it or do nothing.
-        console.log("L'utilisateur a cliqué sur 'Pas maintenant'");
+    const handlePharmacienConsigne = () => {
+        const consigneMessage: Message = {
+            sender: 'ai',
+            type: 'consigne',
+            content: "Le pharmacien vous recommande de vous concentrer sur les nouvelles recommandations pour l'hypertension.",
+            timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+        };
+        setMessages(prev => [...prev, consigneMessage]);
+    };
+
+    const renderMessageContent = (message: Message) => {
+        const senderClass = message.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800';
+        const alignmentClass = message.sender === 'user' ? 'self-end' : 'self-start';
+        const Icon = message.sender === 'user' ? FiUser : FiMessageSquare;
+
+        return (
+            <div key={message.timestamp + message.content?.toString()} className={`flex items-end gap-2 my-2 ${alignmentClass}`}>
+                {message.sender === 'ai' && <Icon className="text-green-600 mb-4" size={24} />}
+                <div className={`max-w-lg p-3 rounded-lg ${senderClass} shadow-sm`}>
+                    {message.content}
+                    <div className="text-xs mt-1 text-right opacity-70">{message.timestamp}</div>
+                </div>
+                 {message.sender === 'user' && <Icon className="text-blue-500 mb-4" size={24} />}
+            </div>
+        );
     };
 
 
     return (
         <div className="bg-white p-6 rounded-lg shadow-lg max-w-2xl mx-auto border border-gray-200">
-            <div className="flex items-center mb-4">
-                <FiMessageSquare className="text-green-600 mr-3" size={28} />
+            <div className="flex items-center mb-4 border-b pb-4 border-gray-200">
+                <FiAward className="text-green-600 mr-3" size={28} />
                 <h2 className="text-2xl font-bold text-gray-800">Coach PharmIA</h2>
             </div>
 
-            <div className="mb-6">
-                <p className="text-lg text-gray-700">
-                    Bonjour, {user?.name || 'admin'} !
-                </p>
-                <p className="text-md text-gray-600">
-                    Bienvenue. Analysons ensemble vos progrès et définissons vos prochains objectifs.
-                </p>
+            {/* Message Thread */}
+            <div className="h-96 overflow-y-auto pr-4 mb-4 flex flex-col">
+                {messages.map(renderMessageContent)}
             </div>
 
+            {/* Action Buttons */}
             <div className="flex flex-col gap-4 mb-6">
                 <button
                     onClick={handleConsultBilan}
@@ -76,13 +258,14 @@ const AICoach: React.FC = () => {
                     Consulter mon bilan
                 </button>
                 <button
-                    onClick={handlePasMaintenant}
+                    onClick={handlePharmacienConsigne}
                     className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md text-sm"
                 >
-                    Pas maintenant
+                    Consigne du Pharmacien
                 </button>
             </div>
 
+            {/* Objective Input */}
             <div className="pt-6 border-t border-gray-200">
                 <div className="flex items-center mb-3">
                     <FiTarget className="text-green-600 mr-3" size={22} />
@@ -99,10 +282,11 @@ const AICoach: React.FC = () => {
                         placeholder="Votre objectif..."
                         className="border-gray-300 border p-3 rounded-lg w-full text-base focus:ring-2 focus:ring-green-500"
                         disabled={loading}
+                        onKeyPress={(e) => e.key === 'Enter' && handleValidateObjective()}
                     />
                     <button
                         onClick={handleValidateObjective}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-5 rounded-lg transition-colors"
+                        className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-5 rounded-lg transition-colors disabled:opacity-50"
                         disabled={loading}
                     >
                         {loading ? '...' : 'Valider'}
