@@ -112,6 +112,13 @@ const AICoach: React.FC = () => {
                     setMessages(prev => [...prev, {
                         sender: 'coach',
                         text: coachPersona.noRecommendation + " (La fiche suggérée n\'a pas été trouvée).",
+                    }]);
+                } else {
+                    setMessages(prev => [...prev, {
+                        sender: 'coach',
+                        text: coachPersona.noRecommendation,
+                    }]);
+                }
                 setLoading(false);
             }, 1200);
 
