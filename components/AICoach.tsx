@@ -53,58 +53,20 @@ const AICoach: React.FC = () => {
                 });
             }
 
-            // 3. AI Suggestion
-            try {
-                const suggestion = await getChallengeSuggestion();
-                if (suggestion && suggestion.ficheId && data) {
-                    const fiche = data.memofiches.find(f => f.id === suggestion.ficheId);
-                    if (fiche) {
-                        const suggestionContent = (
-                            <div>
-                                <p>{suggestion.reasoning}</p>
-                                <div className="mt-2 cursor-pointer" onClick={() => navigate(`/fiches/${fiche.id}`)}>
-                                    <MemoCard memofiche={fiche} />
-                                </div>
-                            </div>
-                        );
-                        initialMessages.push({
-                            sender: 'ai',
-                            type: 'suggestion',
-                            content: suggestionContent,
-                            timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-                        });
-
-                        // Add video suggestion if available
-                        if (fiche.summaryYoutubeUrl) {
-                             const videoContent = (
-                                <div>
-                                    <p>Voici une courte vidéo pour vous aider à démarrer :</p>
-                                    <div className="mt-2 rounded-lg overflow-hidden">
-                                        <iframe 
-                                            width="100%" 
-                                            height="200" 
-                                            src={`https://www.youtube.com/embed/${fiche.summaryYoutubeUrl.split('v=')[1]}`}
-                                            title="YouTube video player" 
-                                            frameBorder="0" 
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                            allowFullScreen>
-                                        </iframe>
-                                    </div>
-                                </div>
-                            );
-                            initialMessages.push({
-                                sender: 'ai',
-                                type: 'suggestion',
-                                content: videoContent,
-                                timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-                            });
-                        }
-                    }
-                }
-            } catch (err) {
-                console.error("Failed to get initial suggestion:", err);
-                // Optionally add an error message to the chat
-            }
+            // 3. Add suggestion button
+            initialMessages.push({
+                sender: 'ai',
+                type: 'text',
+                content: (
+                    <button
+                        onClick={handleSuggestFiche}
+                        className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+                    >
+                        Proposition de Mémofiche
+                    </button>
+                ),
+                timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+            });
 
             setMessages(initialMessages);
             setLoading(false);
@@ -114,6 +76,50 @@ const AICoach: React.FC = () => {
             initializeConversation();
         }
     }, [user, data, navigate]);
+
+    const handleSuggestFiche = async () => {
+        setLoading(true);
+        try {
+            const suggestion = await getChallengeSuggestion();
+            if (suggestion && suggestion.ficheId && data) {
+                const fiche = data.memofiches.find(f => f.id === suggestion.ficheId);
+                if (fiche) {
+                    const suggestionContent = (
+                        <div>
+                            <p>{suggestion.reasoning}</p>
+                            <div className="mt-2 cursor-pointer" onClick={() => navigate(`/fiches/${fiche.id}`)}>
+                                <MemoCard memofiche={fiche} />
+                            </div>
+                            <button
+                                onClick={handleSuggestFiche}
+                                className="mt-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md text-sm"
+                            >
+                                Une autre proposition
+                            </button>
+                        </div>
+                    );
+                    const suggestionMessage: Message = {
+                        sender: 'ai',
+                        type: 'suggestion',
+                        content: suggestionContent,
+                        timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                    };
+                    setMessages(prev => [...prev, suggestionMessage]);
+                }
+            }
+        } catch (err) {
+            console.error("Failed to get suggestion:", err);
+            const errorResponse: Message = {
+                sender: 'ai',
+                type: 'text',
+                content: "Oups, une erreur s'est produite lors de la recherche d'une suggestion.",
+                timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+            };
+            setMessages(prev => [...prev, errorResponse]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
 
     const handleObjectiveChange = (e: React.ChangeEvent<HTMLInputElement>) => {
