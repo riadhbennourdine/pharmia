@@ -62,7 +62,7 @@ const getRandomItem = (arr: string[]) => arr[Math.floor(Math.random() * arr.leng
 // --- Composant AICoach ---
 
 const AICoach: React.FC = () => {
-    const { learnerData: user } = useData();
+    const { learnerData: user, getMemoFicheById } = useData();
     
     const getInitialMessage = () => ({
         sender: 'coach',
@@ -87,12 +87,12 @@ const AICoach: React.FC = () => {
             setMessages(prev => [...prev, { sender: 'coach', text: summaryMessage }]);
 
             const suggestion: AISuggestion = await getChallengeSuggestion();
+            const recommendedFiche = getMemoFicheById(suggestion.ficheId);
             
             setTimeout(() => {
-                if (suggestion) {
+                if (suggestion && recommendedFiche) {
                     const hook = getRandomItem(coachPersona.recommendationHooks);
                     const suggestionText = getRandomItem(coachPersona.recommendationPhrases(suggestion.title));
-                    const encouragement = getRandomItem(coachPersona.encouragements);
 
                     setMessages(prev => [...prev, {
                         sender: 'coach',
@@ -100,18 +100,18 @@ const AICoach: React.FC = () => {
                         recommendation: {
                             title: suggestion.title,
                             reason: suggestion.reasoning,
+                            imageUrl: recommendedFiche.imageUrl, // Add image URL
                         },
                         actions: [
                             { text: 'Commencer l\'étude', type: 'study', ficheId: suggestion.ficheId },
                             { text: 'Autre suggestion', type: 'suggestion' },
                         ]
                     }]);
-                } else {
+                } else if (suggestion && !recommendedFiche) {
+                    // Handle case where fiche is not found (e.g., deleted)
                     setMessages(prev => [...prev, {
                         sender: 'coach',
-                        text: coachPersona.noRecommendation,
-                    }]);
-                }
+                        text: coachPersona.noRecommendation + " (La fiche suggérée n\'a pas été trouvée).",
                 setLoading(false);
             }, 1200);
 
@@ -150,6 +150,9 @@ const AICoach: React.FC = () => {
                             <ReactMarkdown>{msg.text}</ReactMarkdown>
                             {msg.recommendation && (
                                 <div className="mt-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                                    {msg.recommendation.imageUrl && (
+                                        <img src={msg.recommendation.imageUrl} alt={msg.recommendation.title} className="w-full h-24 object-cover rounded-md mb-2" />
+                                    )}
                                     <h3 className="text-md font-bold text-gray-800">{msg.recommendation.title}</h3>
                                     <p className="text-sm text-gray-600 mt-1">{msg.recommendation.reason}</p>
                                 </div>
