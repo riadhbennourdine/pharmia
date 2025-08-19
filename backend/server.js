@@ -513,6 +513,7 @@ app.post('/api/ai-coach/suggest-challenge', verifyToken, async (req, res) => {
             You are an expert AI coach for pharmacy students, named PharmiaCoach. Your goal is to suggest a personalized daily challenge.
             The challenge can be to read a memo card ('fiche') or to take a quiz.
             You must respond in valid JSON format only.
+            When asked for another suggestion, try to provide a different relevant content.
 
             Here is the user's profile:
             - Skill Level: ${userProfile.skillLevel}
@@ -521,6 +522,8 @@ app.post('/api/ai-coach/suggest-challenge', verifyToken, async (req, res) => {
 
             Here is the list of all available content:
             ${JSON.stringify(availableContent)}
+
+            Current timestamp (for randomness): ${new Date().toISOString()}
 
             Your task:
             1. Analyze the user's profile and history.
