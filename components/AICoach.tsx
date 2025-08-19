@@ -102,7 +102,7 @@ const AICoach: React.FC = () => {
                             reason: suggestion.reasoning,
                         },
                         actions: [
-                            { text: 'Commencer l'étude', type: 'study', ficheId: suggestion.ficheId },
+                            { text: 'Commencer l\'étude', type: 'study', ficheId: suggestion.ficheId },
                             { text: 'Autre suggestion', type: 'suggestion' },
                         ]
                     }]);
