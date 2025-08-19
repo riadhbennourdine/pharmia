@@ -1,6 +1,3 @@
-
-
-
 import React from 'react';
 
 type IconProps = React.SVGProps<SVGSVGElement>;
@@ -32,6 +29,18 @@ export const ChevronLeftIcon = (props: IconProps) => (
 export const ChevronRightIcon = (props: IconProps) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+    </svg>
+);
+
+export const ChevronUpIcon = (props: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+    </svg>
+);
+
+export const ChevronDownIcon = (props: IconProps) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
     </svg>
 );
 
@@ -95,7 +104,7 @@ export const StethoscopeIcon = (props: IconProps) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
         <path d="M4.8 2.3A.3.3 0 1 0 5.4 2a5.5 5.5 0 0 1 11.2 0 .3.3 0 1 0 .6-.3 6 6 0 0 0-12.4 0Z"/>
         <path d="M6 8v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V8"/>
-        <circle cx="12" cy="19" r="2"/>
+        <circle cx="12" cy="19" r="2" />
     </svg>
 );
 

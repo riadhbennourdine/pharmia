@@ -6,7 +6,7 @@ import { generateSingleMemoFiche, generateCommunicationMemoFiche } from '../serv
 import { MemoFiche, Theme, SystemeOrgane } from '../types';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import MemoCard from '../components/MemoCard';
-import { SparklesIcon, CheckCircleIcon } from '../components/icons';
+import { SparklesIcon, CheckCircleIcon, ChevronUpIcon, ChevronDownIcon } from '../components/icons';
 
 interface CategoryCardProps {
     item: { id: string; Nom: string; description?: string };
@@ -93,6 +93,17 @@ const GeneratorPage: React.FC = () => {
             setMemoContent([]);
         }
     }, [memoFicheId, data, getMemoFicheById]);
+
+    const handleMoveSection = (index: number, direction: 'up' | 'down') => {
+        if (direction === 'up' && index === 0) return;
+        if (direction === 'down' && index === memoContent.length - 1) return;
+
+        const newMemoContent = [...memoContent];
+        const item = newMemoContent.splice(index, 1)[0];
+        const newIndex = direction === 'up' ? index - 1 : index + 1;
+        newMemoContent.splice(newIndex, 0, item);
+        setMemoContent(newMemoContent);
+    };
 
     const handleGenerate = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -298,15 +309,35 @@ const GeneratorPage: React.FC = () => {
                                         <div key={section.id || `new-section-${index}`} className="p-4 border border-gray-200 rounded-md bg-gray-50">
                                             <div className="flex justify-between items-center mb-2">
                                                 <h3 className="font-semibold text-gray-700">Section {index + 1}</h3>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setMemoContent(prev => prev.filter((_, i) => i !== index));
-                                                    }}
-                                                    className="text-red-500 hover:text-red-700 transition-colors"
-                                                >
-                                                    Supprimer
-                                                </button>
+                                                <div className="flex items-center space-x-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleMoveSection(index, 'up')}
+                                                        disabled={index === 0}
+                                                        className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        aria-label="Move section up"
+                                                    >
+                                                        <ChevronUpIcon className="w-5 h-5" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleMoveSection(index, 'down')}
+                                                        disabled={index === memoContent.length - 1}
+                                                        className="p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        aria-label="Move section down"
+                                                    >
+                                                        <ChevronDownIcon className="w-5 h-5" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setMemoContent(prev => prev.filter((_, i) => i !== index));
+                                                        }}
+                                                        className="text-red-500 hover:text-red-700 transition-colors"
+                                                    >
+                                                        Supprimer
+                                                    </button>
+                                                </div>
                                             </div>
                                             <input
                                                 type="text"
