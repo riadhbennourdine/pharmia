@@ -130,6 +130,8 @@ const AICoach: React.FC = () => {
             fetchRecommendations();
         } else if (actionType === 'study' && ficheId) {
             window.location.href = `#/fiches/${ficheId}`;
+        } else if (actionType === 'suggestion') {
+            fetchRecommendations();
         }
     };
 
@@ -144,7 +146,7 @@ const AICoach: React.FC = () => {
                 {messages.map((msg, index) => (
                     <div key={index} className={`flex items-end gap-2 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                         {msg.sender === 'coach' && <FiAward className="text-gray-400 mb-2" size={20} />}
-                        <div className={`text-sm leading-relaxed px-4 py-3 max-w-md shadow-sm ${msg.sender === 'coach' ? 'bg-white text-gray-800 rounded-2xl rounded-bl-none' : 'bg-green-500 text-white rounded-2xl rounded-br-none'}`}>
+                        <div className={`text-base leading-relaxed px-4 py-3 max-w-md shadow-sm ${msg.sender === 'coach' ? 'bg-white text-gray-800 rounded-2xl rounded-bl-none' : 'bg-green-500 text-white rounded-2xl rounded-br-none'}`}>
                             <ReactMarkdown>{msg.text}</ReactMarkdown>
                             {msg.recommendation && (
                                 <div className="mt-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
