@@ -137,10 +137,20 @@ const AICoach: React.FC = () => {
             }
         } catch (err) {
             console.error("Failed to get suggestion:", err);
+            let errorMessage = "Oups, une erreur s'est produite lors de la recherche d'une suggestion.";
+
+            if (err instanceof TypeError && err.message === "Failed to fetch") {
+                errorMessage = "Impossible de se connecter au serveur. Veuillez vérifier votre connexion ou réessayer plus tard.";
+            } else if (err instanceof Error && err.message.includes("502")) { // This might not catch all 502s directly from fetch, but good to have
+                errorMessage = "Le serveur rencontre un problème (Erreur 502 Bad Gateway). Veuillez réessayer plus tard.";
+            } else if (err instanceof Error && err.message.includes("CORS")) { // This might not catch all CORS errors directly from fetch
+                errorMessage = "Un problème de configuration empêche la communication avec le serveur. Contactez l'administrateur.";
+            }
+
             const errorResponse: Message = {
                 sender: 'ai',
                 type: 'text',
-                content: "Oups, une erreur s'est produite lors de la recherche d'une suggestion.",
+                content: errorMessage,
                 timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
             };
             setMessages(prev => [...prev, errorResponse]);
@@ -268,22 +278,6 @@ const AICoach: React.FC = () => {
                 {messages.map(renderMessageContent)}
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col gap-4 mb-6">
-                <button
-                    onClick={() => handleSuggestFiche()}
-                    className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition-transform transform hover:scale-105"
-                >
-                    Proposition de MémoFiche
-                </button>
-                <button
-                    onClick={handlePharmacienConsigne}
-                    className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md text-sm"
-                >
-                    Consigne du Pharmacien
-                </button>
-            </div>
-
             {/* Objective Input */}
             <div className="pt-6 border-t border-gray-200">
                 <div className="flex items-center mb-3">
@@ -312,6 +306,28 @@ const AICoach: React.FC = () => {
                     </button>
                 </div>
                 {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-4 mb-6">
+                <button
+                    onClick={() => handleSuggestFiche()}
+                    className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition-transform transform hover:scale-105"
+                >
+                    Proposition de MémoFiche
+                </button>
+                <button
+                    onClick={handlePharmacienConsigne}
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md text-sm"
+                >
+                    Consigne du Pharmacien
+                </button>
+                <button
+                    onClick={() => navigate('/fiches')}
+                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg transition-transform transform hover:scale-105"
+                >
+                    Mémofiches Récentes
+                </button>
             </div>
         </div>
     );
