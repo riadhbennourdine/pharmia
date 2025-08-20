@@ -54,20 +54,8 @@ const AICoach: React.FC = () => {
                 });
             }
 
-            // 3. Add suggestion button
-            initialMessages.push({
-                sender: 'ai',
-                type: 'text',
-                content: (
-                    <button
-                        onClick={() => handleSuggestFiche()}
-                        className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
-                    >
-                        Proposition de Mémofiche
-                    </button>
-                ),
-                timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-            });
+            // 3. Add suggestion button (currently in initial messages)
+            // initialMessages.push({ /* ... */ }); // REMOVED
 
             setMessages(initialMessages);
             setLoading(false);
@@ -80,7 +68,10 @@ const AICoach: React.FC = () => {
 
     useEffect(() => {
         if (messagesEndRef.current) {
-            messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
+            // Add a small delay to ensure content has rendered
+            setTimeout(() => {
+                messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
+            }, 100); // 100ms delay
         }
     }, [messages]);
 
