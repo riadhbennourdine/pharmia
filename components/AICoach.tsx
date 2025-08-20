@@ -71,7 +71,7 @@ const AICoach: React.FC = () => {
             // Add a small delay to ensure content has rendered
             setTimeout(() => {
                 messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
-            }, 100); // 100ms delay
+            }, 250); // 250ms delay
         }
     }, [messages]);
 
@@ -204,26 +204,7 @@ const AICoach: React.FC = () => {
         }
     };
 
-    const handleConsultBilan = () => {
-        if (!user) return;
-
-        const bilanContent = (
-            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                <h4 className="font-bold text-lg text-green-800 mb-2">Bilan d'Apprentissage</h4>
-                <p><strong>Fiches lues:</strong> {user.readFicheIds?.length || 0}</p>
-                <p><strong>Quiz réussis:</strong> {user.quizHistory?.filter(q => q.score >= 80).length || 0}</p>
-                <p><strong>Objectifs atteints:</strong> 0</p>
-            </div>
-        );
-
-        const bilanMessage: Message = {
-            sender: 'ai',
-            type: 'bilan',
-            content: bilanContent,
-            timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-        };
-        setMessages(prev => [...prev, bilanMessage]);
-    };
+    
 
     const handlePharmacienConsigne = () => {
         if (!user) return;
@@ -270,10 +251,10 @@ const AICoach: React.FC = () => {
             {/* Action Buttons */}
             <div className="flex flex-col gap-4 mb-6">
                 <button
-                    onClick={handleConsultBilan}
+                    onClick={() => handleSuggestFiche()}
                     className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition-transform transform hover:scale-105"
                 >
-                    Consulter mon bilan
+                    Proposition de MémoFiche
                 </button>
                 <button
                     onClick={handlePharmacienConsigne}
