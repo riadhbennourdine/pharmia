@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FiMessageSquare, FiTarget, FiUser, FiAward } from 'react-icons/fi';
-import { findFicheByObjective, getChallengeSuggestion, AISuggestion } from '../services/aiCoachService';
+import { findFicheByObjective, getChallengeSuggestion, AISuggestion, getGlobalConsigne } from '../services/aiCoachService';
 import { useData } from '../App';
 import { useNavigate } from 'react-router-dom';
 import { MemoFiche } from '../types';
@@ -19,6 +19,7 @@ const AICoach: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
+    const [excludedFicheIds, setExcludedFicheIds] = useState<string[]>([]);
     const navigate = useNavigate();
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -68,17 +69,27 @@ const AICoach: React.FC = () => {
 
     useEffect(() => {
         if (messagesEndRef.current) {
-            // Add a small delay to ensure content has rendered
-            setTimeout(() => {
-                messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
-            }, 250); // 250ms delay
+            const scrollToBottom = () => {
+                if (messagesEndRef.current) {
+                    messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
+                }
+            };
+            // Use requestAnimationFrame to ensure the scroll happens after the browser has rendered
+            requestAnimationFrame(scrollToBottom);
         }
     }, [messages]);
 
-    const handleSuggestFiche = async (excludeId?: string) => {
+    const handleSuggestFiche = async (currentSuggestedFicheId?: string) => {
         setLoading(true);
+        let newExcludedFicheIds = [...excludedFicheIds];
+
+        if (currentSuggestedFicheId) {
+            newExcludedFicheIds.push(currentSuggestedFicheId);
+            setExcludedFicheIds(newExcludedFicheIds);
+        }
+
         try {
-            const suggestion = await getChallengeSuggestion(excludeId);
+            const suggestion = await getChallengeSuggestion(newExcludedFicheIds); // Pass the array
             if (suggestion && suggestion.ficheId && data) {
                 const fiche = data.memofiches.find(f => f.id === suggestion.ficheId);
                 if (fiche) {
@@ -89,7 +100,7 @@ const AICoach: React.FC = () => {
                                 <MemoCard memofiche={fiche} />
                             </div>
                             <button
-                                onClick={() => handleSuggestFiche(fiche.id)}
+                                onClick={() => handleSuggestFiche(fiche.id)} // Pass the current fiche.id
                                 className="mt-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md text-sm"
                             >
                                 Une autre proposition
@@ -114,6 +125,15 @@ const AICoach: React.FC = () => {
                         }
                     });
                 }
+            } else {
+                // Handle case where no more suggestions are found
+                const noMoreSuggestionsMessage: Message = {
+                    sender: 'ai',
+                    type: 'text',
+                    content: "Désolé, nous n'avons plus de nouvelles propositions de MémoFiches pour le moment.",
+                    timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                };
+                setMessages(prev => [...prev, noMoreSuggestionsMessage]);
             }
         } catch (err) {
             console.error("Failed to get suggestion:", err);
@@ -206,13 +226,25 @@ const AICoach: React.FC = () => {
 
     
 
-    const handlePharmacienConsigne = () => {
+    const handlePharmacienConsigne = async () => {
         if (!user) return;
+
+        let consigneContent = user.consigne || "Votre pharmacien n'a pas encore défini de consigne pour vous.";
+
+        try {
+            const globalConsigne = await getGlobalConsigne();
+            if (globalConsigne) {
+                consigneContent = globalConsigne;
+            }
+        } catch (error) {
+            console.error("Failed to fetch global consigne:", error);
+            // Fallback to user.consigne or default message if global consigne fetch fails
+        }
 
         const consigneMessage: Message = {
             sender: 'ai',
             type: 'consigne',
-            content: user.consigne || "Votre pharmacien n'a pas encore défini de consigne pour vous.",
+            content: consigneContent,
             timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
         };
         setMessages(prev => [...prev, consigneMessage]);

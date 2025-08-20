@@ -20,7 +20,7 @@ const getAuthToken = () => {
 };
 
 // This function is now adapted to call the correct endpoint
-export const getChallengeSuggestion = async (excludeId?: string): Promise<AISuggestion> => {
+export const getChallengeSuggestion = async (excludedIds?: string[]): Promise<AISuggestion> => {
   const token = getAuthToken();
   if (!token) {
     throw new Error('Authentication token not found.');
@@ -32,7 +32,7 @@ export const getChallengeSuggestion = async (excludeId?: string): Promise<AISugg
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ excludeId })
+    body: JSON.stringify({ excludedIds })
   });
 
   if (!response.ok) {
@@ -62,4 +62,27 @@ export const findFicheByObjective = async (objective: string): Promise<AISuggest
   }
 
   return response.json();
+};
+
+export const getGlobalConsigne = async (): Promise<string> => {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error('Authentication token not found.');
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/ai-coach/global-consigne`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  if (!response.ok) {
+    // If the global consigne is not found or there's an error, return an empty string or throw an error
+    // For now, let's return an empty string to allow fallback to user.consigne
+    return "";
+  }
+
+  const data = await response.json();
+  return data.consigne || "";
 };
