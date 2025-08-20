@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FiMessageSquare, FiTarget, FiUser, FiAward } from 'react-icons/fi';
-import { findFicheByObjective, getChallengeSuggestion, AISuggestion, getGlobalConsigne } from '../services/aiCoachService';
+import { findFicheByObjective, getChallengeSuggestion, AISuggestion } from '../services/aiCoachService';
 import { useData } from '../App';
 import { useNavigate } from 'react-router-dom';
 import { MemoFiche } from '../types';
@@ -226,25 +226,13 @@ const AICoach: React.FC = () => {
 
     
 
-    const handlePharmacienConsigne = async () => {
+    const handlePharmacienConsigne = () => {
         if (!user) return;
-
-        let consigneContent = user.consigne || "Votre pharmacien n'a pas encore défini de consigne pour vous.";
-
-        try {
-            const globalConsigne = await getGlobalConsigne();
-            if (globalConsigne) {
-                consigneContent = globalConsigne;
-            }
-        } catch (error) {
-            console.error("Failed to fetch global consigne:", error);
-            // Fallback to user.consigne or default message if global consigne fetch fails
-        }
 
         const consigneMessage: Message = {
             sender: 'ai',
             type: 'consigne',
-            content: consigneContent,
+            content: user.consigne || "Votre pharmacien n'a pas encore défini de consigne pour vous.",
             timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
         };
         setMessages(prev => [...prev, consigneMessage]);
