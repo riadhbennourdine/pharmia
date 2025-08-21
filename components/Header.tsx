@@ -68,11 +68,7 @@ const Header: React.FC = () => {
                 <NavLink to="/learner-space" className={navLinkClass}>
                   Mon espace
                 </NavLink>
-                {isAdmin && (
-                  <NavLink to="/admin" className={navLinkClass}>
-                    Admin Dashboard
-                  </NavLink>
-                )}
+                
                 <button onClick={handleLogout} className={navLinkClass}>
                   Déconnexion
                 </button>
@@ -127,11 +123,7 @@ const Header: React.FC = () => {
                 <NavLink to="/learner-space" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>
                   Mon espace
                 </NavLink>
-                {isAdmin && (
-                  <NavLink to="/admin" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>
-                    Admin Dashboard
-                  </NavLink>
-                )}
+                
                 <button onClick={() => { handleLogout(); setIsMenuOpen(false); }} className={navLinkClass}>
                   Déconnexion
                 </button>
