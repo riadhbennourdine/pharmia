@@ -324,7 +324,7 @@ const AICoach: React.FC = () => {
                 </button>
                 <button
                     onClick={() => navigate('/fiches')}
-                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-lg transition-transform transform hover:scale-105"
+                    className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition-transform transform hover:scale-105"
                 >
                     Mémofiches Récentes
                 </button>
