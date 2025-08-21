@@ -69,7 +69,7 @@ const Header: React.FC = () => {
                   Mon espace
                 </NavLink>
                 
-                <button onClick={handleLogout} className={navLinkClass}>
+                <button onClick={handleLogout} className="text-sm font-medium px-3 py-2 rounded-md transition-colors text-gray-500 hover:text-green-600">
                   Déconnexion
                 </button>
               </>
@@ -124,7 +124,7 @@ const Header: React.FC = () => {
                   Mon espace
                 </NavLink>
                 
-                <button onClick={() => { handleLogout(); setIsMenuOpen(false); }} className={navLinkClass}>
+                <button onClick={() => { handleLogout(); setIsMenuOpen(false); }} className="text-sm font-medium px-3 py-2 rounded-md transition-colors text-gray-500 hover:text-green-600">
                   Déconnexion
                 </button>
               </>
