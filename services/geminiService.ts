@@ -247,7 +247,7 @@ export const generateSingleMemoFiche = async (
         `;
     }
     
-    console.log("[DEBUG] Final Prompt for Gemini:", prompt); // DEBUG LOG
+    
     try {
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",

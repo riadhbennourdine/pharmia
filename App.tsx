@@ -62,14 +62,12 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   };
 
   const logout = () => {
-    console.log('Logging out user...'); // ADDED LOG
     localStorage.removeItem('userRole');
     localStorage.removeItem('token');
     localStorage.removeItem('username');
     setUserRole(null);
     setToken(null);
     setUsername(null);
-    console.log('User logged out. State and localStorage cleared.'); // ADDED LOG
   };
 
   const authValue = useMemo(() => ({
@@ -125,7 +123,6 @@ const DataProvider: React.FC<{ children: React.ReactNode; logout: () => void }> 
 
   const fetchLearnerData = useCallback(async () => {
     if (!token) return;
-    console.log('[DEBUG] Fetching learner data...'); // DEBUG LOG
     try {
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/learner-space`, {
         headers: { 'Authorization': `Bearer ${token}` },
@@ -135,7 +132,6 @@ const DataProvider: React.FC<{ children: React.ReactNode; logout: () => void }> 
         throw new Error('Failed to fetch learner data');
       }
       const userData: User = await response.json();
-      console.log("[DEBUG] Learner data fetched:", userData); // DEBUG LOG
       setLearnerData(userData);
     } catch (err) {
       console.error('Error fetching learner data:', err);

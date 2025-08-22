@@ -23,7 +23,7 @@ const AICoach: React.FC = () => {
     const navigate = useNavigate();
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    console.log('[DEBUG] AICoach component rendered with user data:', user); // DEBUG LOG
+    
 
     useEffect(() => {
         const initializeConversation = async () => {

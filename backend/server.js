@@ -110,7 +110,7 @@ app.get('/api/health', (req, res) => {
     res.status(200).send('OK');
 });
 
-app.get('/api/data', verifyToken, async (req, res) => {
+app.get('/api/data', async (req, res) => {
     try {
         const db = getDb();
         const collections = {
@@ -544,7 +544,7 @@ app.post('/api/ai-coach/suggest-challenge', verifyToken, async (req, res) => {
 
         const result = await model.generateContent(prompt);
         const responseText = await result.response.text();
-        console.log('[DEBUG] Gemini suggest-challenge responseText:', responseText); // DEBUG LOG
+        
         
         // Clean the response to ensure it's valid JSON
         const cleanedJson = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -671,7 +671,7 @@ app.post('/api/chatbot/message', verifyToken, async (req, res) => {
         const model = genAI.getGenerativeModel({ model: "models/gemini-2.5-flash", systemInstruction: { role: "system", parts: [{ text: systemPrompt }] } });
         const chat = model.startChat({ history: geminiHistory });
 
-        console.log('[LOG] Sending request to Gemini API...');
+        
         const result = await chat.sendMessage(message);
         const response = await result.response;
         console.log('[LOG] Received response from Gemini.');
@@ -1097,6 +1097,6 @@ app.put('/api/admin/users/:preparateurId/assign-pharmacien', verifyToken, author
 // Start server after DB connection
 connectToServer().then(() => {
     app.listen(port, () => {
-        console.log(`Server is running on port: ${port}`);
+        
     });
 });

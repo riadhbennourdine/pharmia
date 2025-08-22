@@ -24,7 +24,7 @@ export async function connectToServer() {
     // Establish and verify connection
     await client.db("admin").command({ ping: 1 });
     db = client.db("pharmia");
-    console.log("Successfully connected to MongoDB.");
+    
   } catch(err) {
     console.error("Failed to connect to MongoDB", err);
     // Exit process with failure in case of connection error
