@@ -11,6 +11,7 @@ const FichesPage: React.FC = () => {
   const { canEditMemoFiches, canDeleteMemoFiches, isLoggedIn } = useAuth();
   const [themeFilter, setThemeFilter] = useState<string>('');
   const [systemFilter, setSystemFilter] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.preventDefault();
@@ -83,6 +84,16 @@ const FichesPage: React.FC = () => {
       <h1 className="text-4xl md:text-6xl font-bold text-left text-gray-800 mb-10">
         <span className="animated-gradient-text font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-green-600 to-green-800">Mémofiches récentes</span>
       </h1>
+
+      <div className="mb-8">
+        <input
+          type="text"
+          placeholder="Rechercher une mémofiche..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+        />
+      </div>
 
       <div className="flex flex-wrap gap-4 mb-8 justify-start"> {/* Changed justify-center to justify-start */}
         <div className="flex-shrink-0"> {/* Theme filter */}
