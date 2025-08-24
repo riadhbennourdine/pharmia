@@ -1,7 +1,30 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-dotenv.config({ path: '../.env' });
+import fs from 'fs'; // Import fs module
+import path from 'path'; // Import path module
+import { fileURLToPath } from 'url'; // Import fileURLToPath
+
+// Get __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Manually load .env file from project root
+try {
+    const envPath = path.resolve(__dirname, '../.env');
+    const envFileContent = fs.readFileSync(envPath, 'utf8');
+    envFileContent.split('\n').forEach(line => {
+        const trimmedLine = line.trim();
+        if (trimmedLine && !trimmedLine.startsWith('#')) {
+            const [key, value] = trimmedLine.split('=');
+            if (key && value) {
+                process.env[key.trim()] = value.trim();
+            }
+        }
+    });
+} catch (error) {
+    console.error('Error loading .env file:', error);
+    // Optionally, throw an error or exit if .env is critical
+}
 import { ObjectId } from 'mongodb';
 import { connectToServer, getDb } from './db.js';
 import bcrypt from 'bcryptjs';
