@@ -357,6 +357,7 @@ app.post('/api/login', async (req, res) => {
             process.env.JWT_SECRET || 'supersecretjwtkey', // Use a strong secret from .env
             { expiresIn: '8h' } // Increased for debugging
         );
+        console.log('JWT_SECRET used for signing:', process.env.JWT_SECRET);
 
         // Update lastLogin timestamp
         await db.collection('users').updateOne(
