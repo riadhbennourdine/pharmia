@@ -1120,9 +1120,167 @@ app.put('/api/admin/users/:preparateurId/assign-pharmacien', verifyToken, author
     }
 });
 
+// --- Share Routes ---
+
+// Create a new share link
+app.post('/api/shares', verifyToken, authorizeRoles(['Admin', 'Formateur', 'Pharmacien']), async (req, res) => {
+    try {
+        const db = getDb();
+        const { memoFicheIds } = req.body;
+
+        if (!memoFicheIds || !Array.isArray(memoFicheIds) || memoFicheIds.length === 0) {
+            return res.status(400).json({ message: 'An array of memoFicheIds is required.' });
+        }
+
+        // Optional: Verify that all provided IDs exist
+        const objectIdFicheIds = memoFicheIds.map(id => new ObjectId(id));
+        const fiches = await db.collection('memofiches').find({ _id: { $in: objectIdFicheIds } }).toArray();
+        if (fiches.length !== memoFicheIds.length) {
+            return res.status(404).json({ message: 'One or more memo fiches were not found.' });
+        }
+
+        const newShare = {
+            memoFicheIds: objectIdFicheIds,
+            createdAt: new Date(),
+            createdBy: new ObjectId(req.user.userId),
+        };
+
+        const result = await db.collection('shares').insertOne(newShare);
+
+        res.status(201).json({
+            message: 'Share link created successfully',
+            shareId: result.insertedId.toString(),
+        });
+
+    } catch (error) {
+        console.error('Error creating share link:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+// Get shared memo fiches by share ID
+app.get('/api/shares/:id', async (req, res) => {
+    try {
+        const db = getDb();
+        const { id } = req.params;
+
+        if (!ObjectId.isValid(id)) {
+            return res.status(400).json({ message: 'Invalid share ID format' });
+        }
+
+        const share = await db.collection('shares').findOne({ _id: new ObjectId(id) });
+
+        if (!share) {
+            return res.status(404).json({ message: 'Share link not found' });
+        }
+
+        const fiches = await db.collection('memofiches').find({ _id: { $in: share.memoFicheIds } }).toArray();
+        
+        // Remap _id to id for frontend consistency
+        const remapId = (item) => ({ ...item, id: item._id.toString() });
+
+        res.status(200).json(fiches.map(remapId));
+
+    } catch (error) {
+        console.error('Error fetching shared memo fiches:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+
+// --- Share Routes (with Password Protection) ---
+
+// Create a new share link
+app.post('/api/shares', verifyToken, authorizeRoles(['Admin']), async (req, res) => {
+    try {
+        const db = getDb();
+        // Add password to destructuring
+        const { memoFicheIds, password } = req.body;
+
+        if (!memoFicheIds || !Array.isArray(memoFicheIds) || memoFicheIds.length === 0) {
+            return res.status(400).json({ message: 'An array of memoFicheIds is required.' });
+        }
+
+        // Verify that all provided IDs exist
+        const objectIdFicheIds = memoFicheIds.map(id => new ObjectId(id));
+        const fiches = await db.collection('memofiches').find({ _id: { $in: objectIdFicheIds } }).toArray();
+        if (fiches.length !== memoFicheIds.length) {
+            return res.status(404).json({ message: 'One or more memo fiches were not found.' });
+        }
+
+        const newShare = {
+            memoFicheIds: objectIdFicheIds,
+            createdAt: new Date(),
+            createdBy: new ObjectId(req.user.userId),
+        };
+
+        // If a password is provided, hash it and add it to the document
+        if (password) {
+            newShare.passwordHash = await bcrypt.hash(password, 10);
+        }
+
+        const result = await db.collection('shares').insertOne(newShare);
+
+        res.status(201).json({
+            message: 'Share link created successfully',
+            shareId: result.insertedId.toString(),
+        });
+
+    } catch (error) {
+        console.error('Error creating share link:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+// Get shared memo fiches by share ID (changed to POST to handle password)
+app.post('/api/shares/:id', async (req, res) => {
+    try {
+        const db = getDb();
+        const { id } = req.params;
+        const { password } = req.body; // Password from the request body
+
+        if (!ObjectId.isValid(id)) {
+            return res.status(400).json({ message: 'Invalid share ID format' });
+        }
+
+        const share = await db.collection('shares').findOne({ _id: new ObjectId(id) });
+
+        if (!share) {
+            return res.status(404).json({ message: 'Share link not found' });
+        }
+
+        // If the share is password-protected, verify the password
+        if (share.passwordHash) {
+            if (!password) {
+                return res.status(401).json({ message: 'Password is required.', passwordRequired: true });
+            }
+
+            const isPasswordValid = await bcrypt.compare(password, share.passwordHash);
+            if (!isPasswordValid) {
+                return res.status(403).json({ message: 'Invalid password.', passwordRequired: true });
+            }
+        }
+
+        // If password is valid or not required, fetch and return the fiches
+        const fiches = await db.collection('memofiches').find({ _id: { $in: share.memoFicheIds } }).toArray();
+        
+        const remapId = (item) => ({ ...item, id: item._id.toString() });
+
+        res.status(200).json(fiches.map(remapId));
+
+    } catch (error) {
+        console.error('Error fetching shared memo fiches:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
 // Start server after DB connection
 connectToServer().then(() => {
     app.listen(port, () => {
         
     });
 });
+
+
+import { ObjectId } from 'mongodb';
+import 'dotenv/config';

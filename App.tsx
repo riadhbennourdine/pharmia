@@ -11,6 +11,7 @@ import LearnerSpacePage from './pages/LearnerSpacePage';
 import PricingPage from './pages/PricingPage';
 import UserDetailPage from './pages/UserDetailPage';
 import AICoachPage from './pages/AICoachPage';
+import SharedFichePage from './pages/SharedFichePage';
 import CoachAccueilPage from './pages/CoachAccueilPage';
 import Header from './components/Header';
 import Chatbot from './components/Chatbot';
@@ -364,6 +365,7 @@ const AppContent: React.FC = () => {
               <Route path="/connexion" element={<LoginPage />} />
               <Route path="/fiches" element={<FichesPage />} />
               <Route path="/fiches/:id" element={<MemoFicheDetailWrapper />} />
+              <Route path="/share/:shareId" element={<SharedFichePage />} />
               <Route path="/tarifs" element={<PricingPage />} />
               <Route element={<LoggedInRoute />}>
                 <Route path="/coach-accueil" element={<CoachAccueilPage />} />

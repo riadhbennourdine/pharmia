@@ -8,10 +8,56 @@ import { ResetIcon } from '../components/icons';
 
 const FichesPage: React.FC = () => {
   const { data, loading, error, deleteMemoFiche } = useData();
-  const { canEditMemoFiches, canDeleteMemoFiches, isLoggedIn } = useAuth();
+  const { canEditMemoFiches, canDeleteMemoFiches, isLoggedIn, isAdmin, token } = useAuth();
   const [themeFilter, setThemeFilter] = useState<string>('');
   const [systemFilter, setSystemFilter] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedFicheIds, setSelectedFicheIds] = useState<Set<string>>(new Set());
+  const [shareableLink, setShareableLink] = useState<string | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
+  const [sharePassword, setSharePassword] = useState('');
+
+  const handleSelectFiche = (ficheId: string) => {
+    setSelectedFicheIds(prev => {
+      const newSelection = new Set(prev);
+      if (newSelection.has(ficheId)) {
+        newSelection.delete(ficheId);
+      } else {
+        newSelection.add(ficheId);
+      }
+      return newSelection;
+    });
+  };
+
+  const handleShare = async () => {
+    if (selectedFicheIds.size === 0) return;
+    setIsSharing(true);
+    setShareableLink(null);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/shares`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          memoFicheIds: Array.from(selectedFicheIds),
+          password: sharePassword || undefined,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to create share link');
+      }
+      const result = await response.json();
+      const link = `${window.location.origin}/#/share/${result.shareId}`;
+      setShareableLink(link);
+    } catch (err) {
+      console.error(err);
+      setShareableLink('Error creating link.');
+    } finally {
+      setIsSharing(false);
+    }
+  };
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.preventDefault();
@@ -95,14 +141,13 @@ const FichesPage: React.FC = () => {
         />
       </div>
 
-      <div className="flex flex-wrap gap-4 mb-8 justify-start"> {/* Changed justify-center to justify-start */}
-        <div className="flex-shrink-0"> {/* Theme filter */}
-          {/* Removed label */}
+      <div className="flex flex-wrap gap-4 mb-8 justify-start">
+        <div className="flex-shrink-0">
           <select
             id="themeFilter"
             value={themeFilter}
             onChange={(e) => setThemeFilter(e.target.value)}
-            className="p-1.5 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 text-sm" /* Reduced padding, added text-sm */
+            className="p-1.5 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 text-sm"
           >
             <option value="">Tous les thèmes</option>
             {data?.themes.sort((a,b) => a.Nom.localeCompare(b.Nom)).map(theme => (
@@ -111,13 +156,12 @@ const FichesPage: React.FC = () => {
           </select>
         </div>
 
-        <div className="flex-shrink-0"> {/* System/Organ filter */}
-          {/* Removed label */}
+        <div className="flex-shrink-0">
           <select
             id="systemFilter"
             value={systemFilter}
             onChange={(e) => setSystemFilter(e.target.value)}
-            className="p-1.5 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 text-sm" /* Reduced padding, added text-sm */
+            className="p-1.5 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 text-sm"
           >
             <option value="">Tous les systèmes</option>
             {data?.systemesOrganes.sort((a,b) => a.Nom.localeCompare(b.Nom)).map(sys => (
@@ -126,7 +170,6 @@ const FichesPage: React.FC = () => {
           </select>
         </div>
         
-        {/* Reset Button */}
         <button
           onClick={resetFilters}
           className="p-1.5 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors flex items-center justify-center"
@@ -135,21 +178,56 @@ const FichesPage: React.FC = () => {
         </button>
       </div>
 
+      {isAdmin && (
+        <div className="mb-8 p-4 border-2 border-dashed rounded-lg bg-gray-50">
+          <h3 className="font-bold text-lg mb-2">Partage Administrateur</h3>
+          <div className="flex flex-wrap gap-4 items-center">
+            <input
+              type="password"
+              placeholder="Mot de passe (optionnel)"
+              value={sharePassword}
+              onChange={(e) => setSharePassword(e.target.value)}
+              className="p-2 border rounded-md"
+            />
+            <button
+              onClick={handleShare}
+              disabled={selectedFicheIds.size === 0 || isSharing}
+              className="bg-blue-500 text-white px-4 py-2 rounded-md disabled:bg-gray-400"
+            >
+              {isSharing ? 'Création...' : `Partager ${selectedFicheIds.size} fiche(s)`}
+            </button>
+          </div>
+          {shareableLink && (
+            <div className="mt-4">
+              <p className="font-semibold">Lien de partage généré :</p>
+              <input
+                type="text"
+                readOnly
+                value={shareableLink}
+                className="w-full p-2 mt-1 border rounded-md bg-gray-100"
+                onFocus={(e) => e.target.select()}
+              />
+            </div>
+          )}
+        </div>
+      )}
+
       {filteredMemofiches.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredMemofiches.map(memofiche => (
-            isLoggedIn ? (
-              <Link key={memofiche.id} to={`/fiches/${memofiche.id}`} className="block">
+            <div key={memofiche.id} className="relative">
+              {isAdmin && (
+                <input
+                  type="checkbox"
+                  checked={selectedFicheIds.has(memofiche.id)}
+                  onChange={() => handleSelectFiche(memofiche.id)}
+                  className="absolute top-2 right-2 h-6 w-6 z-10 cursor-pointer"
+                />
+              )}
+              <Link to={`/fiches/${memofiche.id}`} className="block">
                 <MemoCard memofiche={memofiche} onDelete={canDeleteMemoFiches ? handleDelete : undefined} />
               </Link>
-            ) : (
-              <div
-                key={memofiche.id}
-                className="block"
-              >
-                <MemoCard memofiche={memofiche} onDelete={undefined} />
-              </div>
-            )
+            </div>
           ))}
         </div>
       ) : (
