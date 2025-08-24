@@ -19,14 +19,15 @@ try {
             if (key && value) {
                 process.env[key.trim()] = value.trim();
             }
-        }
+        } 
     });
 } catch (error) {
     console.error('Error loading .env file:', error);
     // Optionally, throw an error or exit if .env is critical
 }
-import { ObjectId } from 'mongodb';
+
 import { connectToServer, getDb } from './db.js';
+
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { GoogleGenerativeAI } from '@google/generative-ai';
