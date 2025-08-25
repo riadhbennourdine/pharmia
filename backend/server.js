@@ -8,23 +8,9 @@ import { fileURLToPath } from 'url'; // Import fileURLToPath
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Manually load .env file from project root
-try {
-    const envPath = path.resolve(__dirname, '../.env');
-    const envFileContent = fs.readFileSync(envPath, 'utf8');
-    envFileContent.split('\n').forEach(line => {
-        const trimmedLine = line.trim();
-        if (trimmedLine && !trimmedLine.startsWith('#')) {
-            const [key, value] = trimmedLine.split('=');
-            if (key && value) {
-                process.env[key.trim()] = value.trim();
-            }
-        } 
-    });
-} catch (error) {
-    console.error('Error loading .env file:', error);
-    // Optionally, throw an error or exit if .env is critical
-}
+// Configure dotenv to load variables from the root .env file
+import dotenv from 'dotenv';
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 import { connectToServer, getDb } from './db.js';
 
@@ -1120,72 +1106,7 @@ app.put('/api/admin/users/:preparateurId/assign-pharmacien', verifyToken, author
     }
 });
 
-// --- Share Routes ---
 
-// Create a new share link
-app.post('/api/shares', verifyToken, authorizeRoles(['Admin', 'Formateur', 'Pharmacien']), async (req, res) => {
-    try {
-        const db = getDb();
-        const { memoFicheIds } = req.body;
-
-        if (!memoFicheIds || !Array.isArray(memoFicheIds) || memoFicheIds.length === 0) {
-            return res.status(400).json({ message: 'An array of memoFicheIds is required.' });
-        }
-
-        // Optional: Verify that all provided IDs exist
-        const objectIdFicheIds = memoFicheIds.map(id => new ObjectId(id));
-        const fiches = await db.collection('memofiches').find({ _id: { $in: objectIdFicheIds } }).toArray();
-        if (fiches.length !== memoFicheIds.length) {
-            return res.status(404).json({ message: 'One or more memo fiches were not found.' });
-        }
-
-        const newShare = {
-            memoFicheIds: objectIdFicheIds,
-            createdAt: new Date(),
-            createdBy: new ObjectId(req.user.userId),
-        };
-
-        const result = await db.collection('shares').insertOne(newShare);
-
-        res.status(201).json({
-            message: 'Share link created successfully',
-            shareId: result.insertedId.toString(),
-        });
-
-    } catch (error) {
-        console.error('Error creating share link:', error);
-        res.status(500).json({ message: 'Internal Server Error' });
-    }
-});
-
-// Get shared memo fiches by share ID
-app.get('/api/shares/:id', async (req, res) => {
-    try {
-        const db = getDb();
-        const { id } = req.params;
-
-        if (!ObjectId.isValid(id)) {
-            return res.status(400).json({ message: 'Invalid share ID format' });
-        }
-
-        const share = await db.collection('shares').findOne({ _id: new ObjectId(id) });
-
-        if (!share) {
-            return res.status(404).json({ message: 'Share link not found' });
-        }
-
-        const fiches = await db.collection('memofiches').find({ _id: { $in: share.memoFicheIds } }).toArray();
-        
-        // Remap _id to id for frontend consistency
-        const remapId = (item) => ({ ...item, id: item._id.toString() });
-
-        res.status(200).json(fiches.map(remapId));
-
-    } catch (error) {
-        console.error('Error fetching shared memo fiches:', error);
-        res.status(500).json({ message: 'Internal Server Error' });
-    }
-});
 
 
 // --- Share Routes (with Password Protection) ---
@@ -1274,13 +1195,7 @@ app.post('/api/shares/:id', async (req, res) => {
     }
 });
 
-// Start server after DB connection
-connectToServer().then(() => {
-    app.listen(port, () => {
-        
-    });
-});
+// Connect to DB and export the app for Vercel
+connectToServer();
+module.exports = app;
 
-
-import { ObjectId } from 'mongodb';
-import 'dotenv/config';
