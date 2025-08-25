@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: pharmia-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildFilter:
+      paths:
+        - "backend/**"
+    build: npm install
+    start: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: MONGODB_URI
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
