@@ -1,24 +1,26 @@
 import { MongoClient, ServerApiVersion } from 'mongodb';
-import 'dotenv/config';
 
-const uri = process.env.MONGODB_URI;
-if (!uri) {
-  throw new Error('Please define the MONGODB_URI environment variable inside .env');
-}
-
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
-});
-
+let client;
 let db;
 
 export async function connectToServer() {
+  if (db) {
+    return;
+  }
   try {
+    const uri = process.env.MONGODB_URI;
+    if (!uri) {
+      throw new Error('Please define the MONGODB_URI environment variable inside .env');
+    }
+
+    client = new MongoClient(uri, {
+      serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+      }
+    });
+
     // Connect the client to the server
     await client.connect();
     // Establish and verify connection
