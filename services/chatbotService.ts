@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
+const API_BASE_URL = window.location.origin.includes('localhost')
+  ? 'http://localhost:5001'
+  : `${window.location.origin}/api`;
 
 export const sendMessageToChatbot = async (message: string): Promise<string> => {
     try {
