@@ -5,6 +5,7 @@ import { useData, useAuth } from '../App';
 import MemoCard from '../components/MemoCard';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ResetIcon } from '../components/icons';
+import AssignFichesModal from '../components/admin/AssignFichesModal';
 
 const FichesPage: React.FC = () => {
   const { data, loading, error, deleteMemoFiche } = useData();
@@ -16,6 +17,7 @@ const FichesPage: React.FC = () => {
   const [shareableLink, setShareableLink] = useState<string | null>(null);
   const [isSharing, setIsSharing] = useState(false);
   const [sharePassword, setSharePassword] = useState('');
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
 
   const handleSelectFiche = (ficheId: string) => {
     setSelectedFicheIds(prev => {
@@ -56,6 +58,27 @@ const FichesPage: React.FC = () => {
       setShareableLink('Error creating link.');
     } finally {
       setIsSharing(false);
+    }
+  };
+
+  const handleAssignFiches = async (userIds: string[]) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/assign-fiches`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ ficheIds: Array.from(selectedFicheIds), userIds }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to assign fiches');
+      }
+      alert('Fiches assigned successfully!');
+      setIsAssignModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      alert('Error assigning fiches.');
     }
   };
 
@@ -196,6 +219,13 @@ const FichesPage: React.FC = () => {
             >
               {isSharing ? 'Création...' : `Partager ${selectedFicheIds.size} fiche(s)`}
             </button>
+            <button
+              onClick={() => setIsAssignModalOpen(true)}
+              disabled={selectedFicheIds.size === 0}
+              className="bg-green-500 text-white px-4 py-2 rounded-md disabled:bg-gray-400"
+            >
+              Assigner
+            </button>
           </div>
           {shareableLink && (
             <div className="mt-4">
@@ -210,6 +240,14 @@ const FichesPage: React.FC = () => {
             </div>
           )}
         </div>
+      )}
+
+      {isAssignModalOpen && (
+        <AssignFichesModal
+          ficheIds={Array.from(selectedFicheIds)}
+          onClose={() => setIsAssignModalOpen(false)}
+          onAssign={handleAssignFiches}
+        />
       )}
 
       {filteredMemofiches.length > 0 ? (

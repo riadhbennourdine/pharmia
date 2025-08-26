@@ -13,6 +13,7 @@ import dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 import { connectToServer, getDb } from './db.js';
+import { ObjectId } from 'mongodb';
 
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -1013,6 +1014,36 @@ app.get('/api/admin/formateurs', verifyToken, authorizeRoles(['admin']), async (
     }
 });
 
+// Assign fiches to users (Admin only)
+app.post('/api/admin/assign-fiches', verifyToken, authorizeRoles(['admin']), async (req, res) => {
+    try {
+        const db = getDb();
+        const { ficheIds, userIds } = req.body;
+
+        if (!ficheIds || !Array.isArray(ficheIds) || ficheIds.length === 0) {
+            return res.status(400).json({ message: 'An array of ficheIds is required.' });
+        }
+
+        if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+            return res.status(400).json({ message: 'An array of userIds is required.' });
+        }
+
+        const objectUserIds = userIds.map(id => new ObjectId(id));
+
+        const result = await db.collection('users').updateMany(
+            { _id: { $in: objectUserIds } },
+            { $addToSet: { readFicheIds: { $each: ficheIds } } }
+        );
+
+        res.status(200).json({ message: `${result.modifiedCount} users updated successfully.` });
+
+    } catch (error) {
+        console.error('Error assigning fiches to users:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+
 // Update a user (Admin only)
 app.put('/api/admin/users/:id', verifyToken, authorizeRoles(['admin']), async (req, res) => {
     try {
@@ -1201,17 +1232,43 @@ app.post('/api/shares/:id', async (req, res) => {
     }
 });
 
+if (process.env.NODE_ENV !== 'test') {
+  (async () => {
+    try {
+      await connectToServer();
+      app.listen(port, () => {
+        console.log(`Server is running on port: ${port}`);
+      });
+    } catch (err) {
+      console.error('Failed to start server:', err);
+    }
+  })();
+}
+
+let cachedApp = null;
+
 // Connect to DB and export the app for Vercel
 async function initializeApp() {
+    if (cachedApp) {
+        return cachedApp;
+    }
     try {
         await connectToServer();
         console.log('MongoDB connection successful.');
-        return app;
+        cachedApp = app;
+        return cachedApp;
     } catch (err) {
         console.error('MongoDB connection failed:', err);
         throw err;
     }
 }
 
-export default initializeApp();
+export default async (req, res) => {
+    try {
+        const app = await initializeApp();
+        app(req, res);
+    } catch (error) {
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
 
