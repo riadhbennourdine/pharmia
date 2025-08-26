@@ -1202,10 +1202,16 @@ app.post('/api/shares/:id', async (req, res) => {
 });
 
 // Connect to DB and export the app for Vercel
-connectToServer().then(() => {
-    console.log('MongoDB connection successful.');
-}).catch(err => {
-    console.error('MongoDB connection failed:', err);
-});
-export default app;
+async function initializeApp() {
+    try {
+        await connectToServer();
+        console.log('MongoDB connection successful.');
+        return app;
+    } catch (err) {
+        console.error('MongoDB connection failed:', err);
+        throw err;
+    }
+}
+
+export default initializeApp();
 
