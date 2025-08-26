@@ -75,7 +75,8 @@ const port = process.env.PORT || 5001;
 // Middleware
 const allowedOrigins = [
     'https://pharmia-frontend-new.onrender.com',
-    'http://localhost:5173'
+    'http://localhost:5173',
+    'https://pharmia-chi.vercel.app'
 ];
 
 app.use(cors({
