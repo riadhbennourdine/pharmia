@@ -1238,18 +1238,7 @@ app.post('/api/shares/:id', async (req, res) => {
     }
 });
 
-if (process.env.NODE_ENV !== 'test') {
-  (async () => {
-    try {
-      await connectToServer();
-      app.listen(port, () => {
-        console.log(`Server is running on port: ${port}`);
-      });
-    } catch (err) {
-      console.error('Failed to start server:', err);
-    }
-  })();
-}
+
 
 let cachedApp = null;
 
