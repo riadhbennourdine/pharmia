@@ -1197,5 +1197,5 @@ app.post('/api/shares/:id', async (req, res) => {
 
 // Connect to DB and export the app for Vercel
 connectToServer();
-module.exports = app;
+export default app;
 
