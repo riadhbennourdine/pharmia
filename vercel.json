@@ -1,4 +1,14 @@
 {
+  "builds": [
+    {
+      "src": "vite.config.ts",
+      "use": "@vercel/vite"
+    },
+    {
+      "src": "backend/server.js",
+      "use": "@vercel/node"
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
