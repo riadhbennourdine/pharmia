@@ -123,8 +123,10 @@ app.get('/api/health', (req, res) => {
 });
 
 app.get('/api/data', async (req, res) => {
+    console.log('Attempting to fetch data from MongoDB...');
     try {
         const db = getDb();
+        console.log('Successfully got DB instance.');
         const collections = {
             themes: db.collection('themes'),
             systemesOrganes: db.collection('systemesOrganes'),
@@ -133,9 +135,11 @@ app.get('/api/data', async (req, res) => {
 
         // Seed database if empty
         if (await collections.themes.countDocuments() === 0) {
+            console.log('Seeding themes collection...');
             await collections.themes.insertMany(INITIAL_DATA.themes);
         }
         if (await collections.systemesOrganes.countDocuments() === 0) {
+            console.log('Seeding systemesOrganes collection...');
             await collections.systemesOrganes.insertMany(INITIAL_DATA.systemesOrganes);
         }
 
@@ -143,6 +147,7 @@ app.get('/api/data', async (req, res) => {
         const themes = await collections.themes.find({}).sort({ Nom: 1 }).toArray();
         const systemesOrganes = await collections.systemesOrganes.find({}).sort({ Nom: 1 }).toArray();
         const memofiches = await collections.memofiches.find({}).sort({ createdAt: -1 }).toArray();
+        console.log(`Fetched ${memofiches.length} memofiches.`);
         
         // The frontend expects `id`, but Mongo uses `_id`. Let's remap for consistency.
         const remapId = (item) => ({ ...item, id: item._id.toString() });
@@ -1197,6 +1202,10 @@ app.post('/api/shares/:id', async (req, res) => {
 });
 
 // Connect to DB and export the app for Vercel
-connectToServer();
+connectToServer().then(() => {
+    console.log('MongoDB connection successful.');
+}).catch(err => {
+    console.error('MongoDB connection failed:', err);
+});
 export default app;
 
