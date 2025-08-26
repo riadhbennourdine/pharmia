@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently \"npm:dev:frontend\" \"npm:dev --prefix api\"",
+    "dev:frontend": "vite",
     "build": "vite build",
     "vercel-build": "vite build",
     "preview": "vite preview",
@@ -30,6 +31,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
+    "concurrently": "^9.2.1",
     "typescript": "^5.9.2",
     "vercel": "^46.0.2",
     "vite": "^7.1.3"
