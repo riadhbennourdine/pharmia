@@ -9,6 +9,7 @@ export async function connectToServer() {
   }
   try {
     const uri = process.env.MONGODB_URI;
+    console.log(`[DEBUG] MONGODB_URI: ${uri ? 'Loaded' : 'Not Loaded'}`);
     if (!uri) {
       throw new Error('Please define the MONGODB_URI environment variable inside .env');
     }
