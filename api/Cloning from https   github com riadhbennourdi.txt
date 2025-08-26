@@ -1,0 +1,88 @@
+==> Cloning from https://github.com/riadhbennourdine/pharmia
+==> Checking out commit de335988cfd8019670dc76bd315f38b0889e4ce8 in branch main
+==> Installing dependencies with npm...
+==> Using Node.js version 22.16.0 (default)
+==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+> pharmia-v2@0.0.0 postinstall
+> npm install axios --prefix ./node_modules/axios
+added 2138 packages, and audited 2139 packages in 2m
+261 packages are looking for funding
+  run `npm fund` for details
+65 vulnerabilities (3 low, 26 moderate, 27 high, 9 critical)
+To address issues that do not require attention, run:
+  npm audit fix
+To address all issues possible (including breaking changes), run:
+  npm audit fix --force
+Some issues need review, and may require choosing
+a different dependency.
+Run `npm audit` for details.
+added 272 packages, and audited 273 packages in 2m
+109 packages are looking for funding
+  run `npm fund` for details
+found 0 vulnerabilities
+> pharmia-v2@0.0.0 postinstall
+> npm install axios --prefix ./node_modules/axios
+added 2138 packages, and audited 2139 packages in 17s
+261 packages are looking for funding
+  run `npm fund` for details
+65 vulnerabilities (3 low, 25 moderate, 28 high, 9 critical)
+To address issues that do not require attention, run:
+  npm audit fix
+To address all issues possible (including breaking changes), run:
+  npm audit fix --force
+Some issues need review, and may require choosing
+a different dependency.
+Run `npm audit` for details.
+removed 2138 packages, and audited 273 packages in 28s
+109 packages are looking for funding
+  run `npm fund` for details
+found 0 vulnerabilities
+==> Running build command 'npm install && npm run build'...
+> pharmia-v2@0.0.0 postinstall
+> npm install axios --prefix ./node_modules/axios
+added 2138 packages, and audited 2139 packages in 17s
+261 packages are looking for funding
+  run `npm fund` for details
+65 vulnerabilities (3 low, 25 moderate, 28 high, 9 critical)
+To address issues that do not require attention, run:
+  npm audit fix
+To address all issues possible (including breaking changes), run:
+  npm audit fix --force
+Some issues need review, and may require choosing
+a different dependency.
+Run `npm audit` for details.
+removed 2138 packages, and audited 273 packages in 24s
+109 packages are looking for funding
+  run `npm fund` for details
+found 0 vulnerabilities
+> pharmia-v2@0.0.0 build
+> vite build
+vite v6.3.5 building for production...
+transforming...
+node_modules/react-router/dist/development/dom-export.mjs (1:0): Module level directives cause errors when bundled, "use client" in "node_modules/react-router/dist/development/dom-export.mjs" was ignored.
+node_modules/react-router/dist/development/index.mjs (11:0): Module level directives cause errors when bundled, "use client" in "node_modules/react-router/dist/development/index.mjs" was ignored.
+✓ 53 modules transformed.
+✗ Build failed in 681ms
+error during build:
+[vite:esbuild] Transform failed with 1 error:
+/opt/render/project/src/services/geminiService.ts:283:59: ERROR: Unexpected "}"
+file: /opt/render/project/src/services/geminiService.ts:283:59
+Unexpected "}"
+281|          throw new Error("Impossible de générer la mémofiche depuis l'IA. Veuillez réessayer.");
+282|      }
+283|  }; "Utilise 'https://picsum.photos/800/600' pour imageUrl."}
+   |                                                             ^
+284|          - **Position Image**: Pour 'imagePosition', utilise 'middle' par défaut, ou 'top' ou 'bottom' si le sujet le suggère.
+285|          - **Kahoot**: ${options.kahootUrl ? `Utilise CETTE URL EXACTE pour 'kahootUrl': ${options.kahootUrl}` : "Si pertinent, fournis un lien vers un quiz Kahoot public sur le sujet dans 'kahootUrl'. Sinon, laisse ce champ vide ou null."}
+    at failureErrorWithLog (/opt/render/project/src/node_modules/esbuild/lib/main.js:1467:15)
+    at /opt/render/project/src/node_modules/esbuild/lib/main.js:736:50
+    at responseCallbacks.<computed> (/opt/render/project/src/node_modules/esbuild/lib/main.js:603:9)
+    at handleIncomingPacket (/opt/render/project/src/node_modules/esbuild/lib/main.js:658:12)
+    at Socket.readFromStdout (/opt/render/project/src/node_modules/esbuild/lib/main.js:581:7)
+    at Socket.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+==> Build failed 😞
+==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys

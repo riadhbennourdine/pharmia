@@ -5,14 +5,14 @@
       "use": "@vercel/vite"
     },
     {
-      "src": "backend/server.js",
+      "src": "api/server.js",
       "use": "@vercel/node"
     }
   ],
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/backend/server.js"
+      "destination": "/api/server.js"
     },
     {
       "source": "/(.*)",

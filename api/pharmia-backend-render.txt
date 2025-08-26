@@ -1,0 +1,56 @@
+1 services:
+    2   - type: web
+    3     name: pharmia-backend
+    4     env: node
+    5     region: oregon
+    6     plan: free
+    7     rootDir: backend
+    8     buildFilter:
+    9       paths:
+   10         - "backend/**"
+   11     build: npm install
+   12     start: npm start
+   13     healthCheckPath: /healthz
+   14     envVars:
+   15       - key: NODE_VERSION
+   16         value: "20"
+   17       - key: MONGODB_URI
+   18         sync: false
+   19       - key: GEMINI_API_KEY
+   20         sync: false
+   21       - key: JWT_SECRET
+   22         generateValue: true
+
+   1 services:
+    2   - type: web
+    3     name: pharmia-backend
+    4     env: node
+    5     region: oregon
+    6     plan: free
+    7     rootDir: backend
+    8     buildFilter:
+    9       paths:
+   10         - "backend/**"
+   11     build: npm install
+   12     start: npm start
+   13     healthCheckPath: /healthz
+   14     envVars:
+   15       - key: NODE_VERSION
+   16         value: "20"
+   17       - key: MONGODB_URI
+   18         sync: false
+   19       - key: GEMINI_API_KEY
+   20         sync: false
+   21       - key: JWT_SECRET
+   22         generateValue: true
+   23   - type: static
+   24     name: pharmia-frontend-new
+   25     buildCommand: npm install && npm run build
+   26     publishDir: dist
+   27     buildFilter:
+   28       ignoredPaths:
+   29         - "backend/**"
+   30     routes:
+   31       - type: rewrite
+   32         source: /*
+   33         destination: /index.html
