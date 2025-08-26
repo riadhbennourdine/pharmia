@@ -1,7 +1,13 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
   "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "buildCommand": "npm run build",
+        "outputDirectory": "dist"
+      }
+    },
     {
       "src": "api/server.js",
       "use": "@vercel/node"
