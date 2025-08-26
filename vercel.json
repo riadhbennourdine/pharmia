@@ -1,10 +1,6 @@
 {
   "builds": [
     {
-      "src": "vite.config.ts",
-      "use": "@vercel/vite"
-    },
-    {
       "src": "api/server.js",
       "use": "@vercel/node"
     }
