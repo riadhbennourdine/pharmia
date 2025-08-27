@@ -22,5 +22,8 @@ export default defineConfig(({ mode }) => {
           external: [], // Ensure axios is not externalized
         },
       },
+      define: {
+        'process.env': env,
+      },
     };
 });
