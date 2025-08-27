@@ -1,5 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
-import { MemoFiche, Theme, SystemeOrgane, ExternalResource } from '../../types';
+const { GoogleGenAI, Type } = require("@google/genai");
 
 if (!process.env.VITE_GEMINI_API_KEY) {
     throw new Error("VITE_GEMINI_API_KEY environment variable not set");
@@ -121,13 +120,6 @@ const memoFicheItemSchema = {
     required: ["id", "title", "shortDescription", "imageUrl", "imagePosition", "flashSummary", "memoContent", "theme", "systeme_organe", "flashcards", "quiz", "glossaryTerms", "level", "createdAt", "externalResources"],
 };
 
-interface GenerationOptions {
-    imageUrl?: string;
-    kahootUrl?: string;
-    videoUrl?: string;
-    podcastUrl?: string;
-}
-
 const ORDONNANCES_TEMPLATE = `
 Template fiche conseil associé à l’ordonnance
 
@@ -145,7 +137,7 @@ Conseils sur le traitement médicamenteux
 Informations sur la maladie
 - Présenter les informations essentielles sur la [Maladie]
 - Expliquer les spécificités de la pathologie qui peuvent affecter le traitement
-- Donner une idée sur l objectif du traitement
+- Donner une idée sur l'objectif du traitement
 
 Conseils hygiéno-diététiques
 - Fournir des conseils dhygiène de vie, y compris lexercice et le sommeil
@@ -161,12 +153,12 @@ Mettre les références bibliographiques qui ont servi pour la rédaction de cet
 Cette procédure vise à assurer un suivi complet et personnalisé du patient, optimiser lefficacité du traitement prescrit et améliorer le confort du patient
 `;
 
-export const generateSingleMemoFiche = async (
-    rawText: string, 
-    theme: Theme, 
-    system: SystemeOrgane,
-    options: GenerationOptions = {}
-): Promise<MemoFiche> => {
+const generateSingleMemoFiche = async (
+    rawText, 
+    theme, 
+    system,
+    options = {}
+) => {
     
     let providedResourcesInstructions = "";
     if (options.videoUrl) {
@@ -180,10 +172,6 @@ export const generateSingleMemoFiche = async (
 
     if (theme.Nom.trim().toLowerCase() === "ordonnances") {
         console.log("[DEBUG] Generating 'Ordonnances' prompt."); // DEBUG LOG
-        // For "Ordonnances" theme, use the specific template
-        // We need to extract the [Maladie] from the rawText or assume it's part of the title
-        // For now, let's assume the rawText is the "Maladie" or contains it.
-        // The AI will need to figure out the [Maladie] from the rawText for the title.
         prompt = `
             Tu es un expert en pharmacie d’officine et en pédagogie active. À partir du texte brut ci-dessous, génère une mémofiche pédagogique complète en FRANÇAIS.
             La réponse DOIT être un objet JSON valide qui respecte scrupuleusement le schéma fourni.
@@ -191,8 +179,7 @@ export const generateSingleMemoFiche = async (
             ${ORDONNANCES_TEMPLATE}
 
             **Texte Brut à Analyser:**
-            ---
-            ${rawText}
+            ---\n            ${rawText}
             ---
 
             **Instructions de Génération Spécifiques pour Ordonnances:**
@@ -206,23 +193,21 @@ export const generateSingleMemoFiche = async (
             - **Éviter la Redondance**: Ne pas inclure les informations sur le Thème ou le Système/Organe dans les sections de memoContent, car elles sont déjà spécifiées dans leurs champs dédiés.
             - **Contenu Pédagogique**: Crée EXACTEMENT 10 flashcards, et 10 questions de quiz (variées, QCM et Vrai/Faux).
             - **Termes Techniques**: Identifie 10 termes techniques pertinents dans le texte et fournis leurs définitions pour le glossaire.
-            - **Image**: ${options.imageUrl ? `Utilise CETTE URL EXACTE pour 'imageUrl': ${options.imageUrl}` : "Utilise 'https://picsum.photos/800/600' pour imageUrl."
+            - **Image**: ${options.imageUrl ? `Utilise CETTE URL EXACTE pour 'imageUrl': ${options.imageUrl}` : "Utilise 'https://picsum.photos/800/600' pour imageUrl."}
             - **Position Image**: Pour 'imagePosition', utilise 'middle' par défaut, ou 'top' ou 'bottom' si le sujet le suggère.
-            - **Kahoot**: ${options.kahootUrl ? `Utilise CETTE URL EXACTE pour 'kahootUrl': ${options.kahootUrl}` : "Si pertinent, fournis un lien vers un quiz Kahoot public sur le sujet dans 'kahootUrl'. Sinon, laisse ce champ vide ou null."
+            - **Kahoot**: ${options.kahootUrl ? `Utilise CETTE URL EXACTE pour 'kahootUrl': ${options.kahootUrl}` : "Si pertinent, fournis un lien vers un quiz Kahoot public sur le sujet dans 'kahootUrl'. Sinon, laisse ce champ vide ou null."}
             - **Ressources Externes**: 
               ${providedResourcesInstructions || "Suggère 1 ou 2 liens pertinents (vidéos YouTube, articles, podcasts). Pour les vidéos, utilise des URLs 'embed')."}
             - **IDs**: Assure-toi que l'ID de la fiche et les IDs des sections sont des chaînes de caractères uniques (similaire à un UUID).
         `;
     } else {
         console.log(`[DEBUG] Generating generic prompt for theme: ${theme.Nom}`); // DEBUG LOG
-        // Existing generic prompt for other themes
         prompt = `
             Tu es un expert en pharmacie d’officine et en pédagogie active. À partir du texte brut ci-dessous, génère une mémofiche pédagogique complète en FRANÇAIS.
             La réponse DOIT être un objet JSON valide qui respecte scrupuleusement le schéma fourni.
 
             **Texte Brut à Analyser:**
-            ---
-            ${rawText}
+            ---\n            ${rawText}
             ---
 
             **Instructions de Génération:**
@@ -238,9 +223,9 @@ export const generateSingleMemoFiche = async (
             - **Références**: Inclure des références bibliographiques dans la section dédiée.
             - **Contenu Pédagogique**: Crée EXACTEMENT 10 flashcards, et 10 questions de quiz (variées, QCM et Vrai/Faux).
             - **Termes Techniques**: Identifie 10 termes techniques pertinents dans le texte et fournis leurs définitions pour le glossaire.
-            - **Image**: ${options.imageUrl ? `Utilise CETTE URL EXACTE pour 'imageUrl': ${options.imageUrl}` : "Utilise 'https://picsum.photos/800/600' pour imageUrl."
+            - **Image**: ${options.imageUrl ? `Utilise CETTE URL EXACTE pour 'imageUrl': ${options.imageUrl}` : "Utilise 'https://picsum.photos/800/600' pour imageUrl."}
             - **Position Image**: Pour 'imagePosition', utilise 'middle' par défaut, ou 'top' ou 'bottom' si le sujet le suggère.
-            - **Kahoot**: ${options.kahootUrl ? `Utilise CETTE URL EXACTE pour 'kahootUrl': ${options.kahootUrl}` : "Si pertinent, fournis un lien vers un quiz Kahoot public sur le sujet dans 'kahootUrl'. Sinon, laisse ce champ vide ou null."
+            - **Kahoot**: ${options.kahootUrl ? `Utilise CETTE URL EXACTE pour 'kahootUrl': ${options.kahootUrl}` : "Si pertinent, fournis un lien vers un quiz Kahoot public sur le sujet dans 'kahootUrl'. Sinon, laisse ce champ vide ou null."}
             - **Ressources Externes**: 
               ${providedResourcesInstructions || "Suggère 1 ou 2 liens pertinents (vidéos YouTube, articles, podcasts). Pour les vidéos, utilise des URLs 'embed')."}
             - **IDs**: Assure-toi que l'ID de la fiche et les IDs des sections sont des chaînes de caractères uniques (similaire à un UUID).
@@ -259,12 +244,11 @@ try {
         });
 
         const jsonText = response.text.trim();
-        const data = JSON.parse(jsonText) as MemoFiche;
+        const data = JSON.parse(jsonText);
         
         data.createdAt = new Date().toISOString().split('T')[0];
 
-        // Ensure provided resources are present
-        const finalResources: ExternalResource[] = data.externalResources || [];
+        const finalResources = data.externalResources || [];
         if (options.podcastUrl && !finalResources.some(r => r.url === options.podcastUrl)) {
             finalResources.push({ type: 'podcast', title: 'Podcast recommandé', url: options.podcastUrl });
         }
@@ -278,7 +262,6 @@ try {
     }
 };
 
-// New schema for communication fiches
 const communicationMemoFicheSchema = {
     ...memoFicheItemSchema,
     properties: {
@@ -291,12 +274,11 @@ const communicationMemoFicheSchema = {
     }
 };
 
-// New function for generating communication fiches
-export const generateCommunicationMemoFiche = async (
-    rawText: string,
-    theme: Theme,
-    options: GenerationOptions = {}
-): Promise<MemoFiche> => {
+const generateCommunicationMemoFiche = async (
+    rawText,
+    theme,
+    options = {}
+) => {
 
     const prompt = `
         Vous êtes un expert en ingénierie pédagogique et en communication pharmaceutique. Votre mission de transformer un texte brut sur une technique ou une situation de communication à l'officine en une mémofiche structurée et prête à l'emploi pour l'application PharmIA.
@@ -307,8 +289,7 @@ export const generateCommunicationMemoFiche = async (
         Analysez le texte fourni ci-dessous. Extrayez sa structure, son contenu et ses informations clés pour générer une mémofiche complète au format JSON. Le contenu des flashcards, du quiz et du glossaire doit être **exclusivement basé sur les informations présentes dans le texte fourni**.
 
         **Texte à traiter :**
-        ---
-        ${rawText}
+        ---\n        ${rawText}
         ---
 
         **Format de sortie JSON attendu et consignes :**
@@ -347,7 +328,7 @@ memoContent
         });
 
         const jsonText = response.text.trim();
-        const data = JSON.parse(jsonText) as MemoFiche;
+        const data = JSON.parse(jsonText);
         
         data.createdAt = new Date().toISOString().split('T')[0];
 
@@ -358,3 +339,5 @@ memoContent
         throw new Error("Impossible de générer la mémofiche de communication depuis l'IA. Veuillez réessayer.");
     }
 };
+
+module.exports = { generateSingleMemoFiche, generateCommunicationMemoFiche };
