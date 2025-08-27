@@ -17,7 +17,7 @@ const askChatbot = async (question) => {
 
     try {
         const response = await ai.models.generateContent({
-            model: "gemini-pro", // Use a suitable model for chat
+            model: "gemini-1.5-flash", // Use a suitable model for chat
             contents: prompt,
         });
 
