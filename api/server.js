@@ -4,6 +4,7 @@ import express from 'express';
 import cors from 'cors';
 import { connectToServer, getDb } from './db.js';
 import { askWithMemofiches } from './services/ragService.js';
+import { generateSingleMemoFiche, generateCommunicationMemoFiche } from './services/generationService.js';
 
 const app = express();
 
@@ -125,6 +126,29 @@ app.post('/api/chatbot/message', async (req, res) => {
   } catch (err) {
     console.error("Error processing chatbot message:", err);
     res.status(500).json({ message: 'Server error processing chatbot message.' });
+  }
+});
+
+// Generation routes
+app.post('/api/generate/single', async (req, res) => {
+  try {
+    const { rawText, theme, system, options } = req.body;
+    const fiche = await generateSingleMemoFiche(rawText, theme, system, options);
+    res.json(fiche);
+  } catch (err) {
+    console.error("Error generating single memo fiche:", err);
+    res.status(500).json({ message: 'Server error generating single memo fiche.' });
+  }
+});
+
+app.post('/api/generate/communication', async (req, res) => {
+  try {
+    const { rawText, theme, options } = req.body;
+    const fiche = await generateCommunicationMemoFiche(rawText, theme, options);
+    res.json(fiche);
+  } catch (err) {
+    console.error("Error generating communication memo fiche:", err);
+    res.status(500).json({ message: 'Server error generating communication memo fiche.' });
   }
 });
 

@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { MemoFiche, Theme, SystemeOrgane, ExternalResource } from '../types';
+import { MemoFiche, Theme, SystemeOrgane, ExternalResource } from '../../types';
 
 if (!process.env.VITE_GEMINI_API_KEY) {
     throw new Error("VITE_GEMINI_API_KEY environment variable not set");
@@ -206,9 +206,9 @@ export const generateSingleMemoFiche = async (
             - **Éviter la Redondance**: Ne pas inclure les informations sur le Thème ou le Système/Organe dans les sections de memoContent, car elles sont déjà spécifiées dans leurs champs dédiés.
             - **Contenu Pédagogique**: Crée EXACTEMENT 10 flashcards, et 10 questions de quiz (variées, QCM et Vrai/Faux).
             - **Termes Techniques**: Identifie 10 termes techniques pertinents dans le texte et fournis leurs définitions pour le glossaire.
-            - **Image**: ${options.imageUrl ? `Utilise CETTE URL EXACTE pour 'imageUrl': ${options.imageUrl}` : "Utilise 'https://picsum.photos/800/600' pour imageUrl."}
+            - **Image**: ${options.imageUrl ? `Utilise CETTE URL EXACTE pour 'imageUrl': ${options.imageUrl}` : "Utilise 'https://picsum.photos/800/600' pour imageUrl."
             - **Position Image**: Pour 'imagePosition', utilise 'middle' par défaut, ou 'top' ou 'bottom' si le sujet le suggère.
-            - **Kahoot**: ${options.kahootUrl ? `Utilise CETTE URL EXACTE pour 'kahootUrl': ${options.kahootUrl}` : "Si pertinent, fournis un lien vers un quiz Kahoot public sur le sujet dans 'kahootUrl'. Sinon, laisse ce champ vide ou null."}
+            - **Kahoot**: ${options.kahootUrl ? `Utilise CETTE URL EXACTE pour 'kahootUrl': ${options.kahootUrl}` : "Si pertinent, fournis un lien vers un quiz Kahoot public sur le sujet dans 'kahootUrl'. Sinon, laisse ce champ vide ou null."
             - **Ressources Externes**: 
               ${providedResourcesInstructions || "Suggère 1 ou 2 liens pertinents (vidéos YouTube, articles, podcasts). Pour les vidéos, utilise des URLs 'embed')."}
             - **IDs**: Assure-toi que l'ID de la fiche et les IDs des sections sont des chaînes de caractères uniques (similaire à un UUID).
@@ -238,9 +238,9 @@ export const generateSingleMemoFiche = async (
             - **Références**: Inclure des références bibliographiques dans la section dédiée.
             - **Contenu Pédagogique**: Crée EXACTEMENT 10 flashcards, et 10 questions de quiz (variées, QCM et Vrai/Faux).
             - **Termes Techniques**: Identifie 10 termes techniques pertinents dans le texte et fournis leurs définitions pour le glossaire.
-            - **Image**: ${options.imageUrl ? `Utilise CETTE URL EXACTE pour 'imageUrl': ${options.imageUrl}` : "Utilise 'https://picsum.photos/800/600' pour imageUrl."}
+            - **Image**: ${options.imageUrl ? `Utilise CETTE URL EXACTE pour 'imageUrl': ${options.imageUrl}` : "Utilise 'https://picsum.photos/800/600' pour imageUrl."
             - **Position Image**: Pour 'imagePosition', utilise 'middle' par défaut, ou 'top' ou 'bottom' si le sujet le suggère.
-            - **Kahoot**: ${options.kahootUrl ? `Utilise CETTE URL EXACTE pour 'kahootUrl': ${options.kahootUrl}` : "Si pertinent, fournis un lien vers un quiz Kahoot public sur le sujet dans 'kahootUrl'. Sinon, laisse ce champ vide ou null."}
+            - **Kahoot**: ${options.kahootUrl ? `Utilise CETTE URL EXACTE pour 'kahootUrl': ${options.kahootUrl}` : "Si pertinent, fournis un lien vers un quiz Kahoot public sur le sujet dans 'kahootUrl'. Sinon, laisse ce champ vide ou null."
             - **Ressources Externes**: 
               ${providedResourcesInstructions || "Suggère 1 ou 2 liens pertinents (vidéos YouTube, articles, podcasts). Pour les vidéos, utilise des URLs 'embed')."}
             - **IDs**: Assure-toi que l'ID de la fiche et les IDs des sections sont des chaînes de caractères uniques (similaire à un UUID).
@@ -248,7 +248,7 @@ export const generateSingleMemoFiche = async (
     }
     
     
-    try {
+try {
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
             contents: prompt,
@@ -307,7 +307,8 @@ export const generateCommunicationMemoFiche = async (
         Analysez le texte fourni ci-dessous. Extrayez sa structure, son contenu et ses informations clés pour générer une mémofiche complète au format JSON. Le contenu des flashcards, du quiz et du glossaire doit être **exclusivement basé sur les informations présentes dans le texte fourni**.
 
         **Texte à traiter :**
-        ---\n        ${rawText}
+        ---
+        ${rawText}
         ---
 
         **Format de sortie JSON attendu et consignes :**
@@ -357,4 +358,3 @@ memoContent
         throw new Error("Impossible de générer la mémofiche de communication depuis l'IA. Veuillez réessayer.");
     }
 };
-

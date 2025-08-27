@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useData } from '../App';
-import { generateSingleMemoFiche, generateCommunicationMemoFiche } from '../services/geminiService';
+import axios from 'axios';
 import { MemoFiche, Theme, SystemeOrgane } from '../types';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import MemoCard from '../components/MemoCard';
@@ -33,6 +33,17 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ item, isSelected, onSelect,
         )}
     </button>
 );
+
+
+const generateSingleMemoFicheAPI = async (rawText: string, theme: Theme, system: SystemeOrgane, options: any): Promise<MemoFiche> => {
+    const response = await axios.post('/api/generate/single', { rawText, theme, system, options });
+    return response.data;
+};
+
+const generateCommunicationMemoFicheAPI = async (rawText: string, theme: Theme, options: any): Promise<MemoFiche> => {
+    const response = await axios.post('/api/generate/communication', { rawText, theme, options });
+    return response.data;
+};
 
 
 const GeneratorPage: React.FC = () => {
@@ -169,7 +180,7 @@ const GeneratorPage: React.FC = () => {
                 // Generate and add new memo fiche
                 let ficheFromGemini: MemoFiche;
                 if (isCommunicationTheme) {
-                    ficheFromGemini = await generateCommunicationMemoFiche(prompt, themeForApi, generationOptions);
+                    ficheFromGemini = await generateCommunicationMemoFicheAPI(prompt, themeForApi, generationOptions);
                 } else {
                     let systemForApi: SystemeOrgane;
                     if (systemSelection === 'CREATE_NEW') {
@@ -177,7 +188,7 @@ const GeneratorPage: React.FC = () => {
                     } else {
                         systemForApi = data.systemesOrganes.find(s => s.id === systemSelection)!;
                     }
-                    ficheFromGemini = await generateSingleMemoFiche(prompt, themeForApi, systemForApi, generationOptions);
+                    ficheFromGemini = await generateSingleMemoFicheAPI(prompt, themeForApi, systemForApi, generationOptions);
                 }
                 savedFiche = await addMemoFiche(ficheFromGemini);
             }
