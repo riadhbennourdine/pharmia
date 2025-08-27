@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, createContext, useContext, useMemo, useCallback } from 'react';
 import { HashRouter, Routes, Route, useParams, Navigate, Outlet } from 'react-router-dom';
 import { PharmIaData, MemoFiche, UserRole, AuthContextType } from './types';
@@ -390,3 +389,4 @@ const AppContent: React.FC = () => {
 };
 
 export default App;
+// Force rebuild
