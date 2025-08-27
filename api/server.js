@@ -153,4 +153,4 @@ app.post('/api/generate/communication', async (req, res) => {
 });
 
 // Vercel expects a default export for serverless functions
-export default app;
+module.exports = app;
