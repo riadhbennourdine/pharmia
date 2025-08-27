@@ -1,11 +1,11 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { MemoFiche, Theme, SystemeOrgane, ExternalResource } from '../types';
 
-if (!import.meta.env.VITE_GEMINI_API_KEY) {
+if (!process.env.VITE_GEMINI_API_KEY) {
     throw new Error("VITE_GEMINI_API_KEY environment variable not set");
 }
 
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+const ai = new GoogleGenAI({ apiKey: process.env.VITE_GEMINI_API_KEY });
 
 const sectionSchema = {
     type: Type.OBJECT,
@@ -358,24 +358,3 @@ memoContent
     }
 };
 
-export const askChatbot = async (question: string): Promise<string> => {
-    const prompt = `
-        Tu es un chatbot expert en pharmacie d'officine et tu réponds aux questions des utilisateurs de l'application PharmIA.
-        Réponds à la question suivante en te basant sur tes connaissances en pharmacie. Sois concis et précis.
-
-        Question: ${question}
-    `;
-
-    try {
-        const response = await ai.models.generateContent({
-            model: "gemini-pro", // Use a suitable model for chat
-            contents: prompt,
-        });
-
-        return response.text.trim();
-
-    } catch (error) {
-        console.error("Error asking chatbot:", error);
-        throw new Error("Impossible de contacter le chatbot pour le moment. Veuillez réessayer.");
-    }
-};

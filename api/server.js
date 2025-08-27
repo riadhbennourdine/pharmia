@@ -1,6 +1,9 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import express from 'express';
+import cors from 'cors';
+import { connectToServer, getDb } from './db.js';
+import { askWithMemofiches } from './services/ragService.js';
 
 const app = express();
 
@@ -110,6 +113,18 @@ app.post('/api/login', async (req, res) => {
   } catch (err) {
     console.error("Error during login:", err);
     res.status(500).json({ message: 'Server error during login.' });
+  }
+});
+
+// Chatbot Message Route
+app.post('/api/chatbot/message', async (req, res) => {
+  try {
+    const { message } = req.body;
+    const botResponse = await askWithMemofiches(message);
+    res.json({ response: botResponse });
+  } catch (err) {
+    console.error("Error processing chatbot message:", err);
+    res.status(500).json({ message: 'Server error processing chatbot message.' });
   }
 });
 

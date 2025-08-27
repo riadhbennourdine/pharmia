@@ -8,7 +8,7 @@ export const sendMessageToChatbot = async (message: string): Promise<string> => 
     try {
         const token = localStorage.getItem('token'); // Assuming token is stored in localStorage
         const response = await axios.post(
-            `${API_BASE_URL}/api/chatbot/message`,
+            `${API_BASE_URL}/chatbot/message`,
             { message },
             {
                 headers: {
