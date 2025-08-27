@@ -1,10 +1,10 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import express from 'express';
-import cors from 'cors';
-import { connectToServer, getDb } from './db.js';
-import { askWithMemofiches } from './services/ragService.js';
-import { generateSingleMemoFiche, generateCommunicationMemoFiche } from './services/generationService.js';
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const express = require('express');
+const cors = require('cors');
+const { connectToServer, getDb } = require('./db.js');
+const { askWithMemofiches } = require('./services/ragService.js');
+const { generateSingleMemoFiche, generateCommunicationMemoFiche } = require('./services/generationService.js');
 
 const app = express();
 

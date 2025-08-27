@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from '@google/genai';
+const { GoogleGenAI, Type } = require('@google/genai');
 
 if (!process.env.VITE_GEMINI_API_KEY) {
     throw new Error("VITE_GEMINI_API_KEY environment variable not set");
@@ -153,7 +153,7 @@ Mettre les références bibliographiques qui ont servi pour la rédaction de cet
 Cette procédure vise à assurer un suivi complet et personnalisé du patient, optimiser lefficacité du traitement prescrit et améliorer le confort du patient
 `;
 
-export const generateSingleMemoFiche = async (
+const generateSingleMemoFiche = async (
     rawText, 
     theme, 
     system,
@@ -274,7 +274,7 @@ const communicationMemoFicheSchema = {
     }
 };
 
-export const generateCommunicationMemoFiche = async (
+const generateCommunicationMemoFiche = async (
     rawText,
     theme,
     options = {}
@@ -340,3 +340,4 @@ memoContent
     }
 };
 
+module.exports = { generateSingleMemoFiche, generateCommunicationMemoFiche };

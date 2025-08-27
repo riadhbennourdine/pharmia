@@ -1,5 +1,5 @@
-import { getDb } from '../db.js';
-import { GoogleGenAI } from "@google/genai";
+const { getDb } = require('../db.js');
+const { GoogleGenAI } = require("@google/genai");
 
 if (!process.env.VITE_GEMINI_API_KEY) {
     throw new Error("VITE_GEMINI_API_KEY environment variable not set");
@@ -30,7 +30,7 @@ const askChatbot = async (question) => {
 };
 
 
-export const askWithMemofiches = async (question) => {
+const askWithMemofiches = async (question) => {
   const db = getDb();
   const memofichesCollection = db.collection('memofiches');
 
@@ -78,3 +78,6 @@ export const askWithMemofiches = async (question) => {
     throw error;
   }
 };
+
+module.exports = { askWithMemofiches };
+
