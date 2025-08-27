@@ -1,23 +1,23 @@
 import axios from 'axios';
 
-const API_BASE_URL = window.location.origin.includes('localhost')
-  ? 'http://localhost:5001'
-  : `${window.location.origin}/api`;
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || '/api';
 
 export const sendMessageToChatbot = async (message: string): Promise<string> => {
     try {
         const token = localStorage.getItem('token'); // Assuming token is stored in localStorage
-        const response = await axios.post(
+        const response = await fetch(
             `${API_BASE_URL}/chatbot/message`,
-            { message },
             {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
-                }
+                },
+                body: JSON.stringify({ message })
             }
         );
-        return response.data.response;
+        const data = await response.json();
+        return data.response;
     } catch (error) {
         console.error('Error sending message to chatbot:', error);
         throw error;
