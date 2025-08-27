@@ -153,7 +153,7 @@ Mettre les références bibliographiques qui ont servi pour la rédaction de cet
 Cette procédure vise à assurer un suivi complet et personnalisé du patient, optimiser lefficacité du traitement prescrit et améliorer le confort du patient
 `;
 
-const generateSingleMemoFiche = async (
+export const generateSingleMemoFiche = async (
     rawText, 
     theme, 
     system,
@@ -274,7 +274,7 @@ const communicationMemoFicheSchema = {
     }
 };
 
-const generateCommunicationMemoFiche = async (
+export const generateCommunicationMemoFiche = async (
     rawText,
     theme,
     options = {}
@@ -340,4 +340,3 @@ memoContent
     }
 };
 
-export { generateSingleMemoFiche, generateCommunicationMemoFiche };
