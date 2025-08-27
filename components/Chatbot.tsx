@@ -6,15 +6,29 @@ import { sendMessageToChatbot } from '../services/chatbotService';
 
 const Chatbot: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const [initialGreeting, setInitialGreeting] = useState('');
     const [messages, setMessages] = useState([
-        { sender: 'bot', text: 'Bonjour! Comment puis-je vous aider aujourd\'aujourd\'hui?' }
+        { sender: 'bot', text: initialGreeting }
     ]);
     const [inputValue, setInputValue] = useState('');
     const [loading, setLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const nodeRef = useRef(null); // Create a ref for the transition node
 
+    useEffect(() => {
+        const hour = new Date().getHours();
+        let greeting = '';
+        if (hour < 18) {
+            greeting = 'Bonjour! Comment puis-je vous aider aujourd\'hui? (Mode Jour)';
+        } else {
+            greeting = 'Bonsoir ! Comment puis-je vous aider aujourd\'hui? (Mode Nuit)';
+        }
+        setInitialGreeting(greeting);
+        setMessages([{ sender: 'bot', text: greeting }]);
+    }, []);
+
     const scrollToBottom = () => {
+
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
@@ -33,7 +47,19 @@ const Chatbot: React.FC = () => {
 
             try {
                 const botResponse = await sendMessageToChatbot(inputValue);
-                setMessages(prev => [...prev, { sender: 'bot', text: botResponse }]);
+                let formattedResponse = "";
+                try {
+                    const parsedResponse = JSON.parse(botResponse);
+                    if (parsedResponse.error) {
+                        formattedResponse = parsedResponse.error;
+                    } else {
+                        formattedResponse = `**Cas Comptoir:**\n${parsedResponse.casComptoir}\n\n**Questions à poser:**\n${parsedResponse.questionsAPoser}\n\n**Maladie:**\n${parsedResponse.maladie}\n\n**Traitement:**\n${parsedResponse.traitement}\n\n**Conseils Associés:**\n${parsedResponse.conseilsAssocies}`;
+                    }
+                } catch (jsonError) {
+                    // If the response is not JSON, display it as plain text
+                    formattedResponse = botResponse;
+                }
+                setMessages(prev => [...prev, { sender: 'bot', text: formattedResponse }]);
             } catch (error) {
                 console.error("Error asking chatbot:", error);
                 setMessages(prev => [...prev, { sender: 'bot', text: "Désolé, je n'ai pas pu traiter votre demande pour le moment. Veuillez réessayer." }]);
