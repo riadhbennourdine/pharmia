@@ -1,4 +1,4 @@
-const { GoogleGenAI, Type } = require("@google/genai");
+import { GoogleGenAI, Type } from '@google/genai';
 
 if (!process.env.VITE_GEMINI_API_KEY) {
     throw new Error("VITE_GEMINI_API_KEY environment variable not set");
@@ -340,4 +340,4 @@ memoContent
     }
 };
 
-module.exports = { generateSingleMemoFiche, generateCommunicationMemoFiche };
+export { generateSingleMemoFiche, generateCommunicationMemoFiche };
