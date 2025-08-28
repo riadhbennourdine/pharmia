@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from "@google/generative-ai";
+import { GoogleGenerativeAI, Type } from "@google/generative-ai";
 
 if (!process.env.GEMINI_API_KEY) {
     throw new Error("GEMINI_API_KEY environment variable not set");
