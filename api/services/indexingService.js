@@ -1,7 +1,15 @@
-const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
-const { connectToServer, getDb } = require('../db.js');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+
+// __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
+import { connectToServer, getDb } from '../db.js';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 if (!process.env.GEMINI_API_KEY) {
   throw new Error("GEMINI_API_KEY environment variable not set");
@@ -10,7 +18,7 @@ if (!process.env.GEMINI_API_KEY) {
 const ai = new GoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY });
 const embeddingModel = ai.getGenerativeModel({ model: "text-embedding-004" });
 
-const indexMemofiches = async () => {
+export const indexMemofiches = async () => {
   let client;
   try {
     console.log("Connecting to the database...");
@@ -45,7 +53,7 @@ const indexMemofiches = async () => {
       const result = await embeddingModel.embedContent(textToEmbed);
       const embedding = result.embedding.values;
 
-      // 3. Update the document with the new vector
+      // 3. Update the document in MongoDB...
       console.log("  Updating document in MongoDB...");
       await memofichesCollection.updateOne(
         { _id: fiche._id },
@@ -70,5 +78,3 @@ const indexMemofiches = async () => {
     console.log("Indexing script finished.");
   }
 };
-
-indexMemofiches();

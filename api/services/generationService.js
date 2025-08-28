@@ -1,4 +1,4 @@
-const { GoogleGenAI, Type } = require('@google/genai');
+import { GoogleGenAI, Type } from "@google/generative-ai";
 
 if (!process.env.GEMINI_API_KEY) {
     throw new Error("GEMINI_API_KEY environment variable not set");
@@ -153,7 +153,7 @@ Mettre les références bibliographiques qui ont servi pour la rédaction de cet
 Cette procédure vise à assurer un suivi complet et personnalisé du patient, optimiser lefficacité du traitement prescrit et améliorer le confort du patient
 `;
 
-const generateSingleMemoFiche = async (
+export const generateSingleMemoFiche = async (
     rawText, 
     theme, 
     system,
@@ -218,6 +218,7 @@ const generateSingleMemoFiche = async (
               - Thème: { id: "${theme.id}", Nom: "${theme.Nom}" }
               - Système/Organe: { id: "${system.id}", Nom: "${system.Nom}" }
             - **Réponse JSON**: Remplis les champs 'theme' et 'systeme_organe' de l'objet JSON de sortie avec EXACTEMENT ces valeurs.
+            - **Éviter la Redondance**: Ne pas inclure les informations sur le Thème ou le Système/Organe dans les sections de memoContent, car elles sont déjà spécifiées dans leurs champs dédiés.
             - **Sections**: Crée les sections avec les titres suivants : 'Aperçu', 'Mémo : Cas comptoir', 'Questions à poser', 'Limites du conseil', 'Conseil traitement Produits', 'Conseils Hygiène de vie', 'Références bibliographiques'. La section 'Aperçu' doit fournir une brève description du contexte ou de la maladie.
             - **Contenu**: Le contenu de chaque section doit être en Markdown, avec des paragraphes bien délimités et des retours à la ligne. Chaque section ne doit pas dépasser 10-15 lines. Si le contenu est plus long, crée une nouvelle section accordéon avec un titre numéroté (par exemple, 'Conseil traitement Produits (1/2)', 'Conseil traitement Produits (2/2)').
             - **Références**: Inclure des références bibliographiques dans la section dédiée.
@@ -274,7 +275,7 @@ const communicationMemoFicheSchema = {
     }
 };
 
-const generateCommunicationMemoFiche = async (
+export const generateCommunicationMemoFiche = async (
     rawText,
     theme,
     options = {}
@@ -339,5 +340,3 @@ memoContent
         throw new Error("Impossible de générer la mémofiche de communication depuis l'IA. Veuillez réessayer.");
     }
 };
-
-module.exports = { generateSingleMemoFiche, generateCommunicationMemoFiche };

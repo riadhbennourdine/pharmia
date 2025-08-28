@@ -1,5 +1,5 @@
-const { getDb } = require('../db.js');
-const { GoogleGenAI, Type } = require("@google/genai");
+import { getDb } from '../db.js';
+import { GoogleGenAI } from "@google/generative-ai";
 
 if (!process.env.GEMINI_API_KEY) {
     throw new Error("GEMINI_API_KEY environment variable not set");
@@ -7,7 +7,7 @@ if (!process.env.GEMINI_API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-const askWithMemofiches = async (question) => {
+export const askWithMemofiches = async (question) => {
   const db = getDb();
   const memofichesCollection = db.collection('memofiches');
 
@@ -55,8 +55,3 @@ const askWithMemofiches = async (question) => {
     throw error;
   }
 };
-
-
-module.exports = { askWithMemofiches };
-
-
