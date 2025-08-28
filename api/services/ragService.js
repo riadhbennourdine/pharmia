@@ -1,11 +1,41 @@
 import { getDb } from '../db.js';
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, FunctionDeclarationSchemaType as Type } from "@google/generative-ai";
 
 if (!process.env.GEMINI_API_KEY) {
     throw new Error("GEMINI_API_KEY environment variable not set");
 }
 
 const ai = new GoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY });
+
+const structuredResponseSchema = {
+    type: Type.OBJECT,
+    properties: {
+        casComptoir: { type: Type.STRING, description: "Description du cas comptoir." },
+        questionsAPoser: { type: Type.STRING, description: "Questions à poser au patient." },
+        maladie: { type: Type.STRING, description: "Nom de la maladie." },
+        traitement: { type: Type.STRING, description: "Conseils de traitement." },
+        conseilsAssocies: { type: Type.STRING, description: "Conseils associés." },
+        error: { type: Type.STRING, description: "Message d'erreur si la question ne peut être traitée." }
+    },
+    required: [] // Fields are optional as an error might be returned
+};
+
+const askChatbot = async (prompt, schema, mimeType) => {
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            generationConfig: {
+                responseMimeType: mimeType,
+                responseSchema: schema,
+            },
+        });
+        return response.text();
+    } catch (error) {
+        console.error("Error in askChatbot:", error);
+        throw error;
+    }
+};
 
 export const askWithMemofiches = async (question) => {
   const db = getDb();
@@ -48,7 +78,7 @@ export const askWithMemofiches = async (question) => {
   `;
 
   try {
-    const response = await askChatbot(prompt, structuredResponseSchema, "application/json"); // Use the existing askChatbot function
+    const response = await askChatbot(prompt, structuredResponseSchema, "application/json");
     return response;
   } catch (error) {
     console.error("Error asking chatbot with RAG:", error);
