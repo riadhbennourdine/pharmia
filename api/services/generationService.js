@@ -1,9 +1,5 @@
 import { GoogleGenerativeAI, FunctionDeclarationSchemaType as Type } from "@google/generative-ai";
 
-if (!process.env.GEMINI_API_KEY) {
-    throw new Error("GEMINI_API_KEY environment variable not set");
-}
-
 const ai = new GoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const sectionSchema = {

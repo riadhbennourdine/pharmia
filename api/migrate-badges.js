@@ -1,6 +1,3 @@
-import dotenv from 'dotenv';
-dotenv.config({ path: './api/.env' });
-
 import { connectToServer, getDb, closeDb } from './db.js';
 
 const badges = [

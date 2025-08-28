@@ -1,19 +1,5 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
-
-// __dirname equivalent for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
-
 import { connectToServer, getDb } from '../db.js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-
-if (!process.env.GEMINI_API_KEY) {
-  throw new Error("GEMINI_API_KEY environment variable not set");
-}
 
 const ai = new GoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY });
 const embeddingModel = ai.getGenerativeModel({ model: "text-embedding-004" });
