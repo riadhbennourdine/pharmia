@@ -130,6 +130,36 @@ app.post('/api/chatbot/message', async (req, res) => {
   }
 });
 
+app.get('/api/chatbot/history', (req, res) => {
+  // This is a placeholder implementation. In a real application, you would fetch
+  // the chat history from a database for the logged-in user.
+  res.json([]);
+});
+
+// AI Coach Routes
+app.post('/api/ai-coach/suggest-challenge', (req, res) => {
+  // Placeholder - in a real app, this would use AI to suggest a challenge
+  // based on user's progress, etc.
+  res.json({
+    type: "quiz",
+    ficheId: "60d5ecb8d7f8f8001f8e8c8c", // Example ID
+    title: "Quiz: Interactions Médicamenteuses Courantes",
+    reasoning: "Pour renforcer vos connaissances sur un sujet crucial."
+  });
+});
+
+app.post('/api/ai-coach/find-by-objective', (req, res) => {
+  const { objective } = req.body;
+  // Placeholder - in a real app, this would use AI to find a fiche
+  // based on the provided objective.
+  res.json({
+    type: "fiche",
+    ficheId: "60d5ecb8d7f8f8001f8e8c8d", // Example ID
+    title: `Fiche sur : ${objective}`,
+    reasoning: `Cette fiche est une excellente ressource pour l'objectif : ${objective}`
+  });
+});
+
 // Generation routes
 app.post('/api/generate/single', async (req, res) => {
   try {
