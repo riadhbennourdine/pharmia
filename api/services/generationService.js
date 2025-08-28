@@ -1,10 +1,10 @@
 const { GoogleGenAI, Type } = require('@google/genai');
 
-if (!process.env.VITE_GEMINI_API_KEY) {
-    throw new Error("VITE_GEMINI_API_KEY environment variable not set");
+if (!process.env.GEMINI_API_KEY) {
+    throw new Error("GEMINI_API_KEY environment variable not set");
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.VITE_GEMINI_API_KEY });
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const sectionSchema = {
     type: Type.OBJECT,

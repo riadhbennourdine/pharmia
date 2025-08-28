@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => {
     return {
       server: {
         proxy: {
-          '/api': 'http://localhost:5001',
+          '/api': 'http://localhost:3001',
         },
       },
       resolve: {
