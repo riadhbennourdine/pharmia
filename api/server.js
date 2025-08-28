@@ -58,6 +58,11 @@ app.get('/api/test-db', async (req, res) => {
   }
 });
 
+app.get('/api/check-env', (req, res) => {
+  const jwtSecretSet = !!process.env.JWT_SECRET;
+  res.json({ JWT_SECRET_SET: jwtSecretSet });
+});
+
 app.get('/api/data', async (req, res) => {
   try {
     const db = getDb();
