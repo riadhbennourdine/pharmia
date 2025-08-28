@@ -19,9 +19,9 @@ const Chatbot: React.FC = () => {
         const hour = new Date().getHours();
         let greeting = '';
         if (hour < 18) {
-            greeting = 'Bonjour! Comment puis-je vous aider aujourd'hui?';
+            greeting = `Bonjour! Comment puis-je vous aider aujourd'hui?`;
         } else {
-            greeting = 'Bonsoir ! Comment puis-je vous aider aujourd'hui?';
+            greeting = `Bonsoir ! Comment puis-je vous aider aujourd'hui?`;
         }
         setInitialGreeting(greeting);
         setMessages([{ sender: 'bot', text: greeting }]);
