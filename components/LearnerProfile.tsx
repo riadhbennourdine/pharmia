@@ -42,7 +42,7 @@ const LearnerProfile: React.FC<LearnerProfileProps> = ({ user, data }) => {
         return data.memofiches.find(f => f.id === id)?.title || 'Fiche inconnue';
     };
 
-    '''    const earnedBadges = data.badges?.filter(b => user.badges?.includes(b.id)) || [];''
+        const earnedBadges = data.badges?.filter(b => user.badges?.includes(b.id)) || [];
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
