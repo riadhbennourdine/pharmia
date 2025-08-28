@@ -80,5 +80,25 @@ export const INITIAL_DATA: PharmIaData = {
         { type: 'video', title: 'Quand prescrire les AINS ?', url: 'https://www.youtube.com/watch?v=examplevideo' }
       ]
     }
-  ],
-};
+  '''  ],
+  badges: [
+    {
+      id: 'badge-1',
+      name: 'Premier Pas',
+      description: 'Vous avez lu votre première mémofiche !',
+      icon: 'FiAward'
+    },
+    {
+      id: 'badge-2',
+      name: 'Curieux',
+      description: 'Vous avez lu 5 mémofiches.',
+      icon: 'FiSearch'
+    },
+    {
+      id: 'badge-3',
+      name: 'Apprenti Sorcier',
+      description: 'Vous avez complété votre premier quiz.',
+      icon: 'FiStar'
+    }
+  ]
+};''

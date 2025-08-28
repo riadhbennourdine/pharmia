@@ -1,11 +1,11 @@
-require('dotenv').config();
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const express = require('express');
-const cors = require('cors');
-const { connectToServer, getDb } = require('./db.js');
-const { askWithMemofiches } = require('./services/ragService.js');
-const { generateSingleMemoFiche, generateCommunicationMemoFiche } = require('./services/generationService.js');
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { connectToServer, getDb } from './db.js';
+import { askWithMemofiches } from './services/ragService.js';
+import { generateSingleMemoFiche, generateCommunicationMemoFiche } from './services/generationService.js';
 
 const app = express();
 
@@ -46,7 +46,8 @@ app.get('/api/data', async (req, res) => {
     const themes = await db.collection('themes').find({}).toArray();
     const systemesOrganes = await db.collection('systemesOrganes').find({}).toArray();
     const memofiches = await db.collection('memofiches').find({}).toArray();
-    res.json({ themes, systemesOrganes, memofiches });
+    const badges = await db.collection('badges').find({}).toArray();
+    res.json({ themes, systemesOrganes, memofiches, badges });
   } catch (err) {
     console.error("Failed to fetch data from MongoDB", err);
     res.status(500).json({ status: 'error', message: 'Failed to fetch data', error: err.message });
@@ -184,4 +185,4 @@ app.post('/api/generate/communication', async (req, res) => {
 });
 
 // Vercel expects a default export for serverless functions
-module.exports = app;
+export default app;

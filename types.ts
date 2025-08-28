@@ -69,11 +69,19 @@ export interface MemoFiche {
   shareCode?: string;
 }
 
+'''export interface Badge {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+}
+
 export interface PharmIaData {
     themes: Theme[];
     systemesOrganes: SystemeOrgane[];
     memofiches: MemoFiche[];
-}
+    badges: Badge[];
+}''
 
 // --- START: Added for Authentication ---
 export enum UserRole {
