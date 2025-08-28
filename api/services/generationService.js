@@ -235,8 +235,7 @@ export const generateSingleMemoFiche = async (
     
     
 try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
+        const response = await ai.getGenerativeModel({ model: "gemini-2.5-flash" }).generateContent({
             contents: prompt,
             config: {
                 responseMimeType: "application/json",

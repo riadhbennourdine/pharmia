@@ -22,8 +22,7 @@ const structuredResponseSchema = {
 
 const askChatbot = async (prompt, schema, mimeType) => {
     try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
+        const response = await ai.getGenerativeModel({ model: "gemini-2.5-flash" }).generateContent({
             contents: [{ role: "user", parts: [{ text: prompt }] }],
             generationConfig: {
                 responseMimeType: mimeType,
