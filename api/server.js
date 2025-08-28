@@ -9,6 +9,24 @@ import { generateSingleMemoFiche, generateCommunicationMemoFiche } from './servi
 
 const app = express();
 
+// Middleware to verify JWT token
+const verifyToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ message: 'Access Denied: No Token Provided!' });
+  }
+
+  try {
+    const verified = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = verified; // Attach user payload to the request
+    next();
+  } catch (err) {
+    res.status(403).json({ message: 'Invalid Token' });
+  }
+};
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -181,6 +199,25 @@ app.post('/api/generate/communication', async (req, res) => {
   } catch (err) {
     console.error("Error generating communication memo fiche:", err);
     res.status(500).json({ message: 'Server error generating communication memo fiche.' });
+  }
+});
+
+// Learner Space Route
+app.get('/api/learner-space', verifyToken, async (req, res) => {
+  try {
+    const db = getDb();
+    // req.user.userId is a string, but _id in MongoDB is an ObjectId
+    // We need to convert req.user.userId to ObjectId
+    const user = await db.collection('users').findOne({ _id: new (await import('mongodb')).ObjectId(req.user.userId) });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    res.json(user);
+  } catch (err) {
+    console.error("Error fetching learner data:", err);
+    res.status(500).json({ message: 'Server error fetching learner data.' });
   }
 });
 
