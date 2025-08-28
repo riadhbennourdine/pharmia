@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI, FunctionDeclarationSchemaType as Type } from "@google/generative-ai";
 
-const ai = new GoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY });
+const ai = new GoogleGenerativeAI({ apiKey: process.env.VITE_GEMINI_API_KEY });
 
 const sectionSchema = {
     type: Type.OBJECT,
