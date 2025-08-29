@@ -1,17 +1,21 @@
 import { getDb } from '../db.js';
-import { GoogleGenerativeAI, FunctionDeclarationSchemaType as Type } from "@google/generative-ai";
+import { GoogleGenerativeAI, GenerativeModel, SchemaBuilder } from "@google/generative-ai";
 
 const ai = new GoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY });
 
+if (!process.env.GEMINI_API_KEY) {
+    throw new Error("GEMINI_API_KEY is not set in environment variables.");
+}
+
 const structuredResponseSchema = {
-    type: Type.OBJECT,
+    type: SchemaBuilder.Type.OBJECT,
     properties: {
-        casComptoir: { type: Type.STRING, description: "Description du cas comptoir." },
-        questionsAPoser: { type: Type.STRING, description: "Questions à poser au patient." },
-        maladie: { type: Type.STRING, description: "Nom de la maladie." },
-        traitement: { type: Type.STRING, description: "Conseils de traitement." },
-        conseilsAssocies: { type: Type.STRING, description: "Conseils associés." },
-        error: { type: Type.STRING, description: "Message d'erreur si la question ne peut être traitée." }
+        casComptoir: { type: SchemaBuilder.Type.STRING, description: "Description du cas comptoir." },
+        questionsAPoser: { type: SchemaBuilder.Type.STRING, description: "Questions à poser au patient." },
+        maladie: { type: SchemaBuilder.Type.STRING, description: "Nom de la maladie." },
+        traitement: { type: SchemaBuilder.Type.STRING, description: "Conseils de traitement." },
+        conseilsAssocies: { type: SchemaBuilder.Type.STRING, description: "Conseils associés." },
+        error: { type: SchemaBuilder.Type.STRING, description: "Message d'erreur si la question ne peut être traitée." }
     },
     required: [] // Fields are optional as an error might be returned
 };
