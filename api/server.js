@@ -206,6 +206,38 @@ app.post('/api/generate/communication', async (req, res) => {
   }
 });
 
+// Update MemoFiche Route
+app.put('/api/memofiches/:id', verifyToken, async (req, res) => {
+  try {
+    const db = getDb();
+    const { id } = req.params;
+    const updatedFiche = req.body;
+
+    // Ensure the ID is a valid MongoDB ObjectId if using ObjectId for _id
+    const { ObjectId } = await import('mongodb');
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid MemoFiche ID.' });
+    }
+
+    // Remove _id from updatedFiche to prevent immutable field error
+    delete updatedFiche._id;
+
+    const result = await db.collection('memofiches').updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updatedFiche }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: 'MemoFiche not found.' });
+    }
+
+    res.json({ message: 'MemoFiche updated successfully.', updatedFiche: { _id: id, ...updatedFiche } });
+  } catch (err) {
+    console.error("Error updating memo fiche:", err);
+    res.status(500).json({ message: 'Server error updating memo fiche.' });
+  }
+});
+
 // Learner Space Route
 app.get('/api/learner-space', verifyToken, async (req, res) => {
   try {
