@@ -19,7 +19,7 @@ const LoginPage: React.FC = () => {
 
     useEffect(() => {
       if (isLoggedIn) {
-        navigate('/coach-accueil');
+        navigate('/fiches');
       }
     }, [isLoggedIn, navigate]);
 
@@ -90,7 +90,7 @@ const LoginPage: React.FC = () => {
                     // Decode token to get username
                     const tokenPayload = JSON.parse(atob(data.token.split('.')[1]));
                     login(data.role || role, data.token, tokenPayload.username); // Pass token and username to login
-                    navigate('/coach-accueil');
+                    navigate('/fiches');
                 }
             } else {
                 setError(data.message || 'Une erreur est survenue.');
