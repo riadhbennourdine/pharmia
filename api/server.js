@@ -114,4 +114,9 @@ app.post('/api/login', async (req, res) => {
 });
 
 // Vercel expects a default export for serverless functions
-export default app;
+// export default app; // Comment out or remove this line for Cloud Run
+
+const PORT = process.env.PORT || 8080; // Cloud Run provides PORT, default to 8080
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+});
