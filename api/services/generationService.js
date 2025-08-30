@@ -5,20 +5,20 @@ if (!DEEPSEEK_API_KEY) {
 }
 
 const sectionSchema = {
-    type: Type.OBJECT,
+    type: "object",
     properties: {
         id: { type: Type.STRING },
         title: { type: Type.STRING },
-        content: { type: Type.STRING, description: "Content in Markdown format." },
+        content: { type: "string", description: "Content in Markdown format." },
         children: {
-            type: Type.ARRAY,
+            type: "array",
             description: "Nested sub-sections. Keep this one level deep.",
             items: {
-                type: Type.OBJECT,
+                type: "object",
                 properties: {
                     id: { type: Type.STRING },
                     title: { type: Type.STRING },
-                    content: { type: Type.STRING, description: "Content in Markdown format." },
+                    content: { type: "string", description: "Content in Markdown format." },
                 },
                 required: ["id", "title", "content"],
             }
@@ -28,34 +28,34 @@ const sectionSchema = {
 };
 
 const externalResourceSchema = {
-    type: Type.OBJECT,
+    type: "object",
     properties: {
-        type: { type: Type.STRING, enum: ['video', 'podcast', 'quiz', 'article'], description: "Type of the external resource." },
-        title: { type: Type.STRING, description: "Title of the resource." },
-        url: { type: Type.STRING, description: "Direct URL to the resource." }
+        type: { type: "string", enum: ['video', 'podcast', 'quiz', 'article'], description: "Type of the external resource." },
+        title: { type: "string", description: "Title of the resource." },
+        url: { type: "string", description: "Direct URL to the resource." }
     },
     required: ["type", "title", "url"]
 };
 
 const memoFicheItemSchema = {
-    type: Type.OBJECT,
+    type: "object",
     properties: {
-        id: { type: Type.STRING, description: "Unique ID for the memo fiche. Use a UUID-like string." },
-        title: { type: Type.STRING, description: "Titre de la mémofiche." },
-        shortDescription: { type: Type.STRING, description: "A very brief, one-sentence summary for card previews." },
-        imageUrl: { type: Type.STRING, description: "A placeholder image URL from picsum.photos" },
-        imagePosition: { type: Type.STRING, enum: ['top', 'middle', 'bottom'], description: "Position of the image within its container. Default to 'middle'." },
-        flashSummary: { type: Type.STRING, description: "Synthèse flash de 2-3 phrases (résumé)." },
-        level: { type: Type.STRING, description: "Niveau de difficulté (e.g., 'Débutant', 'Intermédiaire', 'Expert')." },
-        createdAt: { type: Type.STRING, description: "Date of creation in YYYY-MM-DD format. Use today's date." },
-        kahootUrl: { type: Type.STRING, description: "Optional URL to a relevant Kahoot! quiz. Must be a valid Kahoot URL if provided." },
+        id: { type: "string", description: "Unique ID for the memo fiche. Use a UUID-like string." },
+        title: { type: "string", description: "Titre de la mémofiche." },
+        shortDescription: { type: "string", description: "A very brief, one-sentence summary for card previews." },
+        imageUrl: { type: "string", description: "A placeholder image URL from picsum.photos" },
+        imagePosition: { type: "string", enum: ['top', 'middle', 'bottom'], description: "Position of the image within its container. Default to 'middle'." },
+        flashSummary: { type: "string", description: "Synthèse flash de 2-3 phrases (résumé)." },
+        level: { type: "string", description: "Niveau de difficulté (e.g., 'Débutant', 'Intermédiaire', 'Expert')." },
+        createdAt: { type: "string", description: "Date of creation in YYYY-MM-DD format. Use today's date." },
+        kahootUrl: { type: "string", description: "Optional URL to a relevant Kahoot! quiz. Must be a valid Kahoot URL if provided." },
         memoContent: {
-            type: Type.ARRAY,
+            type: "array",
             description: "Sections with titles: 'Mémo : Cas comptoir', 'Questions à poser', 'Limites du conseil', 'Conseil traitement Produits', 'Conseils Hygiène de vie', 'Références bibliographiques'. Content should be in Markdown and not exceed 10-15 lines per section.",
             items: sectionSchema
         },
         theme: {
-            type: Type.OBJECT,
+            type: "object",
             properties: {
                 id: { type: Type.STRING },
                 Nom: { type: Type.STRING },
@@ -63,7 +63,7 @@ const memoFicheItemSchema = {
                 required: ["id", "Nom"],
         },
         systeme_organe: {
-            type: Type.OBJECT,
+            type: "object",
             properties: {
                 id: { type: Type.STRING },
                 Nom: { type: Type.STRING },
@@ -71,10 +71,10 @@ const memoFicheItemSchema = {
                 required: ["id", "Nom"],
         },
         flashcards: {
-            type: Type.ARRAY,
+            type: "array",
             description: "Exactly 10 flashcards (question/answer format).",
             items: {
-                type: Type.OBJECT,
+                type: "object",
                 properties: {
                     question: { type: Type.STRING },
                     answer: { type: Type.STRING },
@@ -83,14 +83,14 @@ const memoFicheItemSchema = {
             },
         },
         quiz: {
-            type: Type.ARRAY,
+            type: "array",
             description: "Exactly 10 quiz questions (MCQ or true/false) with answers and pedagogical explanations.",
             items: {
-                type: Type.OBJECT,
+                type: "object",
                 properties: {
                     question: { type: Type.STRING },
-                    type: { type: Type.STRING, enum: ["mcq", "truefalse"] },
-                    options: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    type: { type: "string", enum: ["mcq", "truefalse"] },
+                    options: { type: "array", items: { type: Type.STRING } },
                     correctAnswer: { type: Type.STRING },
                     explanation: { type: Type.STRING },
                 },
@@ -98,10 +98,10 @@ const memoFicheItemSchema = {
             },
         },
         glossaryTerms: {
-            type: Type.ARRAY,
+            type: "array",
             description: "Exactly 10 technical terms with their simple definitions, derived from the source text.",
             items: {
-                type: Type.OBJECT,
+                type: "object",
                 properties: {
                     term: { type: Type.STRING },
                     definition: { type: Type.STRING },
@@ -110,7 +110,7 @@ const memoFicheItemSchema = {
             },
         },
         externalResources: {
-            type: Type.ARRAY,
+            type: "array",
             description: "A list of relevant external resources (video, podcast, etc.).",
             items: externalResourceSchema
         },
@@ -280,7 +280,7 @@ const communicationMemoFicheSchema = {
     properties: {
         ...memoFicheItemSchema.properties,
         memoContent: {
-            type: Type.ARRAY,
+            type: "array",
             description: "The main content of the memo fiche, structured into sections based on the provided text's paragraph titles. The 'Références bibliographiques' section should be last, if present.",
             items: sectionSchema
         },
