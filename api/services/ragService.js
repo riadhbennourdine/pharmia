@@ -22,7 +22,6 @@ const structuredResponseSchema = {
 
 const askChatbot = async (prompt, schema, mimeType) => {
     try {
-        console.log(`[${new Date().toISOString()}] askChatbot: Starting Gemini API call.`);
         const response = await ai.getGenerativeModel({ model: "gemini-2.5-flash" }).generateContent({
             contents: [{ role: "user", parts: [{ text: prompt }] }],
             generationConfig: {
@@ -30,16 +29,14 @@ const askChatbot = async (prompt, schema, mimeType) => {
                 responseSchema: schema,
             },
         });
-        console.log(`[${new Date().toISOString()}] askChatbot: Gemini API call finished.`);
         return response.text();
     } catch (error) {
-        console.error(`[${new Date().toISOString()}] Error in askChatbot:`, error);
+        console.error("Error in askChatbot:", error);
         throw error;
     }
 };
 
 export const askWithMemofiches = async (question) => {
-  console.log(`[${new Date().toISOString()}] askWithMemofiches: Starting for question: "${question}"`);
   const db = getDb();
   const memofichesCollection = db.collection('memofiches');
 
@@ -49,7 +46,6 @@ export const askWithMemofiches = async (question) => {
   let relevantMemofiches = [];
 
   if (keywords.length > 0) {
-    console.log(`[${new Date().toISOString()}] askWithMemofiches: Starting memofiches search.`);
     const searchRegex = new RegExp(keywords.join('|'), 'i'); // Case-insensitive OR search
     relevantMemofiches = await memofichesCollection.find({
       $or: [
@@ -58,7 +54,6 @@ export const askWithMemofiches = async (question) => {
         { 'memoContent.content': { $regex: searchRegex } } // Search within memoContent sections
       ]
     }).limit(5).toArray(); // Limit to top 5 relevant fiches
-    console.log(`[${new Date().toISOString()}] askWithMemofiches: Finished memofiches search. Found ${relevantMemofiches.length} fiches.`);
   }
 
   let context = "";
@@ -70,4 +65,22 @@ export const askWithMemofiches = async (question) => {
     You are a PharmIA chatbot, an expert in pharmacy. Your task is to answer user questions based SOLELY on the provided context from PharmIA memofiches.
     Format your response as a JSON object with the following keys: casComptoir, questionsAPoser, maladie, traitement, conseilsAssocies.
 
-    If the question cannot be answered from the provided context, you MUST respond with a JSON object containing a single key 'error' with the value:
+    If the question cannot be answered from the provided context, you MUST respond with a JSON object containing a single key 'error' with the value: "Je suis désolé, ma base de connaissances actuelle ne me permet pas de répondre à cette question. Pour une réponse plus approfondie, veuillez laisser votre email et numéro de téléphone."
+
+    Context from PharmIA Memofiches:
+    ---\n    ${context || "No relevant memofiches found."} 
+    ---
+
+    User Question: ${question}
+
+    Your Answer (based ONLY on the context, in JSON format):
+  `;
+
+  try {
+    const response = await askChatbot(prompt, structuredResponseSchema, "application/json");
+    return response;
+  } catch (error) {
+    console.error("Error asking chatbot with RAG:", error);
+    throw error;
+  }
+};

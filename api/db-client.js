@@ -20,7 +20,7 @@ export async function connectToDb() {
         strict: true,
         deprecationErrors: true,
       },
-      serverSelectionTimeoutMS: 30000, // Increased timeout
+      serverSelectionTimeoutMS: 10000, // Increased timeout
     });
     await client.connect();
     await client.db("admin").command({ ping: 1 });

@@ -257,37 +257,5 @@ app.get('/api/learner-space', verifyToken, async (req, res) => {
   }
 });
 
-// Record Fiche Read Route
-app.post('/api/users/me/read-fiches', verifyToken, async (req, res) => {
-  try {
-    const db = getDb();
-    const { ficheId } = req.body;
-    const userId = req.user.userId; // From verifyToken middleware
-
-    // Ensure userId is a valid ObjectId
-    const { ObjectId } = await import('mongodb');
-    if (!ObjectId.isValid(userId)) {
-      return res.status(400).json({ message: 'Invalid User ID.' });
-    }
-
-    const userObjectId = new ObjectId(userId);
-
-    // Add ficheId to the user's readFiches array if not already present
-    const result = await db.collection('users').updateOne(
-      { _id: userObjectId },
-      { $addToSet: { readFiches: ficheId } } // $addToSet adds only if element is not already present
-    );
-
-    if (result.matchedCount === 0) {
-      return res.status(404).json({ message: 'User not found.' });
-    }
-
-    res.status(200).json({ message: 'Fiche read recorded successfully.' });
-  } catch (err) {
-    console.error("Error recording fiche read:", err);
-    res.status(500).json({ message: 'Server error recording fiche read.' });
-  }
-});
-
 // Vercel expects a default export for serverless functions
 export default app;
