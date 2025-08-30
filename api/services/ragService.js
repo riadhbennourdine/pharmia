@@ -1,10 +1,8 @@
 import { getDb } from '../db.js';
-import { GoogleGenerativeAI } from "@google/generative-ai";
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
 
-const ai = new GoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY });
-
-if (!process.env.GEMINI_API_KEY) {
-    throw new Error("GEMINI_API_KEY is not set in environment variables.");
+if (!DEEPSEEK_API_KEY) {
+    throw new Error("DEEPSEEK_API_KEY is not set in environment variables.");
 }
 
 const structuredResponseSchema = {
@@ -22,16 +20,41 @@ const structuredResponseSchema = {
 
 const askChatbot = async (prompt, schema, mimeType) => {
     try {
-        const response = await ai.getGenerativeModel({ model: "gemini-2.5-flash" }).generateContent({
-            contents: [{ role: "user", parts: [{ text: prompt }] }],
-            generationConfig: {
-                responseMimeType: mimeType,
-                responseSchema: schema,
+        // DeepSeek API endpoint (replace with actual DeepSeek chat completion endpoint)
+        const DEEPSEEK_API_ENDPOINT = "https://api.deepseek.com/chat/completions"; // Placeholder
+
+        const response = await fetch(DEEPSEEK_API_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
             },
+            body: JSON.stringify({
+                // DeepSeek API request body (adjust based on DeepSeek's documentation)
+                model: "deepseek-chat", // Or "deepseek-coder" or other specific model
+                messages: [
+                    { role: "system", content: "You are a helpful assistant." }, // System message
+                    { role: "user", content: prompt }
+                ],
+                // You might need to add parameters for response_format, temperature, etc.
+                // For structured output, DeepSeek might have a specific way to handle schema.
+                // If DeepSeek doesn't directly support responseSchema like Gemini,
+                // you might need to instruct the model in the prompt to return JSON.
+            }),
         });
-        return response.text();
+
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(`DeepSeek API error: ${response.status} - ${errorBody}`);
+        }
+
+        const data = await response.json();
+        // Extract the generated text from DeepSeek's response (adjust based on DeepSeek's documentation)
+        // Example: data.choices[0].message.content
+        return data.choices[0].message.content;
+
     } catch (error) {
-        console.error("Error in askChatbot:", error);
+        console.error("Error in askChatbot (DeepSeek):", error);
         throw error;
     }
 };

@@ -1,6 +1,8 @@
-import { GoogleGenerativeAI, FunctionDeclarationSchemaType as Type } from "@google/generative-ai";
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
 
-const ai = new GoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY });
+if (!DEEPSEEK_API_KEY) {
+    throw new Error("DEEPSEEK_API_KEY is not set in environment variables.");
+}
 
 const sectionSchema = {
     type: Type.OBJECT,
@@ -231,29 +233,44 @@ export const generateSingleMemoFiche = async (
     
     
 try {
-        const response = await ai.getGenerativeModel({ model: "gemini-2.5-flash" }).generateContent({
-            contents: prompt,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: memoFicheItemSchema,
-            }
+        const DEEPSEEK_API_ENDPOINT = "https://api.deepseek.com/chat/completions"; // Placeholder
+
+        const response = await fetch(DEEPSEEK_API_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+            },
+            body: JSON.stringify({
+                model: "deepseek-chat", // Or other specific model
+                messages: [
+                    { role: "user", content: prompt }
+                ],
+                // You might need to add parameters for response_format, temperature, etc.
+            }),
         });
 
-        const jsonText = response.text.trim();
-        const data = JSON.parse(jsonText);
-        
-        data.createdAt = new Date().toISOString().split('T')[0];
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(`DeepSeek API error: ${response.status} - ${errorBody}`);
+        }
 
-        const finalResources = data.externalResources || [];
+        const data = await response.json();
+        const jsonText = data.choices[0].message.content.trim(); // Adjust based on DeepSeek's response structure
+        const parsedData = JSON.parse(jsonText);
+        
+        parsedData.createdAt = new Date().toISOString().split('T')[0];
+
+        const finalResources = parsedData.externalResources || [];
         if (options.podcastUrl && !finalResources.some(r => r.url === options.podcastUrl)) {
             finalResources.push({ type: 'podcast', title: 'Podcast recommandé', url: options.podcastUrl });
         }
-        data.externalResources = finalResources;
+        parsedData.externalResources = finalResources;
 
-        return data;
+        return parsedData;
 
     } catch (error) {
-        console.error("Error generating single memo fiche with Gemini:", error);
+        console.error("Error generating single memo fiche with DeepSeek:", error);
         throw new Error("Impossible de générer la mémofiche depuis l'IA. Veuillez réessayer.");
     }
 };
@@ -314,24 +331,38 @@ memoContent
     `
 
     try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: communicationMemoFicheSchema,
-            }
+        const DEEPSEEK_API_ENDPOINT = "https://api.deepseek.com/chat/completions"; // Placeholder
+
+        const response = await fetch(DEEPSEEK_API_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+            },
+            body: JSON.stringify({
+                model: "deepseek-chat", // Or other specific model
+                messages: [
+                    { role: "user", content: prompt }
+                ],
+                // You might need to add parameters for response_format, temperature, etc.
+            }),
         });
 
-        const jsonText = response.text.trim();
-        const data = JSON.parse(jsonText);
-        
-        data.createdAt = new Date().toISOString().split('T')[0];
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(`DeepSeek API error: ${response.status} - ${errorBody}`);
+        }
 
-        return data;
+        const data = await response.json();
+        const jsonText = data.choices[0].message.content.trim(); // Adjust based on DeepSeek's response structure
+        const parsedData = JSON.parse(jsonText);
+        
+        parsedData.createdAt = new Date().toISOString().split('T')[0];
+
+        return parsedData;
 
     } catch (error) {
-        console.error("Error generating communication memo fiche with Gemini:", error);
+        console.error("Error generating communication memo fiche with DeepSeek:", error);
         throw new Error("Impossible de générer la mémofiche de communication depuis l'IA. Veuillez réessayer.");
     }
 };
