@@ -1,6 +1,13 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import express from 'express';
+import path from 'path';
+import cors from 'cors';
+import { fileURLToPath } from 'url';
+
+// Since we are using ES Modules, __dirname is not available. We can define it like this:
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -18,6 +25,9 @@ app.use(async (req, res, next) => {
     res.status(500).send("Failed to connect to the database");
   }
 });
+
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, '../dist')));
 
 
 // Routes
@@ -111,6 +121,10 @@ app.post('/api/login', async (req, res) => {
     console.error("Error during login:", err);
     res.status(500).json({ message: 'Server error during login.' });
   }
+});
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
 // Vercel expects a default export for serverless functions
