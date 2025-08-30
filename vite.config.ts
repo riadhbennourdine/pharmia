@@ -21,6 +21,7 @@ export default defineConfig(({ mode }) => {
         rollupOptions: {
           external: [], // Ensure axios is not externalized
         },
+        chunkSizeWarningLimit: 1500,
       },
     };
 });
