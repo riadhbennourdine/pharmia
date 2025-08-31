@@ -1,7 +1,11 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import OpenAI from 'openai';
+import { type ChatCompletionCreateParams } from 'openai/resources/chat/completions';
 import { MemoFiche, Theme, SystemeOrgane, ExternalResource } from '../types';
 
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+const ai = new OpenAI({
+    apiKey: import.meta.env.VITE_DEEPSEEK_API_KEY,
+    baseURL: 'https://api.deepseek.com/v1',
+});
 
 const sectionSchema = {
     type: Type.OBJECT,
@@ -245,16 +249,16 @@ export const generateSingleMemoFiche = async (
     
     
     try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: memoFicheItemSchema,
-            }
+        const response = await ai.chat.completions.create({
+            model: "deepseek-chat",
+            messages: [{ role: "user", content: prompt }],
+            response_format: { type: "json_object" },
         });
 
-        const jsonText = response.text.trim();
+        const jsonText = response.choices[0].message.content;
+        if (!jsonText) {
+            throw new Error("No content received from DeepSeek API.");
+        }
         const data = JSON.parse(jsonText) as MemoFiche;
         
         data.createdAt = new Date().toISOString().split('T')[0];
@@ -332,16 +336,16 @@ memoContent
     `
 
     try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: communicationMemoFicheSchema,
-            }
+        const response = await ai.chat.completions.create({
+            model: "deepseek-chat",
+            messages: [{ role: "user", content: prompt }],
+            response_format: { type: "json_object" },
         });
 
-        const jsonText = response.text.trim();
+        const jsonText = response.choices[0].message.content;
+        if (!jsonText) {
+            throw new Error("No content received from DeepSeek API.");
+        }
         const data = JSON.parse(jsonText) as MemoFiche;
         
         data.createdAt = new Date().toISOString().split('T')[0];
@@ -363,12 +367,12 @@ export const askChatbot = async (question: string): Promise<string> => {
     `;
 
     try {
-        const response = await ai.models.generateContent({
-            model: "gemini-pro", // Use a suitable model for chat
-            contents: prompt,
+        const response = await ai.chat.completions.create({
+            model: "deepseek-chat", // Use a suitable model for chat
+            messages: [{ role: "user", content: prompt }],
         });
 
-        return response.text.trim();
+        return response.choices[0].message.content || "";
 
     } catch (error) {
         console.error("Error asking chatbot:", error);
