@@ -1,10 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { MemoFiche, Theme, SystemeOrgane, ExternalResource } from '../types';
 
-if (!import.meta.env.VITE_GEMINI_API_KEY) {
-    throw new Error("VITE_GEMINI_API_KEY environment variable not set");
-}
-
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
 const sectionSchema = {
