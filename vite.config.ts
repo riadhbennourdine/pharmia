@@ -5,9 +5,9 @@ export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
       define: {
-        'import.meta.env.VITE_APP_BACKEND_URL': JSON.stringify(env.VITE_APP_BACKEND_URL),
-        'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(env.VITE_GEMINI_API_KEY),
-        'import.meta.env.NODE_ENV': JSON.stringify(env.NODE_ENV),
+        'import.meta.env.VITE_APP_BACKEND_URL': JSON.stringify(process.env.VITE_APP_BACKEND_URL),
+        'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(process.env.VITE_GEMINI_API_KEY),
+        'import.meta.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
       },
       server: {
         proxy: {
