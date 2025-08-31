@@ -1,0 +1,10 @@
+[
+  { "id": "orl-respiration", "Nom": "ORL & Respiration", "description": "Troubles respiratoires et ORL" },
+  { "id": "digestion", "Nom": "Digestion", "description": "Pathologies digestives et gastro-intestinales" },
+  { "id": "sante-cutanee", "Nom": "Santé cutanée", "description": "Dermatologie et soins de la peau" },
+  { "id": "muscles-articulations", "Nom": "Muscles & Articulations", "description": "Rhumatologie et traumatologie" },
+  { "id": "sante-feminine", "Nom": "Santé Féminine", "description": "Gynécologie et contraception" },
+  { "id": "cardio-circulation", "Nom": "Cardio & Circulation", "description": "Cardiologie et troubles vasculaires" },
+  { "id": "pediatrie", "Nom": "Pédiatrie", "description": "Soins spécifiques aux enfants" },
+  { "id": "sommeil-stress", "Nom": "Sommeil & Stress", "description": "Troubles du sommeil et gestion du stress" }
+]

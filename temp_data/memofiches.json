@@ -1,0 +1,60 @@
+[
+  {
+    "id": "1",
+    "title": "Gestion de la Rhinite Allergique",
+    "shortDescription": "Conseils et traitements pour la rhinite saisonnière.",
+    "imageUrl": "https://picsum.photos/seed/rhinite/800/600",
+    "imagePosition": "middle",
+    "flashSummary": "La rhinite allergique est une inflammation des muqueuses nasales déclenchée par des allergènes comme le pollen. Le traitement repose sur l'éviction de l'allergène, les antihistaminiques et les corticoïdes nasaux.",
+    "memoContent": [
+      { "id": "s1", "title": "Symptômes", "content": "Éternuements, écoulement nasal, démangeaisons, obstruction nasale." },
+      { "id": "s2", "title": "Traitements", "content": "Antihistaminiques H1, corticoïdes locaux, cromones, décongestionnants." }
+    ],
+    "flashcards": [
+      { "question": "Principal symptôme de la rhinite ?", "answer": "Éternuements en salves." },
+      { "question": "Classe de médicament la plus utilisée ?", "answer": "Antihistaminiques." }
+    ],
+    "quiz": [
+      {
+        "question": "Quel est le traitement de première intention ?",
+        "type": "mcq",
+        "options": ["Antibiotiques", "Antihistaminiques", "Antifongiques"],
+        "correctAnswer": "Antihistaminiques",
+        "explanation": "Les antihistaminiques bloquent l'action de l'histamine, médiateur clé de l'allergie."
+      }
+    ],
+    "glossaryTerms": [
+      { "term": "Antihistaminique", "definition": "Médicament qui s'oppose aux effets de l'histamine." }
+    ],
+    "theme": { "id": "maladies-courantes", "Nom": "Maladies courantes" },
+    "systeme_organe": { "id": "orl-respiration", "Nom": "ORL & Respiration" },
+    "level": "Intermédiaire",
+    "createdAt": "2023-09-15T10:00:00Z",
+    "summaryYoutubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    "externalResources": []
+  },
+  {
+    "id": "2",
+    "title": "Le bon usage des AINS",
+    "shortDescription": "Précautions et bon usage des anti-inflammatoires non stéroïdiens.",
+    "imageUrl": "https://picsum.photos/seed/ains/800/600",
+    "flashSummary": "Les AINS sont efficaces contre la douleur et l'inflammation mais présentent des risques gastriques et rénaux. À utiliser à la dose minimale efficace pour la durée la plus courte.",
+    "memoContent": [
+      { "id": "s1", "title": "Mécanisme d'action", "content": "Inhibition des cyclo-oxygénases (COX-1 et COX-2)." },
+      { "id": "s2", "title": "Effets indésirables", "content": "Troubles digestifs, insuffisance rénale, complications cardiovasculaires." }
+    ],
+    "flashcards": [
+      { "question": "Que signifie AINS ?", "answer": "Anti-Inflammatoire Non Stéroïdien." },
+      { "question": "Principal risque des AINS ?", "answer": "Toxicité gastrique." }
+    ],
+    "quiz": [],
+    "glossaryTerms": [],
+    "theme": { "id": "ordonnances", "Nom": "Ordonnances" },
+    "systeme_organe": { "id": "muscles-articulations", "Nom": "Muscles & Articulations" },
+    "level": "Expert",
+    "createdAt": "2023-10-02T14:30:00Z",
+    "externalResources": [
+      { "type": "video", "title": "Quand prescrire les AINS ?", "url": "https://www.youtube.com/watch?v=examplevideo" }
+    ]
+  }
+]
