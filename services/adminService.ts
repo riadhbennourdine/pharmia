@@ -1,8 +1,6 @@
 import { User } from '../types/user';
 
-const API_BASE_URL = window.location.origin.includes('localhost')
-  ? 'http://localhost:5001/api'
-  : `${window.location.origin}/api`;
+const API_BASE_URL = import.meta.env.VITE_APP_BACKEND_URL;
 
 const getAuthToken = () => {
     return localStorage.getItem('token');
