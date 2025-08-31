@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import express from 'express';
+import cors from 'cors';
 
 const app = express();
 
