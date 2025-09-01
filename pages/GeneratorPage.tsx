@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useData } from '../App';
-import { generateSingleMemoFiche, generateCommunicationMemoFiche } from '../services/geminiService';
+import { generateSingleMemoFiche, generateCommunicationMemoFiche } from '../services/deepseekService';
 import { MemoFiche, Theme, SystemeOrgane } from '../types';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import MemoCard from '../components/MemoCard';

@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { type ChatCompletionCreateParams } from 'openai/resources/chat/completions';
+import { Type } from '@sinclair/typebox';
 import { MemoFiche, Theme, SystemeOrgane, ExternalResource } from '../types';
 
 const ai = new OpenAI({
@@ -273,7 +274,7 @@ export const generateSingleMemoFiche = async (
         return data;
 
     } catch (error) {
-        console.error("Error generating single memo fiche with Gemini:", error);
+        console.error("Error generating single memo fiche with DeepSeek:", error);
         throw new Error("Impossible de générer la mémofiche depuis l'IA. Veuillez réessayer.");
     }
 };
@@ -353,7 +354,7 @@ memoContent
         return data;
 
     } catch (error) {
-        console.error("Error generating communication memo fiche with Gemini:", error);
+        console.error("Error generating communication memo fiche with DeepSeek:", error);
         throw new Error("Impossible de générer la mémofiche de communication depuis l'IA. Veuillez réessayer.");
     }
 };
