@@ -4,3 +4,8 @@
 
 # Local Netlify folder
 .netlify
+
+# Node modules
+node_modules/.bin
+node_modules/.vite
+node_modules/openai
