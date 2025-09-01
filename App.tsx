@@ -15,6 +15,7 @@ import CoachAccueilPage from './pages/CoachAccueilPage';
 import Header from './components/Header';
 import Chatbot from './components/Chatbot';
 import { LoadingSpinner } from './components/LoadingSpinner';
+import { BASE_URL } from './src/constants';
 
 
 // --- Authentication Context ---
@@ -124,7 +125,7 @@ const DataProvider: React.FC<{ children: React.ReactNode; logout: () => void }> 
   const fetchLearnerData = useCallback(async () => {
     if (!token) return;
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/learner-space`, {
+      const response = await fetch(`${BASE_URL}api/learner-space`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (!response.ok) {
@@ -150,7 +151,7 @@ const DataProvider: React.FC<{ children: React.ReactNode; logout: () => void }> 
         }
 
         // Fetch general data
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/data`, { 
+        const response = await fetch(`${BASE_URL}api/data`, { 
           headers: headers
         });
             if (!response.ok) {
@@ -183,7 +184,7 @@ const DataProvider: React.FC<{ children: React.ReactNode; logout: () => void }> 
 
   const addMemoFiche = useCallback(async (newFiche: MemoFiche): Promise<MemoFiche> => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/memofiches`, {
+      const response = await fetch(`${BASE_URL}api/memofiches`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(newFiche),
@@ -236,7 +237,7 @@ const DataProvider: React.FC<{ children: React.ReactNode; logout: () => void }> 
     });
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/memofiches/${id}`, {
+      const response = await fetch(`${BASE_URL}api/memofiches/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -255,7 +256,7 @@ const DataProvider: React.FC<{ children: React.ReactNode; logout: () => void }> 
 
   const updateMemoFiche = useCallback(async (updatedFiche: MemoFiche): Promise<MemoFiche> => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/memofiches/${updatedFiche.id}`, {
+      const response = await fetch(`${BASE_URL}api/memofiches/${updatedFiche.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(updatedFiche),

@@ -1,8 +1,10 @@
 
-import React, { useState, useMemo, useEffect } from 'react';
-import { QuizQuestion, MemoFiche } from '../types';
-import { CheckCircleIcon, XCircleIcon, SparklesIcon } from './icons';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../App';
+import { LoadingSpinner } from './LoadingSpinner';
+import { CheckCircleIcon, XCircleIcon, SparklesIcon } from './icons';
+import { BASE_URL } from '../src/constants';
+import { BASE_URL } from '../src/constants';
 
 interface QuizSectionProps {
   quiz: QuizQuestion[];
@@ -31,7 +33,7 @@ const QuizSection: React.FC<QuizSectionProps> = ({ quiz, memoFiche }) => {
 
         const percentageScore = (score / quiz.length) * 100;
 
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/users/me/quiz-history`, {
+        const response = await fetch(`${BASE_URL}api/users/me/quiz-history`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -43,7 +45,7 @@ const QuizSection: React.FC<QuizSectionProps> = ({ quiz, memoFiche }) => {
         if (response.ok) {
           fetchLearnerData(); // Re-fetch learner data
           // Also trigger skill level update
-          await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/users/me/update-skill-level`, {
+          await fetch(`${BASE_URL}api/users/me/update-skill-level`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${token}`,

@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { MemoFiche } from '../types';
 import MemoCard from '../components/MemoCard';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { BASE_URL } from '../src/constants';
 
 const SharedFichePage: React.FC = () => {
     const { shareId } = useParams<{ shareId: string }>();
@@ -18,7 +19,7 @@ const SharedFichePage: React.FC = () => {
         setError(null);
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/shares/${shareId}`,
+            const response = await fetch(`${BASE_URL}api/shares/${shareId}`,
                 {
                     method: 'POST',
                     headers: {

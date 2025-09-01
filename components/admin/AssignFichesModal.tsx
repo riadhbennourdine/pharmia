@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../App';
 import { LoadingSpinner } from '../LoadingSpinner';
 import { User } from '../../types/user';
+import { BASE_URL } from '../../src/constants';
+import { BASE_URL } from '../../src/constants';
 
 interface AssignFichesModalProps {
   ficheIds: string[];
@@ -19,7 +21,7 @@ const AssignFichesModal: React.FC<AssignFichesModalProps> = ({ ficheIds, onClose
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/users`, {
+        const response = await fetch(`${BASE_URL}api/admin/users`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },

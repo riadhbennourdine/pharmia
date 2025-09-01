@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../App';
 import { UserRole } from '../types';
+import { BASE_URL } from '../src/constants';
 
 const LoginPage: React.FC = () => {
     const { login, isLoggedIn } = useAuth();
@@ -27,7 +28,7 @@ const LoginPage: React.FC = () => {
         if (isRegisterMode && role === UserRole.Preparateur) {
             const fetchPharmaciens = async () => {
                 try {
-                    const response = await fetch(import.meta.env.VITE_BACKEND_URL + '/api/pharmaciens', {
+                    const response = await fetch(`${BASE_URL}api/pharmaciens`, {
                         headers: {
                         },
                     });
@@ -72,7 +73,7 @@ const LoginPage: React.FC = () => {
         
 
         try {
-            const response = await fetch(import.meta.env.VITE_BACKEND_URL + endpoint, {
+            const response = await fetch(`${BASE_URL}${endpoint}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

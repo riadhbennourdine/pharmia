@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../App';
 import { User } from '../../types/user';
 import { LoadingSpinner } from '../LoadingSpinner';
+import { BASE_URL } from '../../src/constants';
 
 const TrainerManagement: React.FC = () => {
     const { token } = useAuth();
@@ -17,7 +18,7 @@ const TrainerManagement: React.FC = () => {
                 return;
             }
             try {
-                const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/formateurs`, {
+                const response = await fetch(`${BASE_URL}api/admin/formateurs`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                     },

@@ -6,6 +6,7 @@ import MemoCard from '../components/MemoCard';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ResetIcon } from '../components/icons';
 import AssignFichesModal from '../components/admin/AssignFichesModal';
+import { BASE_URL } from '../src/constants';
 
 const FichesPage: React.FC = () => {
   const { data, loading, error, deleteMemoFiche } = useData();
@@ -36,7 +37,7 @@ const FichesPage: React.FC = () => {
     setIsSharing(true);
     setShareableLink(null);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/shares`, {
+      const response = await fetch(`${BASE_URL}api/shares`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,7 +64,7 @@ const FichesPage: React.FC = () => {
 
   const handleAssignFiches = async (userIds: string[]) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/assign-fiches`, {
+      const response = await fetch(`${BASE_URL}api/admin/assign-fiches`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

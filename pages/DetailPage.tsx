@@ -10,6 +10,8 @@ import { BookOpenIcon, VideoCameraIcon, QuestionMarkCircleIcon, SparklesIcon, Do
 import { FiMic, FiMessageSquare } from 'react-icons/fi';
 import { useData } from '../App';
 import { useAuth } from '../App';
+import { BASE_URL } from '../src/constants';
+import { BASE_URL } from '../src/constants';
 
 
 interface DetailPageProps {
@@ -36,7 +38,7 @@ const DetailPage: React.FC<DetailPageProps> = ({ memoFiche }) => {
         const token = localStorage.getItem('token');
         if (!token) return;
 
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/users/me/read-fiches`, {
+        const response = await fetch(`${BASE_URL}api/users/me/read-fiches`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

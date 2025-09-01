@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../App';
 import { User } from '../types/user';
 import { LoadingSpinner } from './LoadingSpinner';
+import { BASE_URL } from '../src/constants';
+import { BASE_URL } from '../src/constants';
 
 interface PharmacienDashboardProps {
     pharmacienId: string;
@@ -14,7 +16,7 @@ const ConsigneModal: React.FC<{ preparateur: User; token: string | null; onClose
     const handleSave = async () => {
         setIsSaving(true);
         try {
-            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/pharmacien/preparateurs/${preparateur._id}/consigne`, {
+            const response = await fetch(`${BASE_URL}api/pharmacien/preparateurs/${preparateur._id}/consigne`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -74,7 +76,7 @@ const PharmacienDashboard: React.FC<PharmacienDashboardProps> = ({ pharmacienId 
         }
         setLoading(true);
         try {
-            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/pharmacien/preparateurs`, {
+            const response = await fetch(`${BASE_URL}api/pharmacien/preparateurs`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                 },
