@@ -1,12 +1,8 @@
-import OpenAI from 'openai';
-import { type ChatCompletionCreateParams } from 'openai/resources/chat/completions';
+import axios from 'axios';
 import { Type } from '@sinclair/typebox';
 import { MemoFiche, Theme, SystemeOrgane, ExternalResource } from '../types';
 
-const ai = new OpenAI({
-    apiKey: import.meta.env.VITE_DEEPSEEK_API_KEY,
-    baseURL: 'https://api.deepseek.com/v1',
-});
+
 
 const sectionSchema = {
     type: Type.OBJECT,
@@ -250,13 +246,18 @@ export const generateSingleMemoFiche = async (
     
     
     try {
-        const response = await ai.chat.completions.create({
+        const response = await axios.post('https://api.deepseek.com/v1/chat/completions', {
             model: "deepseek-chat",
             messages: [{ role: "user", content: prompt }],
             response_format: { type: "json_object" },
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${import.meta.env.VITE_DEEPSEEK_API_KEY}`,
+            },
         });
 
-        const jsonText = response.choices[0].message.content;
+        const jsonText = response.data.choices[0].message.content;
         if (!jsonText) {
             throw new Error("No content received from DeepSeek API.");
         }
@@ -337,13 +338,18 @@ memoContent
     `
 
     try {
-        const response = await ai.chat.completions.create({
+        const response = await axios.post('https://api.deepseek.com/v1/chat/completions', {
             model: "deepseek-chat",
             messages: [{ role: "user", content: prompt }],
             response_format: { type: "json_object" },
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${import.meta.env.VITE_DEEPSEEK_API_KEY}`,
+            },
         });
 
-        const jsonText = response.choices[0].message.content;
+        const jsonText = response.data.choices[0].message.content;
         if (!jsonText) {
             throw new Error("No content received from DeepSeek API.");
         }
@@ -368,12 +374,17 @@ export const askChatbot = async (question: string): Promise<string> => {
     `;
 
     try {
-        const response = await ai.chat.completions.create({
+        const response = await axios.post('https://api.deepseek.com/v1/chat/completions', {
             model: "deepseek-chat", // Use a suitable model for chat
             messages: [{ role: "user", content: prompt }],
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${import.meta.env.VITE_DEEPSEEK_API_KEY}`,
+            },
         });
 
-        return response.choices[0].message.content || "";
+        return response.data.choices[0].message.content || "";
 
     } catch (error) {
         console.error("Error asking chatbot:", error);
