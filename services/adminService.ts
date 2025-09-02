@@ -1,6 +1,6 @@
 import { User } from '../types/user';
 
-const API_BASE_URL = import.meta.env.VITE_APP_BACKEND_URL;
+import { BASE_URL as API_BASE_URL } from '../src/constants';
 
 const getAuthToken = () => {
     return localStorage.getItem('token');

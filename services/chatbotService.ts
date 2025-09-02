@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_APP_BACKEND_URL;
+import { BASE_URL as API_BASE_URL } from '../src/constants';
 
 export const sendMessageToChatbot = async (message: string): Promise<string> => {
     try {

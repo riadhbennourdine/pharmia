@@ -1,6 +1,6 @@
 import { MemoFiche } from '../types';
 
-const API_BASE_URL = import.meta.env.VITE_APP_BACKEND_URL || '/api';
+import { BASE_URL as API_BASE_URL } from '../src/constants';
 
 export interface Recommendation {
   fiche: MemoFiche;
