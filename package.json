@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "concurrently \"npm:dev:frontend\" \"npm:dev --prefix api\"",
     "dev:frontend": "vite",
-    "build": "echo 'VITE_API_URL is: $VITE_API_URL' && vite build",
+    "build": "if [ -z \"$VITE_API_URL\" ]; then echo 'VITE_API_URL is not set, failing build'; exit 1; fi && vite build",
     "vercel-build": "vite build",
     "preview": "vite preview",
     "postinstall": "npm install axios --prefix ./node_modules/axios"
