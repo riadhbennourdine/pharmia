@@ -1,7 +1,9 @@
+import 'dotenv/config';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import express from 'express';
 import cors from 'cors';
+import { connectToServer, getDb } from './db.js';
 
 const app = express();
 

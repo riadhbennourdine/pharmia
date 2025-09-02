@@ -1,11 +1,14 @@
 
+/node_modules
+/api/node_modules
+
+# Log files
+*.log
+
+# Environment variables
 .env
-.env
+.env.*
+!/.env.example
 
 # Local Netlify folder
 .netlify
-
-# Node modules
-node_modules/.bin
-node_modules/.vite
-node_modules/openai
